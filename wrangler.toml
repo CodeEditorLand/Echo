@@ -1,0 +1,42 @@
+name = "echo-codeeditorland"
+main = "./Target/Index.js"
+account_id = ""
+compatibility_date = "2023-05-18"
+compatibility_flags = ["nodejs_compat"]
+keep_vars = true
+route = { pattern = "echo.editor.land", custom_domain = true, zone_name = "editor.land" }
+send_metrics = false
+tsconfig = "./tsconfig.json"
+workers_dev = false
+
+[build]
+command = "npm run prepublishOnly"
+cwd = "."
+watch_dir = "./Source"
+
+[dev]
+ip = "127.0.0.1"
+port = 4000
+
+[placement]
+mode = "smart"
+
+[[kv_namespaces]]
+binding = "Token"
+id = "b9d69c16b81d4ef983021632d97497a1"
+preview_id = "ab4360cb3114495696fb770c37396939"
+
+[[kv_namespaces]]
+binding = "HTML"
+id = "da1a82fb8d53479da614099a331592db"
+preview_id = "01aed2291c2444c98828c9e4970d0138"
+
+[[kv_namespaces]]
+binding = "CSS"
+id = "787e9c1eb3dc4aef8ae07b86e927290d"
+preview_id = "e77d0922b6bf437ab5b3a5b1c89e1943"
+
+[[kv_namespaces]]
+binding = "TypeScript"
+id = "107d4fd69ba9498d8dd8895427208b3a"
+preview_id = "effdaf9c9ac24e869de2e430506147f0"
