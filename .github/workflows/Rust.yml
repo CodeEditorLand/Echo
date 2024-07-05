@@ -1,7 +1,7 @@
-name: Cloudflare
+name: Rust
 
 concurrency:
-    group: Cloudflare-${{ github.workflow }}-${{ github.ref }}
+    group: Rust-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 permissions:
@@ -16,7 +16,7 @@ on:
     workflow_call:
 
 jobs:
-    Cloudflare:
+    Build:
         runs-on: ubuntu-latest
 
         env:
@@ -50,11 +50,29 @@ jobs:
             STRIPE_CLI_TELEMETRY_OPTOUT: 1
             TELEMETRY_DISABLED: 1
 
+        strategy:
+            matrix:
+                toolchain: ["stable", "nightly"]
+
         steps:
             - uses: actions/checkout@v4.1.7
 
-            - uses: cloudflare/wrangler-action@v3.6.1
+            - uses: actions-rs/toolchain@v1.0.7
               with:
-                  apiToken: ${{ secrets.CF_API_TOKEN }}
-                  accountId: ${{ secrets.CF_ACCOUNT_ID }}
-                  workingDirectory: .
+                  profile: minimal
+                  toolchain: ${{ matrix.toolchain }}
+
+            - uses: actions/cache@v4.0.2
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                      Target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('./Cargo.toml') }}
+            - uses: actions-rs/cargo@v1.0.3
+              with:
+                command: build
+                args: --release --all-features --manifest-path ./Cargo.toml
