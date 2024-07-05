@@ -1,4 +1,4 @@
-use super::{Action, FileOperationResult, WorkQueue};
+use super::{Action, ActionResult, WorkQueue};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::{net::TcpStream, sync::mpsc};
@@ -7,7 +7,7 @@ use tokio_tungstenite::{tungstenite::Message, WebSocketStream};
 pub async fn Fn(
 	stream: WebSocketStream<TcpStream>,
 	queue: Arc<WorkQueue>,
-	mut rx: mpsc::Receiver<FileOperationResult>,
+	mut rx: mpsc::Receiver<ActionResult>,
 ) {
 	let (mut write, mut read) = stream.split();
 

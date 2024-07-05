@@ -14,7 +14,7 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, MaybeTlsS
 
 #[async_trait]
 trait Worker: Send + Sync {
-	async fn Receive(&self, Task: String) -> Result<String, String>;
+	async fn Receive(&self, Action: String) -> Result<String, String>;
 }
 
 struct FileOpWorker {
@@ -91,12 +91,12 @@ async fn Get(Path: String, State: tauri::State<'_, Arc<Work>>) -> Result<(), Str
 	Ok(())
 }
 
-async fn Job(Worker: Arc<dyn Worker>, Work: Arc<Work>, Acceptance: mpsc::Sender<String>) {
+async fn Job(Worker: Arc<dyn Worker>, Work: Arc<Work>, Approval: mpsc::Sender<String>) {
 	loop {
 		if let Some(Task) = Work.Execute().await {
 			match Worker.Receive(Task).await {
 				Ok(Result) => {
-					if Acceptance.send(Result).await.is_err() {
+					if Approval.send(Result).await.is_err() {
 						break;
 					}
 				}
@@ -118,7 +118,7 @@ async fn main() {
 	));
 
 	let Work = Arc::new(Work::new());
-	let (Acceptance, mut Receipt) = mpsc::channel(100);
+	let (Approval, mut Receipt) = mpsc::channel(100);
 
 	// @TODO: Auto-calc number of workers in the force
 	let Force: Vec<_> = (0..4)
@@ -126,7 +126,7 @@ async fn main() {
 			tokio::spawn(Job(
 				Arc::new(FileOpWorker { Stream: Stream.clone() }) as Arc<dyn Worker>,
 				Work.clone(),
-				Acceptance.clone(),
+				Approval.clone(),
 			))
 		})
 		.collect();

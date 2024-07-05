@@ -1,11 +1,9 @@
-// file_ops_common/src/lib.rs
+pub mod Yell;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
-
-pub mod Socket;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Action {
@@ -14,43 +12,38 @@ pub enum Action {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct FileOperationResult {
-	pub operation: Action,
-	pub result: Result<String, String>,
+pub struct ActionResult {
+	pub Action: Action,
+	pub Result: Result<String, String>,
 }
 
 #[async_trait]
 pub trait Worker: Send + Sync {
-	async fn process(&self, task: Action) -> FileOperationResult;
+	async fn Receive(&self, Action: Action) -> ActionResult;
 }
 
-pub struct WorkQueue {
-	tasks: Arc<Mutex<Vec<Action>>>,
+pub struct Work {
+	Queue: Arc<Mutex<Vec<Action>>>,
 }
 
-impl WorkQueue {
-	pub fn new() -> Self {
-		WorkQueue { tasks: Arc::new(Mutex::new(Vec::new())) }
+impl Work {
+	pub fn Begin() -> Self {
+		Work { Queue: Arc::new(Mutex::new(Vec::new())) }
 	}
 
 	pub async fn Assign(&self, task: Action) {
-		self.tasks.lock().await.push(task);
+		self.Queue.lock().await.push(task);
 	}
 
-	pub async fn steal(&self) -> Option<Action> {
-		self.tasks.lock().await.pop()
+	pub async fn Execute(&self) -> Option<Action> {
+		self.Queue.lock().await.pop()
 	}
 }
 
-pub async fn Job(
-	worker: Arc<dyn Worker>,
-	queue: Arc<WorkQueue>,
-	tx: mpsc::Sender<FileOperationResult>,
-) {
+pub async fn Job(Worker: Arc<dyn Worker>, Work: Arc<Work>, tx: mpsc::Sender<ActionResult>) {
 	loop {
-		if let Some(task) = queue.steal().await {
-			let result = worker.process(task).await;
-			if tx.send(result).await.is_err() {
+		if let Some(Action) = Work.Execute().await {
+			if tx.send(Worker.Receive(Action).await).await.is_err() {
 				break;
 			}
 		} else {
