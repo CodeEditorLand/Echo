@@ -1,4 +1,4 @@
-use super::{Action, ActionResult, WorkQueue};
+use super::{Action, ActionResult, Work};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::{net::TcpStream, sync::mpsc};
@@ -6,7 +6,7 @@ use tokio_tungstenite::{tungstenite::Message, WebSocketStream};
 
 pub async fn Fn(
 	stream: WebSocketStream<TcpStream>,
-	queue: Arc<WorkQueue>,
+	Work: Arc<Work>,
 	mut rx: mpsc::Receiver<ActionResult>,
 ) {
 	let (mut write, mut read) = stream.split();
@@ -16,7 +16,7 @@ pub async fn Fn(
 			Some(message) = read.next() => {
 				if let Ok(Message::Text(text)) = message {
 					if let Ok(operation) = serde_json::from_str::<Action>(&text) {
-						queue.push(operation).await;
+						Work.push(operation).await;
 					}
 				}
 			}

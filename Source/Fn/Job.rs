@@ -40,10 +40,10 @@ impl Work {
 	}
 }
 
-pub async fn Job(Worker: Arc<dyn Worker>, Work: Arc<Work>, tx: mpsc::Sender<ActionResult>) {
+pub async fn Job(Worker: Arc<dyn Worker>, Work: Arc<Work>, Approval: mpsc::Sender<ActionResult>) {
 	loop {
 		if let Some(Action) = Work.Execute().await {
-			if tx.send(Worker.Receive(Action).await).await.is_err() {
+			if Approval.send(Worker.Receive(Action).await).await.is_err() {
 				break;
 			}
 		} else {
