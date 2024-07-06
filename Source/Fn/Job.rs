@@ -40,13 +40,13 @@ impl Work {
 }
 
 pub async fn Fn(
-	Worker: Arc<dyn Worker>,
+	Site: Arc<dyn Worker>,
 	Work: Arc<Work>,
 	Approval: mpsc::UnboundedSender<ActionResult>,
 ) {
 	loop {
 		if let Some(Action) = Work.Execute().await {
-			if Approval.send(Worker.Receive(Action).await).await.is_err() {
+			if Approval.send(Site.Receive(Action).await).is_err() {
 				break;
 			}
 		} else {
