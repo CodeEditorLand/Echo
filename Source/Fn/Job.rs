@@ -52,7 +52,6 @@ pub async fn Fn(
 				break;
 			}
 		} else {
-			// @TODO: Test this for performance
 			tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 		}
 	}
