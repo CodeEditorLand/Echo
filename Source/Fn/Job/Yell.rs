@@ -7,7 +7,7 @@ use tokio_tungstenite::tungstenite::Message;
 pub async fn Fn(
 	Order: tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>,
 	Work: Arc<Work>,
-	mut Approval: tokio::sync::mpsc::Receiver<ActionResult>,
+	mut Receipt: tokio::sync::mpsc::UnboundedReceiver<ActionResult>,
 ) {
 	let (mut Write, mut Read) = Order.split();
 
@@ -21,7 +21,7 @@ pub async fn Fn(
 				}
 			}
 
-			Some(Shout) = Approval.recv() => {
+			Some(Shout) = Receipt.recv() => {
 				if Write.send(Message::Text(serde_json::to_string(&Shout).unwrap())).await.is_err() {
 					break;
 				}
