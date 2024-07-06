@@ -2,7 +2,7 @@ pub mod Yell;
 
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::Mutex;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Action {
@@ -42,7 +42,7 @@ impl Work {
 pub async fn Fn(
 	Site: Arc<dyn Worker>,
 	Work: Arc<Work>,
-	Approval: mpsc::UnboundedSender<ActionResult>,
+	Approval: tokio::sync::mpsc::UnboundedSender<ActionResult>,
 ) {
 	loop {
 		if let Some(Action) = Work.Execute().await {
