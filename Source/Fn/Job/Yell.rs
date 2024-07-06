@@ -21,7 +21,9 @@ pub async fn Fn(
 				}
 			}
 
-			Some(Shout) = Receipt. => {
+			Some(Shout) = async {
+				Receipt.lock().await.recv().await
+			} => {
 				if Write.send(Message::Text(serde_json::to_string(&Shout).unwrap())).await.is_err() {
 					break;
 				}

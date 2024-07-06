@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 pub mod Yell;
 
 use serde::{Deserialize, Serialize};
