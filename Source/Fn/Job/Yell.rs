@@ -1,31 +1,32 @@
-use super::{Action, ActionResult, Work};
-use futures_util::{SinkExt, StreamExt};
+use crate::Fn::Job::{Action, ActionResult, Work};
+
+use futures::{SinkExt, StreamExt};
 use std::sync::Arc;
-use tokio::{net::TcpStream, sync::mpsc};
-use tokio_tungstenite::{tungstenite::Message, WebSocketStream};
+use tokio_tungstenite::tungstenite::Message;
 
 pub async fn Fn(
-	stream: WebSocketStream<TcpStream>,
+	Order: tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>,
 	Work: Arc<Work>,
-	mut rx: mpsc::Receiver<ActionResult>,
+	mut Approval: tokio::sync::mpsc::Receiver<ActionResult>,
 ) {
-	let (mut write, mut read) = stream.split();
+	let (mut Write, mut Read) = Order.split();
 
 	loop {
 		tokio::select! {
-			Some(message) = read.next() => {
-				if let Ok(Message::Text(text)) = message {
-					if let Ok(operation) = serde_json::from_str::<Action>(&text) {
-						Work.push(operation).await;
+			Some(Shout) = Read.next() => {
+				if let Ok(Message::Text(text)) = Shout {
+					if let Ok(Action) = serde_json::from_str::<Action>(&text) {
+						Work.Assign(Action).await;
 					}
 				}
 			}
-			Some(result) = rx.recv() => {
-				let message = serde_json::to_string(&result).unwrap();
-				if write.send(Message::Text(message)).await.is_err() {
+
+			Some(Shout) = Approval.recv() => {
+				if Write.send(Message::Text(serde_json::to_string(&Shout).unwrap())).await.is_err() {
 					break;
 				}
 			}
+
 			else => break,
 		}
 	}
