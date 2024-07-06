@@ -12,7 +12,7 @@ tokio-tungstenite = "0.23.1"
 
 [lib]
 crate-type = ["rlib"]
-name = "Library"
+name = "Echo"
 path = "Source/Library.rs"
 
 [package]
@@ -22,7 +22,8 @@ autoexamples = false
 autotests = false
 description = "📣 Echo —"
 license = "MIT"
-name = "echo"
+name = "Echo"
 repository = "HTTPS://GitHub.Com/CodeEditorLand/Echo"
 version = "0.0.0"
 edition = "2021"
+publish = false
