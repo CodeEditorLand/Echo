@@ -20,8 +20,7 @@ queues to efficiently manage tasks.
 
 Echo is designed to streamline the process of reading and writing files across
 different applications. By leveraging WebSockets, it ensures real-time
-communication and efficient task management. The worker-stealer pattern allows
-for dynamic distribution of tasks, ensuring optimal resource utilization.
+communication and efficient task management.
 
 ## Features
 
@@ -30,18 +29,9 @@ for dynamic distribution of tasks, ensuring optimal resource utilization.
 Utilizes asynchronous functions to handle file operations, ensuring non-blocking
 execution.
 
--   **Worker-Stealer Pattern**:
-
-Implements a dynamic task distribution mechanism to balance the workload across
-multiple workers.
-
 -   **WebSocket Communication**:
 
 Facilitates real-time communication between different components of the system.
-
--   **Parallel Queues**:
-
-Manages tasks using parallel queues to enhance performance and efficiency.
 
 ## Installation
 
@@ -75,24 +65,11 @@ To get started with Echo, follow these steps:
 
 ## Architecture
 
-### Worker-Stealer Pattern
-
-The worker-stealer pattern is implemented to dynamically distribute tasks among
-available workers. This ensures that no single worker is overloaded while others
-remain idle. Tasks are placed in a shared queue, and workers can "steal" tasks
-from each other to balance the workload.
-
 ### WebSocket Communication
 
 WebSockets are used to facilitate real-time communication between the Tauri
 application, Sun, and River. This ensures that file operations are executed
 promptly and efficiently.
-
-### Asynchronous and Parallel Queues
-
-Echo uses asynchronous functions and parallel queues to manage tasks. This
-ensures that file operations do not block the main execution thread, enhancing
-the overall performance and responsiveness of the system.
 
 ### Code Structure
 
