@@ -25,14 +25,23 @@ for dynamic distribution of tasks, ensuring optimal resource utilization.
 
 ## Features
 
--   **Asynchronous Operations**: Utilizes asynchronous functions to handle file
-    operations, ensuring non-blocking execution.
--   **Worker-Stealer Pattern**: Implements a dynamic task distribution mechanism
-    to balance the workload across multiple workers.
--   **WebSocket Communication**: Facilitates real-time communication between
-    different components of the system.
--   **Parallel Queues**: Manages tasks using parallel queues to enhance
-    performance and efficiency.
+-   **Asynchronous Operations**:
+
+Utilizes asynchronous functions to handle file operations, ensuring non-blocking
+execution.
+
+-   **Worker-Stealer Pattern**:
+
+Implements a dynamic task distribution mechanism to balance the workload across
+multiple workers.
+
+-   **WebSocket Communication**:
+
+Facilitates real-time communication between different components of the system.
+
+-   **Parallel Queues**:
+
+Manages tasks using parallel queues to enhance performance and efficiency.
 
 ## Installation
 
