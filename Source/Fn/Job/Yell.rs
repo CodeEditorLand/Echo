@@ -30,8 +30,8 @@ pub async fn Fn(
 	loop {
 		tokio::select! {
 			Some(Shout) = Read.next() => {
-				if let Ok(Message::Text(text)) = Shout {
-					if let Ok(Action) = serde_json::from_str::<Action>(&text) {
+				if let Ok(Message::Text(Shout)) = Shout {
+					if let Ok(Action) = serde_json::from_str::<Action>(&Shout) {
 						Work.Assign(Action).await;
 					}
 				}
