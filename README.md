@@ -88,6 +88,8 @@ the overall performance and responsiveness of the system.
 -   **Main**: The entry point of the Rust binaries, responsible for reading
     configuration files and setting up the environment.
 
+[Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this integration.
