@@ -50,7 +50,7 @@ To get started with Echo, follow these steps:
 1. **Clone the Repository**:
 
     ```bash
-    git clone https://github.com/CodeEditorLand/Echo.git
+    git clone ssh://git@github.com/CodeEditorLand/Echo.git
     cd Echo
     ```
 
@@ -61,8 +61,14 @@ To get started with Echo, follow these steps:
     ```
 
 3. **Install Dependencies**:
+
     ```bash
     pnpm install
+    ```
+
+4. **Build the TypeScript project**:
+    ```bash
+    pnpm run prepublishOnly
     ```
 
 ## Usage
@@ -90,12 +96,20 @@ the overall performance and responsiveness of the system.
 
 ### Code Structure
 
--   **Interface**: Defines the structure of the response object and the main
-    asynchronous function for handling responses.
--   **Worker**: Contains the implementation of the worker-stealer pattern and
-    the task queue management.
--   **Main**: The entry point of the Rust binaries, responsible for reading
-    configuration files and setting up the environment.
+-   **Interface**:
+
+Defines the structure of the response object and the main asynchronous function
+for handling responses.
+
+-   **Worker**:
+
+Contains the implementation of the worker-stealer pattern and the task queue
+management.
+
+-   **Main**:
+
+The entry point of the Rust binaries, responsible for reading configuration
+files and setting up the environment.
 
 [Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
 
