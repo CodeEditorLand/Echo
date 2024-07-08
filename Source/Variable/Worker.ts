@@ -64,7 +64,7 @@ export default {
 
 		return new Response("Can't make a WebSocket.", { status: 404 });
 	},
-} satisfies Interface as Interface;
+} satisfies Interface;
 
 export const { default: Access } = await import(
 	"@codeeditorland/common/Target/Function/Access.js"

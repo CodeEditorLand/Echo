@@ -10,7 +10,7 @@ export default (async (
 		headers: {
 			"Content-Type": "application/json;charset=utf-8",
 		},
-	})) satisfies Interface as Interface;
+	})) satisfies Interface;
 
 import type Interface from "../Interface/Response.js";
 
