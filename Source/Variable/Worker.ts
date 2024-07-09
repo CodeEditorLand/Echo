@@ -42,7 +42,7 @@ export default {
 							)
 						: {};
 
-					// @TODO: When leaving persist content in a time-series database (preferably git)
+					// TODO: When leaving persist content in a time-series database (preferably git)
 					WebSocket[1].send(
 						JSON.stringify({
 							Original: Put(Message),
