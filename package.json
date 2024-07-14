@@ -28,12 +28,12 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20240620.0",
+		"@cloudflare/workers-types": "4.20240712.0",
 		"@playform/build": "0.1.1",
 		"@types/dotenv": "8.2.0",
 		"@typescript-eslint/eslint-plugin": "7.16.0",
 		"@typescript-eslint/parser": "7.16.0",
-		"eslint": "9.6.0",
+		"eslint": "9.7.0",
 		"miniflare": "3.20240701.0",
 		"wrangler": "3.64.0"
 	},
