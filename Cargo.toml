@@ -24,6 +24,6 @@ description = "📣 Echo —"
 license = "MIT"
 name = "Echo"
 repository = "HTTPS://GitHub.Com/CodeEditorLand/Echo"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2021"
 publish = false
