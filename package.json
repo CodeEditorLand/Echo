@@ -38,6 +38,7 @@
 		"wrangler": "3.65.0"
 	},
 	"publishConfig": {
+		"provenance": true,
 		"access": "public"
 	}
 }
