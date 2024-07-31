@@ -1,9 +1,3 @@
-use crate::Fn::Job::{Action, ActionResult, Work};
-
-use futures::{SinkExt, StreamExt};
-use std::sync::Arc;
-use tokio_tungstenite::tungstenite::Message;
-
 /// Asynchronously processes WebSocket messages and actions from a work queue.
 ///
 /// # Arguments
@@ -22,7 +16,7 @@ use tokio_tungstenite::tungstenite::Message;
 /// If sending a message through the WebSocket stream fails, the loop breaks.
 pub async fn Fn(
 	Order: tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>,
-	Work: Arc<Work>,
+	Work: Arc<Struct>,
 	Receipt: Arc<tokio::sync::Mutex<tokio::sync::mpsc::UnboundedReceiver<ActionResult>>>,
 ) {
 	let (mut Write, mut Read) = Order.split();
@@ -49,3 +43,12 @@ pub async fn Fn(
 		}
 	}
 }
+
+use futures::{SinkExt, StreamExt};
+use std::sync::Arc;
+use tokio_tungstenite::tungstenite::Message;
+
+use crate::{
+	Fn::Job::{Action, ActionResult},
+	Struct::Job::Work::Struct,
+};

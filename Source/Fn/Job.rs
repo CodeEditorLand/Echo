@@ -1,11 +1,3 @@
-#![allow(non_snake_case)]
-
-pub mod Yell;
-
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::Mutex;
-
 /// Represents different types of actions that can be performed.
 ///
 /// # Variants
@@ -50,40 +42,6 @@ pub trait Worker: Send + Sync {
 	async fn Receive(&self, Action: Action) -> ActionResult;
 }
 
-/// Represents a work queue that holds actions to be processed.
-pub struct Work {
-	Queue: Arc<Mutex<Vec<Action>>>,
-}
-
-impl Work {
-	/// Creates a new `Work` instance with an empty queue.
-	///
-	/// # Returns
-	///
-	/// A new `Work` instance
-	pub fn Begin() -> Self {
-		Work { Queue: Arc::new(Mutex::new(Vec::new())) }
-	}
-
-	/// Assigns a new action to the work queue.
-	///
-	/// # Arguments
-	///
-	/// * `Action` - The action to be added to the queue.
-	pub async fn Assign(&self, Action: Action) {
-		self.Queue.lock().await.push(Action);
-	}
-
-	/// Executes the next action from the work queue.
-	///
-	/// # Returns
-	///
-	/// An `Option` containing the next action if available, or `None` if the queue is empty.
-	pub async fn Execute(&self) -> Option<Action> {
-		self.Queue.lock().await.pop()
-	}
-}
-
 /// Asynchronously processes actions from a work queue and sends the results to an approval channel.
 ///
 /// # Arguments
@@ -113,3 +71,9 @@ pub async fn Fn(
 		}
 	}
 }
+
+pub mod Yell;
+
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tokio::sync::Mutex;
