@@ -7,7 +7,7 @@
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Struct {
 	pub Target: Option<Box<Struct>>,
-	pub Metadata: serde_json::Value,
+	pub Metadata: Metadata,
 }
 
 impl Struct {
@@ -21,9 +21,13 @@ impl Struct {
 			println!("This action is followed by another action: {}", Next.Metadata);
 
 			// Perform additional logic if needed
+			// Next.Fn(self.Metadata.clone());
 			Next.Fn();
 		}
 	}
 }
 
 use serde::{Deserialize, Serialize};
+use std::fs::Metadata;
+
+pub type Metadata = serde_json::Value;
