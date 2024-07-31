@@ -1,18 +1,3 @@
-/// Represents different types of actions that can be performed.
-///
-/// # Variants
-///
-/// * `Read` - Represents a read action with a specified file path.
-/// * `Write` - Represents a write action with a specified file path and content.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Action {
-	/// Read action with the specified file path.
-	Read { Path: String },
-
-	/// Write action with the specified file path and content.
-	Write { Path: String, Content: String },
-}
-
 /// Asynchronously processes actions from a work queue and sends the results to an approval channel.
 ///
 /// # Arguments
