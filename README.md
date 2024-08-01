@@ -103,6 +103,73 @@ classDiagram
     Plan <-- PlanBuilder
 ```
 
+## Example:
+
+```mermaid
+classDiagram
+    class ReadAction {
+        +Path: String
+    }
+
+    class Action~ReadAction~ {
+        +ExecuteLogic(Context: &ExecutionContext) Result<(), ActionError>
+    }
+
+    class SimpleWorker {
+        +Receive(Action: Box<dyn ActionTrait>, Context: &ExecutionContext) Result<(), ActionError>
+    }
+
+    class EmptyContent
+
+    class Main {
+        +Main() Result<(), Box<dyn std::error::Error>>
+    }
+
+    class ExecutionContext {
+        +HookMap: Arc<DashMap<String, Hook>>
+        +Config: Arc<Config>
+        +Cache: Arc<Mutex<DashMap<String, serde_json::Value>>>
+    }
+
+    class Work {
+        +New()
+        +Assign(Action: Box<dyn ActionTrait>)
+    }
+
+    class ActionProcessor {
+        +New(Site: Arc<dyn Worker>, Work: Arc<Work>, Context: ExecutionContext)
+        +Run()
+        +Shutdown()
+    }
+
+    class PlanBuilder {
+        +New()
+        +WithSignature(Signature: ActionSignature)
+        +WithFunction(Name: &str, Func: F)
+        +Build() Plan
+    }
+
+    class Plan {
+        +AddSignature(Signature: ActionSignature)
+        +AddFunction(Name: &str, Func: F)
+    }
+
+    Action~ReadAction~ --|> ActionTrait
+    SimpleWorker ..|> Worker
+    Main ..> ReadAction : creates
+    Main ..> SimpleWorker : creates
+    Main ..> ExecutionContext : creates
+    Main ..> Work : creates
+    Main ..> ActionProcessor : creates
+    Main ..> PlanBuilder : uses
+    Main ..> Plan : creates
+    Main ..> Action~ReadAction~ : creates
+    Main ..> EmptyContent : creates
+    PlanBuilder ..> Plan : builds
+    ActionProcessor o-- Work
+    ActionProcessor o-- SimpleWorker
+```
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this integration.
