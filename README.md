@@ -1,4 +1,4 @@
-# 📣 [Echo] — Asynchronous Action Processing System
+# 📣 [Echo] — Asynchronous Action Processing System
 
 Echo is a sophisticated asynchronous action processing system designed to manage
 and execute various types of actions efficiently. It implements a worker-stealer
