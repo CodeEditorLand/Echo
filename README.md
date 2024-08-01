@@ -1,6 +1,6 @@
 # 📣 [Echo] — Asynchronous Action Processing System
 
-Echo is a sophisticated asynchronous action processing system designed to manage
+`Echo` is a sophisticated asynchronous action processing system designed to manage
 and execute various types of actions efficiently. It implements a worker-stealer
 pattern and utilizes asynchronous queues to manage tasks effectively.
 
@@ -16,7 +16,7 @@ pattern and utilizes asynchronous queues to manage tasks effectively.
 
 ## Introduction
 
-Echo provides a robust framework for defining, queuing, and executing actions
+`Echo` provides a robust framework for defining, queuing, and executing actions
 asynchronously. It's designed to handle complex workflows with features like
 metadata management, function planning, and error handling.
 
@@ -40,7 +40,7 @@ metadata management, function planning, and error handling.
 
 ## Installation
 
-To get started with Echo, follow these steps:
+To get started with `Echo`, follow these steps:
 
 1. **Add to your Cargo.toml**:
 
@@ -57,7 +57,7 @@ cargo build
 
 ## Usage
 
-Here's a basic example of how to use Echo:
+Here's a basic example of how to use `Echo`:
 
 ```rust
 use Echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, Worker};
@@ -226,13 +226,13 @@ classDiagram
     class PlanBuilder {
         +New()
         +WithSignature(Signature: ActionSignature)
-        +WithFunction(Name: &str, Func: F)
+        +WithFunction(Name: &str, Fn: F)
         +Build() Plan
     }
 
     class Plan {
         +AddSignature(Signature: ActionSignature)
-        +AddFunction(Name: &str, Func: F)
+        +AddFunction(Name: &str, Fn: F)
     }
 
     Action~ReadAction~ --|> ActionTrait

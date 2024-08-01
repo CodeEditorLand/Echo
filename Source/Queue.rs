@@ -134,14 +134,14 @@ impl Plan {
 		self
 	}
 
-	pub fn AddFunction<F, Fut>(&mut self, Name: &str, Func: F) -> Result<&mut Self, String>
+	pub fn AddFunction<F, Fut>(&mut self, Name: &str, Fn: F) -> Result<&mut Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
 		if let Some(_Signature) = self.Signatures.get(Name) {
 			let BoxedFunc = Box::new(move |Args: Vec<serde_json::Value>| {
-				Box::pin(Func(Args))
+				Box::pin(Fn(Args))
 					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
 			});
 
@@ -186,12 +186,12 @@ impl PlanBuilder {
 		self
 	}
 
-	pub fn WithFunction<F, Fut>(mut self, Name: &str, Func: F) -> Result<Self, String>
+	pub fn WithFunction<F, Fut>(mut self, Name: &str, Fn: F) -> Result<Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
-		self.Plan.AddFunction(Name, Func)?;
+		self.Plan.AddFunction(Name, Fn)?;
 
 		Ok(self)
 	}
@@ -283,17 +283,17 @@ impl<T: Send + Sync> Action<T> {
 		}
 
 		// Execute action-specific logic using the Plan
-		if let Some(Func) = self.Plan.GetFunction(&ActionType) {
+		if let Some(Fn) = self.Plan.GetFunction(&ActionType) {
 			// let Args = self.GetArgumentsFromMetadata().await?;
 
-			// let Result = Func(Args).await?;
+			// let Result = Fn(Args).await?;
 
 			// self.HandleFunctionResult(Result).await?;
 
-			if let Some(func_borrow) = self.Plan.GetFunction(&ActionType) {
-				let func = func_borrow.borrow();
+			if let Some(Fn) = self.Plan.GetFunction(&ActionType) {
 				let Args = self.GetArgumentsFromMetadata().await?;
-				let Result = func(Args).await?;
+				let Result = Fn.borrow()(Args).await?;
+
 				self.HandleFunctionResult(Result).await?;
 			} else {
 				return Err(ActionError::ExecutionError(format!(
@@ -328,6 +328,23 @@ impl<T: Send + Sync> Action<T> {
 		// Implementation to handle the result of the function execution
 		// This is a placeholder and should be implemented based on your specific requirements
 		Ok(())
+	}
+}
+
+#[async_trait]
+pub trait ActionTrait: Send + Sync {
+	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
+	fn Clone(&self) -> Box<dyn ActionTrait>;
+}
+
+#[async_trait]
+impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
+	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+		self.Execute(Context).await
+	}
+
+	fn Clone(&self) -> Box<dyn ActionTrait> {
+		Box::new(self.clone())
 	}
 }
 
@@ -421,22 +438,5 @@ impl ActionProcessor {
 
 	pub async fn Shutdown(&self) {
 		self.ShutdownSignal.Set(true).await;
-	}
-}
-
-#[async_trait]
-pub trait ActionTrait: Send + Sync {
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
-	fn Clone(&self) -> Box<dyn ActionTrait>;
-}
-
-#[async_trait]
-impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
-		self.Execute(Context).await
-	}
-
-	fn Clone(&self) -> Box<dyn ActionTrait> {
-		Box::new(self.clone())
 	}
 }
