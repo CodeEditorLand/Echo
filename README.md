@@ -65,46 +65,46 @@ use echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, W
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a Plan
-    let plan = PlanBuilder::new()
+    let Plan = PlanBuilder::new()
         .with_signature(ActionSignature {
-            name: "Read".to_string(),
-            input_types: vec!["String".to_string()],
-            output_type: "String".to_string(),
+            Name: "Read".to_string(),
+            InputTypes: vec!["String".to_string()],
+            OutputType: "String".to_string(),
         })
-        .with_function("Read", |args| async move {
-            let path = args[0].as_str().unwrap();
-            Ok(serde_json::json!(format!("Read content from: {}", path)))
+        .with_function("Read", |Args| async move {
+            let Path = Args[0].as_str().unwrap();
+            Ok(serde_json::json!(format!("Read content from: {}", Path)))
         })?
         .build();
 
     // Create a Work queue
-    let work = Arc::new(Work::new());
+    let Work = Arc::new(Work::new());
 
     // Create an ExecutionContext
-    let context = ExecutionContext::new(/* ... */);
+    let Context = ExecutionContext::new(/* ... */);
 
     // Create a Worker
     struct SimpleWorker;
     #[async_trait]
     impl Worker for SimpleWorker {
-        async fn Receive(&self, action: Box<dyn ActionTrait>, context: &ExecutionContext) -> Result<(), ActionError> {
-            action.execute(context).await
+        async fn Receive(&self, Action: Box<dyn ActionTrait>, Context: &ExecutionContext) -> Result<(), ActionError> {
+            Action.Execute(Context).await
         }
     }
-    let worker = Arc::new(SimpleWorker);
+    let Worker = Arc::new(SimpleWorker);
 
     // Create an ActionProcessor
-    let processor = Arc::new(ActionProcessor::new(worker, work.clone(), context));
+    let Processor = Arc::new(ActionProcessor::new(Worker, Work.clone(), Context));
 
     // Create and assign an Action
-    let action = Box::new(
-        Action::new("Read", ReadAction { path: "some_path".to_string() }, Arc::new(plan))
-            .with_metadata("delay", serde_json::json!(1))
+    let Action = Box::new(
+        Action::new("Read", ReadAction { Path: "some_path".to_string() }, Arc::new(Plan))
+            .WithMetadata("delay", serde_json::json!(1))
     );
-    work.assign(action).await;
+    Work.Assign(Action).await;
 
     // Run the processor
-    processor.Run().await;
+    Processor.Run().await;
 
     Ok(())
 }
