@@ -1,18 +1,3 @@
-use async_trait::async_trait;
-use config::{Config, File};
-use dashmap::DashMap;
-use futures::Future;
-use log::{error, info, warn};
-use metrics::{counter, gauge};
-use rand::Rng;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{borrow::Borrow, collections::VecDeque, pin::Pin, sync::Arc};
-use thiserror::Error;
-use tokio::{
-	sync::Mutex,
-	time::{sleep, Duration},
-};
-
 #[derive(Clone, Debug)]
 struct Signal<T> {
 	Value: Arc<Mutex<T>>,
@@ -440,3 +425,18 @@ impl ActionProcessor {
 		self.ShutdownSignal.Set(true).await;
 	}
 }
+
+use async_trait::async_trait;
+use config::{Config, File};
+use dashmap::DashMap;
+use futures::Future;
+use log::{error, info, warn};
+use metrics::{counter, gauge};
+use rand::Rng;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::{borrow::Borrow, collections::VecDeque, pin::Pin, sync::Arc};
+use thiserror::Error;
+use tokio::{
+	sync::Mutex,
+	time::{sleep, Duration},
+};
