@@ -1,10 +1,8 @@
-# 📣 [Echo] —
+# 📣 [Echo] — Asynchronous Action Processing System
 
-Echo is a communication library designed to facilitate file reading and writing
-operations across multiple applications using WebSockets.
-
-It implements the worker-stealer pattern and utilizes asynchronous and parallel
-queues to efficiently manage tasks.
+Echo is a sophisticated asynchronous action processing system designed to manage
+and execute various types of actions efficiently. It implements a worker-stealer
+pattern and utilizes asynchronous queues to manage tasks effectively.
 
 ## Table of Contents
 
@@ -18,79 +16,124 @@ queues to efficiently manage tasks.
 
 ## Introduction
 
-Echo is designed to streamline the process of reading and writing files across
-different applications. By leveraging WebSockets, it ensures real-time
-communication and efficient task management.
+Echo provides a robust framework for defining, queuing, and executing actions
+asynchronously. It's designed to handle complex workflows with features like
+metadata management, function planning, and error handling.
 
 ## Features
 
--   **Asynchronous Operations**:
-
-Utilizes asynchronous functions to handle file operations, ensuring non-blocking
-execution.
-
--   **WebSocket Communication**:
-
-Facilitates real-time communication between different components of the system.
+-   **WebSocket Communication**: Facilitates real-time communication between
+    different components of the system.
+-   **Asynchronous Operations**: Utilizes Rust's async/await syntax for
+    non-blocking execution.
+-   **Action Planning**: Flexible system for defining and executing actions with
+    custom logic.
+-   **Metadata Management**: Each action can carry metadata for additional
+    context and control.
+-   **Error Handling**: Comprehensive error handling with custom `ActionError`
+    types.
+-   **Retry Mechanism**: Built-in retry logic for failed actions with
+    exponential backoff.
+-   **Hooks**: Support for pre and post-execution hooks.
+-   **Serialization**: Actions can be serialized and deserialized for
+    persistence or network transfer.
 
 ## Installation
 
 To get started with Echo, follow these steps:
 
-1. **Clone the Repository**:
+1. **Add to your Cargo.toml**:
 
-    ```bash
-    git clone ssh://git@github.com/CodeEditorLand/Echo.git
-    cd Echo
-    ```
+```toml
+[dependencies]
+Echo = { git = "HTTPS://github.com/CodeEditorLand/Echo.git" }
+```
 
 2. **Build the Project**:
 
-    ```bash
-    cargo build
-    ```
-
-3. **Install Dependencies**:
-
-    ```bash
-    pnpm install
-    ```
-
-4. **Build the TypeScript project**:
-    ```bash
-    pnpm run prepublishOnly
-    ```
+```bash
+cargo build
+```
 
 ## Usage
 
+Here's a basic example of how to use Echo:
+
+```rust
+use echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, Worker};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create a Plan
+    let plan = PlanBuilder::new()
+        .with_signature(ActionSignature {
+            name: "Read".to_string(),
+            input_types: vec!["String".to_string()],
+            output_type: "String".to_string(),
+        })
+        .with_function("Read", |args| async move {
+            let path = args[0].as_str().unwrap();
+            Ok(serde_json::json!(format!("Read content from: {}", path)))
+        })?
+        .build();
+
+    // Create a Work queue
+    let work = Arc::new(Work::new());
+
+    // Create an ExecutionContext
+    let context = ExecutionContext::new(/* ... */);
+
+    // Create a Worker
+    struct SimpleWorker;
+    #[async_trait]
+    impl Worker for SimpleWorker {
+        async fn Receive(&self, action: Box<dyn ActionTrait>, context: &ExecutionContext) -> Result<(), ActionError> {
+            action.execute(context).await
+        }
+    }
+    let worker = Arc::new(SimpleWorker);
+
+    // Create an ActionProcessor
+    let processor = Arc::new(ActionProcessor::new(worker, work.clone(), context));
+
+    // Create and assign an Action
+    let action = Box::new(
+        Action::new("Read", ReadAction { path: "some_path".to_string() }, Arc::new(plan))
+            .with_metadata("delay", serde_json::json!(1))
+    );
+    work.assign(action).await;
+
+    // Run the processor
+    processor.Run().await;
+
+    Ok(())
+}
+```
+
 ## Architecture
+
+### Core Components
+
+-   **Action**: Represents a unit of work with metadata and content.
+-   **Plan**: Defines the structure and execution logic for actions.
+-   **Work**: Manages the queue of actions to be processed.
+-   **Worker**: Implements the logic for receiving and executing actions.
+-   **ActionProcessor**: Coordinates the execution of actions using Workers and
+    Work queues.
+-   **ExecutionContext**: Provides shared context for action execution.
 
 ### WebSocket Communication
 
 WebSockets are used to facilitate real-time communication between the Tauri
-application, Sun, and River. This ensures that file operations are executed
-promptly and efficiently.
-
-### Code Structure
-
--   **Interface**:
-
-Defines the structure of the response object and the main asynchronous function
-for handling responses.
-
--   **Worker**:
-
-Contains the implementation of the worker-stealer pattern and the task queue
-management.
-
--   **Main**:
-
-The entry point of the Rust binaries, responsible for reading configuration
-files and setting up the environment.
+application, [Sun](HTTPS://GitHub.com/CodeEditorLand/Sun.git), and
+[River](HTTPS://GitHub.com/CodeEditorLand/River.git). This ensures that file
+operations are executed promptly and efficiently.
 
 [Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
 
-#### Structure:
+### Diagrams
+
+#### Class Diagram
 
 ```mermaid
 classDiagram
@@ -105,7 +148,7 @@ classDiagram
     Plan <-- PlanBuilder
 ```
 
-#### Sequence Diagram:
+#### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -119,13 +162,13 @@ sequenceDiagram
 
     Client->>ActionProcessor: New(Site, Work, Context)
     Client->>ActionProcessor: Run()
-    loop Until shutdown
+    loop Until Shutdown
         ActionProcessor->>Work: Execute()
         Work-->>ActionProcessor: Some(Action)
         ActionProcessor->>ActionProcessor: ExecuteWithRetry(Action)
         ActionProcessor->>Worker: Receive(Action, Context)
         Worker->>Action: Execute(Context)
-        Action->>ExecutionContext: Get hooks and execute
+        Action->>ExecutionContext: Get hooks and Execute
         Action->>Plan: GetFunction(ActionType)
         Plan-->>Action: Some(Function)
         Action->>Action: Execute function
@@ -136,9 +179,9 @@ sequenceDiagram
     ActionProcessor->>ActionProcessor: Set ShutdownSignal
 ```
 
-## [Example](./Example/Queue.rs)
+#### [Example](./Example/Queue.rs)
 
-#### Structure:
+#### Class Diagram
 
 ```mermaid
 classDiagram
@@ -205,7 +248,7 @@ classDiagram
     ActionProcessor o-- SimpleWorker
 ```
 
-#### Sequence Diagram:
+#### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -244,4 +287,4 @@ sequenceDiagram
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this integration.
+See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this component.
