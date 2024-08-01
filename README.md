@@ -105,6 +105,37 @@ classDiagram
     Plan <-- PlanBuilder
 ```
 
+#### Sequence Diagram:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant ActionProcessor
+    participant Work
+    participant Worker
+    participant Action
+    participant ExecutionContext
+    participant Plan
+
+    Client->>ActionProcessor: New(Site, Work, Context)
+    Client->>ActionProcessor: Run()
+    loop Until shutdown
+        ActionProcessor->>Work: Execute()
+        Work-->>ActionProcessor: Some(Action)
+        ActionProcessor->>ActionProcessor: ExecuteWithRetry(Action)
+        ActionProcessor->>Worker: Receive(Action, Context)
+        Worker->>Action: Execute(Context)
+        Action->>ExecutionContext: Get hooks and execute
+        Action->>Plan: GetFunction(ActionType)
+        Plan-->>Action: Some(Function)
+        Action->>Action: Execute function
+        Action-->>Worker: Result
+        Worker-->>ActionProcessor: Result
+    end
+    Client->>ActionProcessor: Shutdown()
+    ActionProcessor->>ActionProcessor: Set ShutdownSignal
+```
+
 ## [Example](./Example/Queue.rs)
 
 #### Structure:
@@ -172,6 +203,43 @@ classDiagram
     PlanBuilder ..> Plan : builds
     ActionProcessor o-- Work
     ActionProcessor o-- SimpleWorker
+```
+
+#### Sequence Diagram:
+
+```mermaid
+sequenceDiagram
+    participant Main
+    participant Config
+    participant Work
+    participant ExecutionContext
+    participant PlanBuilder
+    participant Plan
+    participant SimpleWorker
+    participant ActionProcessor
+    participant ReadAction
+
+    Main->>Config: build()
+    Main->>Work: New()
+    Main->>ExecutionContext: create
+    Main->>PlanBuilder: New()
+    PlanBuilder->>PlanBuilder: WithSignature()
+    PlanBuilder->>PlanBuilder: WithFunction()
+    PlanBuilder->>Plan: Build()
+    Main->>SimpleWorker: create
+    Main->>ActionProcessor: New(Site, Work, Context)
+    Main->>ActionProcessor: Run()
+    Main->>Action: New("Commander", EmptyContent, SharedPlan)
+    Main->>Action: New("Read", ReadAction, SharedPlan)
+    Main->>Work: Assign(ReadAction)
+    Main->>Main: sleep(5 seconds)
+    Main->>ActionProcessor: Shutdown()
+
+    ActionProcessor->>Work: Execute()
+    Work-->>ActionProcessor: Some(Action)
+    ActionProcessor->>SimpleWorker: Receive(Action, Context)
+    SimpleWorker->>ReadAction: Execute(Context)
+    ReadAction->>ReadAction: ExecuteLogic()
 ```
 
 ## Changelog
