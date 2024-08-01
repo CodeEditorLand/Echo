@@ -103,7 +103,7 @@ classDiagram
     Plan <-- PlanBuilder
 ```
 
-## Example:
+## [Example](./Example/Queue.rs)
 
 ```mermaid
 classDiagram
