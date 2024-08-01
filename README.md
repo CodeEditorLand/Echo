@@ -65,7 +65,7 @@ use echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, W
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a Plan
-    let Plan = PlanBuilder::new()
+    let Plan = PlanBuilder::New()
         .WithSignature(ActionSignature {
             Name: "Read".to_string(),
             InputTypes: vec!["String".to_string()],
@@ -75,13 +75,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let Path = Args[0].as_str().unwrap();
             Ok(serde_json::json!(format!("Read content from: {}", Path)))
         })?
-        .build();
+        .Build();
 
     // Create a Work queue
-    let Work = Arc::new(Work::new());
+    let Work = Arc::new(Work::New());
 
     // Create an ExecutionContext
-    let Context = ExecutionContext::new(/* ... */);
+    let Context = ExecutionContext::New(/* ... */);
 
     // Create a Worker
     struct SimpleWorker;
@@ -94,12 +94,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Worker = Arc::new(SimpleWorker);
 
     // Create an ActionProcessor
-    let Processor = Arc::new(ActionProcessor::new(Worker, Work.clone(), Context));
+    let Processor = Arc::new(ActionProcessor::New(Worker, Work.clone(), Context));
 
     // Create and assign an Action
     let Action = Box::new(
-        Action::new("Read", ReadAction { Path: "some_path".to_string() }, Arc::new(Plan))
-            .WithMetadata("delay", serde_json::json!(1))
+        Action::New("Read", ReadAction { Path: "SomePath".to_string() }, Arc::new(Plan))
+            .WithMetadata("Delay", serde_json::json!(1))
     );
     Work.Assign(Action).await;
 
@@ -235,7 +235,7 @@ classDiagram
     Action~ReadAction~ --|> ActionTrait
     SimpleWorker ..|> Worker
     Main ..> ReadAction : creates
-    Main ..> SimpleWorker : creates
+    Main ..> SimpleWor
     Main ..> ExecutionContext : creates
     Main ..> Work : creates
     Main ..> ActionProcessor : creates
@@ -262,20 +262,20 @@ sequenceDiagram
     participant ActionProcessor
     participant ReadAction
 
-    Main->>Config: build()
+    Main->>Config: Build()
     Main->>Work: New()
-    Main->>ExecutionContext: create
+    Main->>ExecutionContext: Create
     Main->>PlanBuilder: New()
     PlanBuilder->>PlanBuilder: WithSignature()
     PlanBuilder->>PlanBuilder: WithFunction()
     PlanBuilder->>Plan: Build()
-    Main->>SimpleWorker: create
+    Main->>SimpleWorker: Create
     Main->>ActionProcessor: New(Site, Work, Context)
     Main->>ActionProcessor: Run()
     Main->>Action: New("Commander", EmptyContent, SharedPlan)
     Main->>Action: New("Read", ReadAction, SharedPlan)
     Main->>Work: Assign(ReadAction)
-    Main->>Main: sleep(5 seconds)
+    Main->>Main: Sleep(5 seconds)
     Main->>ActionProcessor: Shutdown()
 
     ActionProcessor->>Work: Execute()
