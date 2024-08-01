@@ -6,4 +6,3 @@ pub mod Trait;
 pub mod Type;
 
 pub mod Queue;
-pub mod Queue_OPT;

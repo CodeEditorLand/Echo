@@ -1,11 +1,13 @@
 use async_trait::async_trait;
 use config::{Config, File};
+use futures::Future;
 use log::{error, info, warn};
 use metrics::{counter, gauge};
 use rand::Rng;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
 	collections::{HashMap, VecDeque},
+	pin::Pin,
 	sync::Arc,
 };
 use thiserror::Error;
@@ -14,10 +16,29 @@ use tokio::{
 	time::{sleep, Duration},
 };
 
-// Signal implementation
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Signal<T> {
 	Value: Arc<Mutex<T>>,
+}
+
+impl<T: Serialize> Serialize for Signal<T> {
+	async fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		let guard = self.Value.lock().await;
+		T::serialize(&*guard, serializer)
+	}
+}
+
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for Signal<T> {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let value = T::deserialize(deserializer)?;
+		Ok(Signal { Value: Arc::new(Mutex::new(value)) })
+	}
 }
 
 impl<T: Clone> Signal<T> {
@@ -65,25 +86,47 @@ impl VectorDatabase {
 	}
 }
 
+#[derive(Debug)]
 pub struct ActionSignature {
 	Name: String,
 	InputTypes: Vec<String>,
 	OutputType: String,
 }
 
+struct DebugWrapper<T>(T);
+
+impl<T> fmt::Debug for DebugWrapper<T> {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "Function")
+	}
+}
+
+#[derive(Debug)]
 pub struct Plan {
 	Signatures: HashMap<String, ActionSignature>,
 	Functions: HashMap<
 		String,
-		Box<
-			dyn Fn(
-					Vec<serde_json::Value>,
-				)
-					-> Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
-				+ Send
-				+ Sync,
+		DebugWrapper<
+			Box<
+				dyn Fn(
+						Vec<Value>,
+					) -> Pin<Box<dyn Future<Output = Result<Value, ActionError>> + Send>>
+					+ Send
+					+ Sync,
+			>,
 		>,
 	>,
+}
+
+use std::fmt;
+
+impl fmt::Debug for Plan {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		f.debug_struct("Plan")
+			.field("Signatures", &self.Signatures)
+			.field("Functions", &self.Functions)
+			.finish()
+	}
 }
 
 impl Plan {
@@ -93,6 +136,7 @@ impl Plan {
 
 	pub fn AddSignature(&mut self, Signature: ActionSignature) -> &mut Self {
 		self.Signatures.insert(Signature.Name.clone(), Signature);
+
 		self
 	}
 
@@ -101,12 +145,14 @@ impl Plan {
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
-		if let Some(Signature) = self.Signatures.get(Name) {
+		if let Some(_Signature) = self.Signatures.get(Name) {
 			let BoxedFunc = Box::new(move |Args: Vec<serde_json::Value>| {
 				Box::pin(Func(Args))
 					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
 			});
+
 			self.Functions.insert(Name.to_string(), BoxedFunc);
+
 			Ok(self)
 		} else {
 			Err(format!("No signature found for function: {}", Name))
@@ -141,6 +187,7 @@ impl PlanBuilder {
 
 	pub fn WithSignature(mut self, Signature: ActionSignature) -> Self {
 		self.Plan.AddSignature(Signature);
+
 		self
 	}
 
@@ -150,6 +197,7 @@ impl PlanBuilder {
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
 		self.Plan.AddFunction(Name, Func)?;
+
 		Ok(self)
 	}
 
@@ -158,7 +206,7 @@ impl PlanBuilder {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Action<T: Send + Sync> {
 	pub Metadata: VectorDatabase,
 	pub Content: T,
@@ -166,22 +214,49 @@ pub struct Action<T: Send + Sync> {
 	pub Plan: Arc<Plan>,
 }
 
+impl<T: Send + Sync + Serialize> Serialize for Action<T> {
+	fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		// Implement serialization logic
+		// You may need to create a custom struct to hold serializable data
+		unimplemented!()
+	}
+}
+
+impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Action<T> {
+	fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		// Implement deserialization logic
+		// You may need to create a custom struct to hold deserializable data
+		unimplemented!()
+	}
+}
+
 impl<T: Send + Sync> Action<T> {
 	pub fn New(ActionType: &str, Content: T, Plan: Arc<Plan>) -> Self {
 		let mut Metadata = VectorDatabase::New();
+
 		Metadata.Insert("ActionType".to_string(), serde_json::json!(ActionType));
+
 		Metadata.Insert("License".to_string(), serde_json::json!("valid"));
+
 		Action { Metadata, Content, LicenseSignal: Signal::New(true), Plan }
 	}
 
 	pub fn WithMetadata(mut self, Key: &str, Value: serde_json::Value) -> Self {
 		self.Metadata.Insert(Key.to_string(), Value);
+
 		self
 	}
 
 	pub async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
 		let ActionType =
 			self.Metadata.Get("ActionType").await.unwrap().as_str().unwrap().to_string();
+
 		info!("Executing action: {}", ActionType);
 
 		// Check licenses
@@ -199,6 +274,7 @@ impl<T: Send + Sync> Action<T> {
 		// Apply delay if specified
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
 			let Delay = Duration::from_secs(Delay.as_u64().unwrap());
+
 			sleep(Delay).await;
 		}
 
@@ -214,7 +290,9 @@ impl<T: Send + Sync> Action<T> {
 		// Execute action-specific logic using the Plan
 		if let Some(Func) = self.Plan.GetFunction(&ActionType) {
 			let Args = self.GetArgumentsFromMetadata().await?;
+
 			let Result = Func(Args).await?;
+
 			self.HandleFunctionResult(Result).await?;
 		} else {
 			return Err(ActionError::ExecutionError(format!(
@@ -226,6 +304,7 @@ impl<T: Send + Sync> Action<T> {
 		// Execute next action if exists
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
 			let NextAction: Action<T> = serde_json::from_value(NextAction.clone()).unwrap();
+
 			NextAction.Execute(Context).await?;
 		}
 
@@ -251,7 +330,7 @@ pub struct ExecutionContext {
 	Cache: Arc<Mutex<HashMap<String, serde_json::Value>>>,
 }
 
-type Hook = fn() -> Result<(), ActionError>;
+type Hook = Arc<dyn Fn() -> Result<(), ActionError> + Send + Sync>;
 
 #[async_trait]
 pub trait Worker: Send + Sync {
@@ -296,6 +375,7 @@ impl ActionProcessor {
 		while !self.ShutdownSignal.Get().await {
 			if let Some(Action) = self.Work.Execute().await {
 				let Result = self.ExecuteWithRetry(Action).await;
+
 				if let Err(e) = Result {
 					error!("Error processing action: {}", e);
 				}
@@ -305,7 +385,9 @@ impl ActionProcessor {
 
 	async fn ExecuteWithRetry(&self, Action: Box<dyn ActionTrait>) -> Result<(), ActionError> {
 		let MaxRetries = self.Context.Config.get_int("max_retries").unwrap_or(3) as u32;
+
 		let mut Retries = 0;
+
 		loop {
 			match self.Site.Receive(Action.Clone(), &self.Context).await {
 				Ok(_) => return Ok(()),
@@ -314,13 +396,16 @@ impl ActionProcessor {
 						return Err(e);
 					}
 					Retries += 1;
+
 					let Delay = Duration::from_secs(
 						2u64.pow(Retries) + rand::thread_rng().gen_range(0..1000),
 					);
+
 					warn!(
 						"Action failed, retrying in {:?}. Attempt {} of {}",
 						Delay, Retries, MaxRetries
 					);
+
 					sleep(Delay).await;
 				}
 			}
@@ -358,6 +443,7 @@ struct ReadAction {
 impl Action<ReadAction> {
 	async fn ExecuteLogic(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
 		info!("Reading from path: {}", self.Content.Path);
+
 		// Implement actual read logic here
 		Ok(())
 	}
@@ -371,17 +457,25 @@ async fn Main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let Work = Arc::new(Work::New());
 
-	let mut HookMap = HashMap::new();
+	let mut HookMap: HashMap<String, Hook> = HashMap::new();
 
-	HookMap.insert("LogStart".to_string(), || {
-		info!("Action started");
-		Ok(())
-	} as Hook);
+	HookMap.insert(
+		"LogStart".to_string(),
+		Arc::new(|| {
+			info!("Action started");
 
-	HookMap.insert("Backup".to_string(), || {
-		info!("Backup created");
-		Ok(())
-	} as Hook);
+			Ok(())
+		}),
+	);
+
+	HookMap.insert(
+		"Backup".to_string(),
+		Arc::new(|| {
+			info!("Backup created");
+
+			Ok(())
+		}) as Hook,
+	);
 
 	let Context = ExecutionContext {
 		HookMap: Arc::new(HookMap),
@@ -397,6 +491,7 @@ async fn Main() -> Result<(), Box<dyn std::error::Error>> {
 		})
 		.WithFunction("Read", |Args: Vec<serde_json::Value>| async move {
 			let Path = Args[0].as_str().unwrap();
+
 			// Implement actual read logic here
 			Ok(serde_json::json!(format!("Read content from: {}", Path)))
 		})?
@@ -422,7 +517,10 @@ async fn Main() -> Result<(), Box<dyn std::error::Error>> {
 	let ProcessorClone = Processor.clone();
 	tokio::spawn(async move { ProcessorClone.Run().await });
 
-	let CommanderAction = Action::New("Commander", (), SharedPlan.clone())
+	#[derive(Serialize, Deserialize)]
+	struct EmptyContent;
+
+	let CommanderAction = Action::New("Commander", EmptyContent, SharedPlan.clone())
 		.WithMetadata("Role", serde_json::json!("Supervisor"));
 
 	let ReadAction = Box::new(
