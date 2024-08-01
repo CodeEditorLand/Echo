@@ -73,7 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .WithFunction("Read", |Args| async move {
             let Path = Args[0].as_str().unwrap();
-            Ok(serde_json::json!(format!("Read content from: {}", Path)))
+
+	        Ok(serde_json::json!(format!("Read content from: {}", Path)))
         })?
         .Build();
 
@@ -85,7 +86,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a Worker
     struct SimpleWorker;
-    #[async_trait]
+
+	#[async_trait]
     impl Worker for SimpleWorker {
         async fn Receive(&self, Action: Box<dyn ActionTrait>, Context: &ExecutionContext) -> Result<(), ActionError> {
             Action.Execute(Context).await
@@ -101,7 +103,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Action::New("Read", ReadAction { Path: "SomePath".to_string() }, Arc::new(Plan))
             .WithMetadata("Delay", serde_json::json!(1))
     );
-    Work.Assign(Action).await;
+
+	Work.Assign(Action).await;
 
     // Run the processor
     Processor.Run().await;
