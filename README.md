@@ -60,7 +60,7 @@ cargo build
 Here's a basic example of how to use Echo:
 
 ```rust
-use echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, Worker};
+use Echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, Worker};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
