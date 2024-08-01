@@ -13,7 +13,7 @@
 /// If sending the result fails, the loop breaks. If no action is found, the function sleeps for 100 milliseconds
 /// before checking again.
 pub async fn Fn(
-	Site: Arc<dyn Worker>,
+	Site: Arc<dyn crate::Trait::Job::Worker::Trait>,
 	Work: Arc<crate::Struct::Job::Work::Struct>,
 	Approval: tokio::sync::mpsc::UnboundedSender<ActionResult>,
 ) {

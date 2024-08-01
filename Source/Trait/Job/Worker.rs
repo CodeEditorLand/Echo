@@ -12,5 +12,5 @@ pub trait Trait: Send + Sync {
 	/// # Returns
 	///
 	/// An `ActionResult` containing the result of the action.
-	async fn Receive(&self, Action: Action) -> ActionResult;
+	async fn Receive(&self, Action: crate::Struct::Job::Action::Struct) -> ActionResult;
 }

@@ -6,7 +6,7 @@
 /// * `Write` - Represents a write action with a specified file path and content.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Struct {
-	pub Target: Option<Box<Struct>>,
+	pub Target: Target,
 	pub Metadata: Metadata,
 }
 
@@ -30,4 +30,4 @@ impl Struct {
 use serde::{Deserialize, Serialize};
 use std::fs::Metadata;
 
-pub type Metadata = serde_json::Value;
+pub mod Result;

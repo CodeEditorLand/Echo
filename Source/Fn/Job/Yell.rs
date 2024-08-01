@@ -15,9 +15,9 @@
 ///
 /// If sending a message through the WebSocket stream fails, the loop breaks.
 pub async fn Fn(
-	Order: tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>,
-	Work: Arc<Struct>,
-	Receipt: Arc<tokio::sync::Mutex<tokio::sync::mpsc::UnboundedReceiver<ActionResult>>>,
+	Order: crate::Type::Job::Yell::Order::Type,
+	Work: Arc<crate::Struct::Job::Work::Struct>,
+	Receipt: Arc<crate::Type::Job::Yell::Receipt::Type>,
 ) {
 	let (mut Write, mut Read) = Order.split();
 
@@ -25,7 +25,7 @@ pub async fn Fn(
 		tokio::select! {
 			Some(Shout) = Read.next() => {
 				if let Ok(Message::Text(Shout)) = Shout {
-					if let Ok(Action) = serde_json::from_str::<Action>(&Shout) {
+					if let Ok(Action) = serde_json::from_str::<crate::Struct::Job::Action::Struct>(&Shout) {
 						Work.Assign(Action).await;
 					}
 				}
@@ -47,8 +47,3 @@ pub async fn Fn(
 use futures::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio_tungstenite::tungstenite::Message;
-
-use crate::{
-	Fn::Job::{Action, ActionResult},
-	Struct::Job::Work::Struct,
-};
