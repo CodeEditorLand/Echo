@@ -90,6 +90,8 @@ files and setting up the environment.
 
 [Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
 
+#### Structure:
+
 ```mermaid
 classDiagram
     Signal~T~ <|-- Action
@@ -104,6 +106,8 @@ classDiagram
 ```
 
 ## [Example](./Example/Queue.rs)
+
+#### Structure:
 
 ```mermaid
 classDiagram
