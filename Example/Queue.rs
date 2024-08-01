@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 // Example specific action implementation
 #[derive(Clone)]
 struct ReadAction {
