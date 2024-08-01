@@ -66,12 +66,12 @@ use echo::{Action, ActionProcessor, ExecutionContext, Plan, PlanBuilder, Work, W
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a Plan
     let Plan = PlanBuilder::new()
-        .with_signature(ActionSignature {
+        .WithSignature(ActionSignature {
             Name: "Read".to_string(),
             InputTypes: vec!["String".to_string()],
             OutputType: "String".to_string(),
         })
-        .with_function("Read", |Args| async move {
+        .WithFunction("Read", |Args| async move {
             let Path = Args[0].as_str().unwrap();
             Ok(serde_json::json!(format!("Read content from: {}", Path)))
         })?
