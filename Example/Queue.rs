@@ -1,9 +1,15 @@
 #![allow(non_snake_case)]
 
+#[async_trait]
+pub trait ActionLogic {
+	type Content;
+	async fn Execute(&self, Context: &ExecutionContext) -> Result<Self::Content, ActionError>;
+}
+
 // Example specific action implementations
 #[derive(Clone, Serialize, Deserialize)]
 struct ReadAction {
-	Path: String,
+	pub Path: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -18,23 +24,32 @@ struct PrintAction {
 
 #[derive(Clone, Serialize, Deserialize)]
 struct FilePrintAction {
-	Content: String,
-	OutputPath: String,
+	pub ReadAction: ReadAction,
+	pub OutputPath: String,
 }
 
-impl Action<ReadAction> {
-	async fn ExecuteLogic(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
+impl ActionLogic for Action<ReadAction> {
+	type Content = String;
+
+	async fn Execute(&self, _Context: &ExecutionContext) -> Result<String, ActionError> {
 		info!("Reading from path: {}", self.Content.Path);
 
-		// Simulate reading content
-		let Content = format!("Content read from {}", self.Content.Path);
+		let mut Content = String::new();
 
-		Ok(())
+		File_tokio::open(&self.Content.Path)
+			.await
+			.map_err(|e| ActionError::ExecutionError(format!("Failed to open file: {}", e)))?
+			.read_to_string(&mut Content)
+			.await
+			.map_err(|e| ActionError::ExecutionError(format!("Failed to read file: {}", e)))?;
+
+		Ok(Content)
 	}
 }
 
-impl Action<ProcessQueueAction> {
-	async fn ExecuteLogic(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+impl ActionLogic for Action<ProcessQueueAction> {
+	type Content = ();
+	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
 		info!("Processing queue: {}", self.Content.QueueName);
 
 		let Queue = Context.Queues.get(&self.Content.QueueName).ok_or_else(|| {
@@ -49,26 +64,47 @@ impl Action<ProcessQueueAction> {
 	}
 }
 
-impl Action<PrintAction> {
-	async fn ExecuteLogic(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
+impl ActionLogic for Action<PrintAction> {
+	type Content = ();
+	async fn Execute(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
 		println!("Printing content: {}", self.Content.Content);
 
 		Ok(())
 	}
 }
 
-impl Action<FilePrintAction> {
-	async fn ExecuteLogic(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
+impl ActionLogic for Action<FilePrintAction> {
+	type Content = ();
+	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+		// Execute the ReadAction to get the content
 		File_tokio::create(&self.Content.OutputPath)
 			.await
 			.map_err(|e| ActionError::ExecutionError(format!("Failed to create file: {}", e)))?
-			.write_all(self.Content.Content.as_bytes())
+			.write_all(
+				Action::New("Read", self.Content.ReadAction.clone(), self.Plan.clone())
+					.Execute(Context)
+					.await?
+					.into(),
+			)
 			.await
 			.map_err(|e| ActionError::ExecutionError(format!("Failed to write to file: {}", e)))?;
 
 		info!("Content written to file: {}", self.Content.OutputPath);
 
 		Ok(())
+	}
+}
+
+struct Worker;
+
+#[async_trait]
+impl Worker for Worker {
+	async fn Receive(
+		&self,
+		Action: Box<dyn ActionTrait>,
+		Context: &ExecutionContext,
+	) -> Result<(), ActionError> {
+		Action.Execute(Context).await
 	}
 }
 
@@ -90,7 +126,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			info!("Action started");
 
 			Ok(())
-		}),
+		}) as Hook,
 	);
 
 	let mut Queues = DashMap::new();
@@ -115,7 +151,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.WithFunction("Read", |Args: Vec<serde_json::Value>| async move {
 			let Path = Args[0].as_str().unwrap();
 
-			let Content = format!("Content read from {}", Path);
+			let mut Content = String::new();
+
+			File_tokio::open(Path)
+				.await
+				.map_err(|e| ActionError::ExecutionError(format!("Failed to open file: {}", e)))?
+				.read_to_string(&mut Content)
+				.await
+				.map_err(|e| ActionError::ExecutionError(format!("Failed to read file: {}", e)))?;
 
 			Ok(serde_json::json!(Content))
 		})?
@@ -166,20 +209,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let SharedPlan = Arc::new(Plan);
 
-	struct SimpleWorker;
-
-	#[async_trait]
-	impl Worker for SimpleWorker {
-		async fn Receive(
-			&self,
-			Action: Box<dyn ActionTrait>,
-			Context: &ExecutionContext,
-		) -> Result<(), ActionError> {
-			Action.Execute(Context).await
-		}
-	}
-
-	let Site = Arc::new(SimpleWorker);
+	let Site = Arc::new(Worker);
 
 	let Processor = Arc::new(ActionProcessor::New(Site, MainWork.clone(), Context.clone()));
 
@@ -215,7 +245,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.Assign(Box::new(
 			Action::New(
 				"FilePrint",
-				FilePrintAction { Content: "".to_string(), OutputPath: "output.txt".to_string() },
+				FilePrintAction {
+					ReadAction: ReadAction { Path: "input.txt".to_string() },
+					OutputPath: "output.txt".to_string(),
+				},
 				SharedPlan.clone(),
 			)
 			.WithMetadata("CommandingOfficer", serde_json::to_value(&CommanderAction).unwrap())
@@ -264,7 +297,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::{
 	fs::File as File_tokio,
-	io::AsyncWriteExt,
+	io::{AsyncReadExt, AsyncWriteExt},
 	time::{sleep, Duration},
 };
 

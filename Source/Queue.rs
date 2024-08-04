@@ -72,9 +72,9 @@ impl VectorDatabase {
 
 #[derive(Debug)]
 pub struct ActionSignature {
-	Name: String,
-	InputTypes: Vec<String>,
-	OutputType: String,
+	pub Name: String,
+	pub InputTypes: Vec<String>,
+	pub OutputType: String,
 }
 
 struct DebugWrapper<T>(T);
@@ -311,9 +311,10 @@ impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
 }
 
 pub struct ExecutionContext {
-	HookMap: Arc<DashMap<String, Hook>>,
-	Config: Arc<Config>,
+	pub HookMap: Arc<DashMap<String, Hook>>,
+	pub Config: Arc<Config>,
 	Cache: Arc<Mutex<DashMap<String, serde_json::Value>>>,
+	pub Queues: Arc<DashMap<String, Arc<Work>>>,
 }
 
 type Hook = Arc<dyn Fn() -> Result<(), ActionError> + Send + Sync>;
