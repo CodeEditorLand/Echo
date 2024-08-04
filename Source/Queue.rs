@@ -4,11 +4,12 @@ struct Signal<T> {
 }
 
 impl<T: Serialize> Serialize for Signal<T> {
-	async fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 	{
 		let guard = self.Value.lock().await;
+
 		T::serialize(&*guard, serializer)
 	}
 }
@@ -19,6 +20,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for Signal<T> {
 		D: Deserializer<'de>,
 	{
 		let value = T::deserialize(deserializer)?;
+
 		Ok(Signal { Value: Arc::new(Mutex::new(value)) })
 	}
 }
@@ -77,8 +79,8 @@ pub struct ActionSignature {
 
 struct DebugWrapper<T>(T);
 
-impl<T> fmt::Debug for DebugWrapper<T> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<T> std::fmt::Debug for DebugWrapper<T> {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "Function")
 	}
 }
@@ -89,22 +91,19 @@ pub struct Plan {
 	Functions: DashMap<
 		String,
 		Box<
-			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, ActionError>> + Send>>
+			dyn Fn(
+					Vec<serde_json::Value>,
+				)
+					-> Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
 				+ Send
 				+ Sync,
 		>,
 	>,
 }
 
-use std::fmt;
-
-impl fmt::Debug for Plan {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		f.debug_struct("Plan")
-			.field("Signatures", &self.Signatures)
-			// TODO: IMPLEMENT DEBUG
-			// .field("Functions", &self.Functions)
-			.finish()
+impl std::fmt::Debug for Plan {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Plan").field("Signatures", &self.Signatures).finish()
 	}
 }
 
@@ -145,9 +144,10 @@ impl Plan {
 		impl Borrow<
 			Box<
 				dyn Fn(
-						Vec<Value>,
-					) -> Pin<Box<dyn Future<Output = Result<Value, ActionError>> + Send>>
-					+ Send
+						Vec<serde_json::Value>,
+					) -> Pin<
+						Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>,
+					> + Send
 					+ Sync,
 			>,
 		>,
@@ -199,8 +199,6 @@ impl<T: Send + Sync + Serialize> Serialize for Action<T> {
 	where
 		S: Serializer,
 	{
-		// Implement serialization logic
-		// You may need to create a custom struct to hold serializable data
 		unimplemented!()
 	}
 }
@@ -210,8 +208,6 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Action<T> {
 	where
 		D: Deserializer<'de>,
 	{
-		// Implement deserialization logic
-		// You may need to create a custom struct to hold deserializable data
 		unimplemented!()
 	}
 }
@@ -239,7 +235,6 @@ impl<T: Send + Sync> Action<T> {
 
 		info!("Executing action: {}", ActionType);
 
-		// Check licenses
 		if let Some(Officer) = self.Metadata.Get("CommandingOfficer").await {
 			if Officer.get("License").unwrap().as_str().unwrap() != "valid" {
 				return Err(ActionError::InvalidLicense(
@@ -247,18 +242,17 @@ impl<T: Send + Sync> Action<T> {
 				));
 			}
 		}
+
 		if !self.LicenseSignal.Get().await {
 			return Err(ActionError::InvalidLicense("Invalid action license".to_string()));
 		}
 
-		// Apply delay if specified
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
 			let Delay = Duration::from_secs(Delay.as_u64().unwrap());
 
 			sleep(Delay).await;
 		}
 
-		// Execute hooks
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap() {
 				if let Some(HookFn) = Context.HookMap.get(Hook.as_str().unwrap()) {
@@ -267,25 +261,12 @@ impl<T: Send + Sync> Action<T> {
 			}
 		}
 
-		// Execute action-specific logic using the Plan
 		if let Some(Fn) = self.Plan.GetFunction(&ActionType) {
-			// let Args = self.GetArgumentsFromMetadata().await?;
+			let Args = self.GetArgumentsFromMetadata().await?;
 
-			// let Result = Fn(Args).await?;
+			let Result = Fn.borrow()(Args).await?;
 
-			// self.HandleFunctionResult(Result).await?;
-
-			if let Some(Fn) = self.Plan.GetFunction(&ActionType) {
-				let Args = self.GetArgumentsFromMetadata().await?;
-				let Result = Fn.borrow()(Args).await?;
-
-				self.HandleFunctionResult(Result).await?;
-			} else {
-				return Err(ActionError::ExecutionError(format!(
-					"No function found for action type: {}",
-					ActionType
-				)));
-			}
+			self.HandleFunctionResult(Result).await?;
 		} else {
 			return Err(ActionError::ExecutionError(format!(
 				"No function found for action type: {}",
@@ -293,7 +274,6 @@ impl<T: Send + Sync> Action<T> {
 			)));
 		}
 
-		// Execute next action if exists
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
 			let NextAction: Action<T> = serde_json::from_value(NextAction.clone()).unwrap();
 
@@ -304,14 +284,10 @@ impl<T: Send + Sync> Action<T> {
 	}
 
 	async fn GetArgumentsFromMetadata(&self) -> Result<Vec<serde_json::Value>, ActionError> {
-		// Implementation to extract arguments from Metadata
-		// This is a placeholder and should be implemented based on your specific requirements
 		Ok(vec![])
 	}
 
 	async fn HandleFunctionResult(&self, Result: serde_json::Value) -> Result<(), ActionError> {
-		// Implementation to handle the result of the function execution
-		// This is a placeholder and should be implemented based on your specific requirements
 		Ok(())
 	}
 }
@@ -319,6 +295,7 @@ impl<T: Send + Sync> Action<T> {
 #[async_trait]
 pub trait ActionTrait: Send + Sync {
 	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
+
 	fn Clone(&self) -> Box<dyn ActionTrait>;
 }
 
