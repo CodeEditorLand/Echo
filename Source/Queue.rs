@@ -1,88 +1,56 @@
+// This should be a separate struct
 #[derive(Clone, Debug)]
-struct Signal<T> {
-	Value: Arc<Mutex<T>>,
-}
+pub struct Signal<T>(Arc<Mutex<T>>);
 
-impl<T: Serialize> Serialize for Signal<T> {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+impl<T> Signal<T> {
+	pub fn New(value: T) -> Self {
+		Signal(Arc::new(Mutex::new(value)))
+	}
+
+	pub async fn Get(&self) -> T
 	where
-		S: Serializer,
+		T: Clone,
 	{
-		let guard = self.Value.lock().await;
+		self.0.lock().await.clone()
+	}
 
-		T::serialize(&*guard, serializer)
+	pub async fn Set(&self, value: T) {
+		*self.0.lock().await = value;
 	}
 }
 
-impl<'de, T: Deserialize<'de>> Deserialize<'de> for Signal<T> {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
-	{
-		let value = T::deserialize(deserializer)?;
-
-		Ok(Signal { Value: Arc::new(Mutex::new(value)) })
-	}
-}
-
-impl<T: Clone> Signal<T> {
-	fn New(InitialValue: T) -> Self {
-		Signal { Value: Arc::new(Mutex::new(InitialValue)) }
-	}
-
-	async fn Get(&self) -> T {
-		self.Value.lock().await.clone()
-	}
-
-	async fn Set(&self, NewValue: T) {
-		*self.Value.lock().await = NewValue;
-	}
-}
-
-#[derive(Error, Debug)]
-pub enum ActionError {
-	#[error("Invalid license: {0}")]
-	InvalidLicense(String),
-	#[error("Execution error: {0}")]
-	ExecutionError(String),
-	#[error("Routing error: {0}")]
-	RoutingError(String),
-	#[error("Cancellation error: {0}")]
-	CancellationError(String),
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
+// Isolate VectorDatabase logic from Action
+#[derive(Clone, Debug)]
 pub struct VectorDatabase {
-	Entries: DashMap<String, Signal<serde_json::Value>>,
+	Entries: DashMap<String, serde_json::Value>,
 }
 
 impl VectorDatabase {
 	pub fn New() -> Self {
-		VectorDatabase { Entries: DashMap::new() }
+		Self { Entries: DashMap::new() }
 	}
 
 	pub fn Insert(&mut self, Key: String, Value: serde_json::Value) {
-		self.Entries.insert(Key, Signal::New(Value));
+		self.Entries.insert(Key, Value);
 	}
 
 	pub async fn Get(&self, Key: &str) -> Option<serde_json::Value> {
-		self.Entries.get(Key).map(|signal| signal.Get().await)
+		self.Entries.get(Key).map(|v| v.value().clone())
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+pub enum ActionError {
+	#[error("Invalid License: {0}")]
+	InvalidLicense(String),
+	#[error("Execution Error: {0}")]
+	ExecutionError(String),
+}
+
+// Placeholder for ActionSignature
+#[derive(Clone, Debug)]
 pub struct ActionSignature {
-	pub Name: String,
-	pub InputTypes: Vec<String>,
-	pub OutputType: String,
-}
-
-struct DebugWrapper<T>(T);
-
-impl<T> std::fmt::Debug for DebugWrapper<T> {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Function")
-	}
+	name: String,
 }
 
 #[derive(Debug)]
@@ -101,12 +69,6 @@ pub struct Plan {
 	>,
 }
 
-impl std::fmt::Debug for Plan {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("Plan").field("Signatures", &self.Signatures).finish()
-	}
-}
-
 impl Plan {
 	pub fn New() -> Self {
 		Self { Signatures: DashMap::new(), Functions: DashMap::new() }
@@ -118,23 +80,24 @@ impl Plan {
 		self
 	}
 
-	pub fn AddFunction<F, Fut>(&mut self, Name: &str, Fn: F) -> Result<&mut Self, String>
+	pub fn AddFunction<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
-		if let Some(_Signature) = self.Signatures.get(Name) {
-			let BoxedFunc = Box::new(move |Args: Vec<serde_json::Value>| {
-				Box::pin(Fn(Args))
-					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
-			});
-
-			self.Functions.insert(Name.to_string(), BoxedFunc);
-
-			Ok(self)
-		} else {
-			Err(format!("No signature found for function: {}", Name))
+		// Return early if no signature
+		if !self.Signatures.contains_key(Name) {
+			return Err(format!("No signature found for function: {}", Name));
 		}
+
+		let BoxedFunc = Box::new(move |Args: Vec<serde_json::Value>| {
+			Box::pin(Function(Args))
+				as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
+		});
+
+		self.Functions.insert(Name.to_string(), BoxedFunc);
+
+		Ok(self)
 	}
 
 	pub fn GetFunction(
@@ -171,12 +134,12 @@ impl PlanBuilder {
 		self
 	}
 
-	pub fn WithFunction<F, Fut>(mut self, Name: &str, Fn: F) -> Result<Self, String>
+	pub fn WithFunction<F, Fut>(mut self, Name: &str, Function: F) -> Result<Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
-		self.Plan.AddFunction(Name, Fn)?;
+		self.Plan.AddFunction(Name, Function)?;
 
 		Ok(self)
 	}
@@ -216,6 +179,7 @@ impl<T: Send + Sync> Action<T> {
 	pub fn New(ActionType: &str, Content: T, Plan: Arc<Plan>) -> Self {
 		let mut Metadata = VectorDatabase::New();
 
+		// Can these be statically typed?
 		Metadata.Insert("ActionType".to_string(), serde_json::json!(ActionType));
 
 		Metadata.Insert("License".to_string(), serde_json::json!("valid"));
@@ -230,11 +194,13 @@ impl<T: Send + Sync> Action<T> {
 	}
 
 	pub async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+		// Can we avoid this unwrap chain?
 		let ActionType =
 			self.Metadata.Get("ActionType").await.unwrap().as_str().unwrap().to_string();
 
 		info!("Executing action: {}", ActionType);
 
+		// These checks can be extracted to separate functions for clarity
 		if let Some(Officer) = self.Metadata.Get("CommandingOfficer").await {
 			if Officer.get("License").unwrap().as_str().unwrap() != "valid" {
 				return Err(ActionError::InvalidLicense(
@@ -253,6 +219,7 @@ impl<T: Send + Sync> Action<T> {
 			sleep(Delay).await;
 		}
 
+		// Consider using an enum or similar for different hook types
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap() {
 				if let Some(HookFn) = Context.HookMap.get(Hook.as_str().unwrap()) {
@@ -261,10 +228,11 @@ impl<T: Send + Sync> Action<T> {
 			}
 		}
 
-		if let Some(Fn) = self.Plan.GetFunction(&ActionType) {
+		// This could be simplified if `Action` new up the function on creation
+		if let Some(Function) = self.Plan.GetFunction(&ActionType) {
 			let Args = self.GetArgumentsFromMetadata().await?;
 
-			let Result = Fn.borrow()(Args).await?;
+			let Result = Function.borrow()(Args).await?;
 
 			self.HandleFunctionResult(Result).await?;
 		} else {
@@ -275,6 +243,7 @@ impl<T: Send + Sync> Action<T> {
 		}
 
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
+			// Can this be done without cloning and unwrapping?
 			let NextAction: Action<T> = serde_json::from_value(NextAction.clone()).unwrap();
 
 			NextAction.Execute(Context).await?;
@@ -283,6 +252,7 @@ impl<T: Send + Sync> Action<T> {
 		Ok(())
 	}
 
+	// Is it possible to type these to return specific values?
 	async fn GetArgumentsFromMetadata(&self) -> Result<Vec<serde_json::Value>, ActionError> {
 		Ok(vec![])
 	}
@@ -296,7 +266,7 @@ impl<T: Send + Sync> Action<T> {
 pub trait ActionTrait: Send + Sync {
 	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
 
-	fn Clone(&self) -> Box<dyn ActionTrait>;
+	fn CloneAction(&self) -> Box<dyn ActionTrait>;
 }
 
 #[async_trait]
@@ -305,7 +275,7 @@ impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
 		self.Execute(Context).await
 	}
 
-	fn Clone(&self) -> Box<dyn ActionTrait> {
+	fn CloneAction(&self) -> Box<dyn ActionTrait> {
 		Box::new(self.clone())
 	}
 }
@@ -371,12 +341,13 @@ impl ActionProcessor {
 	}
 
 	async fn ExecuteWithRetry(&self, Action: Box<dyn ActionTrait>) -> Result<(), ActionError> {
+		// Make this configurable?
 		let MaxRetries = self.Context.Config.get_int("max_retries").unwrap_or(3) as u32;
 
 		let mut Retries = 0;
 
 		loop {
-			match self.Site.Receive(Action.Clone(), &self.Context).await {
+			match self.Site.Receive(Action.CloneAction(), &self.Context).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
 					if Retries >= MaxRetries {
@@ -384,6 +355,7 @@ impl ActionProcessor {
 					}
 					Retries += 1;
 
+					// Can we make this backoff strategy configurable?
 					let Delay = Duration::from_secs(
 						2u64.pow(Retries) + rand::thread_rng().gen_range(0..1000),
 					);
@@ -412,9 +384,5 @@ use log::{error, info, warn};
 use metrics::{counter, gauge};
 use rand::Rng;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{borrow::Borrow, collections::VecDeque, pin::Pin, sync::Arc};
-use thiserror::Error;
-use tokio::{
-	sync::Mutex,
-	time::{sleep, Duration},
-};
+use std::{borrow::Borrow, collections::VecDeque, fmt::Debug, pin::Pin, sync::Arc, time::Duration};
+use tokio::{sync::Mutex, time::sleep};

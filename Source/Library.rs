@@ -4,5 +4,6 @@ pub mod Fn;
 pub mod Struct;
 pub mod Trait;
 pub mod Type;
+pub mod Enum;
 
 pub mod Queue;
