@@ -50,7 +50,7 @@ pub enum ActionError {
 // Placeholder for ActionSignature
 #[derive(Clone, Debug)]
 pub struct ActionSignature {
-	name: String,
+	Name: String,
 }
 
 #[derive(Debug)]
@@ -353,6 +353,7 @@ impl ActionProcessor {
 					if Retries >= MaxRetries {
 						return Err(e);
 					}
+
 					Retries += 1;
 
 					// Can we make this backoff strategy configurable?
