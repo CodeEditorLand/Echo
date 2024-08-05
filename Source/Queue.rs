@@ -14,8 +14,8 @@ impl<T> Signal<T> {
 		self.0.lock().await.clone()
 	}
 
-	pub async fn Set(&self, value: T) {
-		*self.0.lock().await = value;
+	pub async fn Set(&self, To: T) {
+		*self.0.lock().await = To;
 	}
 }
 
@@ -266,7 +266,7 @@ impl<T: Send + Sync> Action<T> {
 pub trait ActionTrait: Send + Sync {
 	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
 
-	fn CloneAction(&self) -> Box<dyn ActionTrait>;
+	fn Clone(&self) -> Box<dyn ActionTrait>;
 }
 
 #[async_trait]
@@ -275,7 +275,7 @@ impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
 		self.Execute(Context).await
 	}
 
-	fn CloneAction(&self) -> Box<dyn ActionTrait> {
+	fn Clone(&self) -> Box<dyn ActionTrait> {
 		Box::new(self.clone())
 	}
 }
@@ -347,7 +347,7 @@ impl ActionProcessor {
 		let mut Retries = 0;
 
 		loop {
-			match self.Site.Receive(Action.CloneAction(), &self.Context).await {
+			match self.Site.Receive(Action.Clone(), &self.Context).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
 					if Retries >= MaxRetries {
@@ -386,4 +386,8 @@ use metrics::{counter, gauge};
 use rand::Rng;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{borrow::Borrow, collections::VecDeque, fmt::Debug, pin::Pin, sync::Arc, time::Duration};
-use tokio::{sync::Mutex, time::sleep};
+use thiserror::Error;
+use tokio::{
+	sync::Mutex,
+	time::{sleep, Duration},
+};
