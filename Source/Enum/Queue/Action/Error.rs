@@ -9,3 +9,5 @@ pub enum Enum {
 	#[error("Cancellation error: {0}")]
 	CancellationError(String),
 }
+
+use thiserror::Error;

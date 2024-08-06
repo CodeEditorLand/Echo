@@ -1,6 +1,7 @@
 /// A trait that defines the behavior for processing actions.
 ///
 /// Types that implement this trait must be able to handle actions asynchronously.
+///
 #[async_trait::async_trait]
 pub trait Trait: Send + Sync {
 	/// Processes a given action and returns the result.
@@ -12,5 +13,9 @@ pub trait Trait: Send + Sync {
 	/// # Returns
 	///
 	/// An `ActionResult` containing the result of the action.
-	async fn Receive(&self, Action: crate::Struct::Job::Action::Struct) -> ActionResult;
+	async fn Receive(
+		&self,
+		Action: Box<dyn ActionTrait>,
+		Context: &Life,
+	) -> Result<(), ActionError>;
 }
