@@ -22,7 +22,10 @@ impl Struct {
 		}
 	}
 
-	async fn Again(&self, Action: Box<dyn ActionTrait>) -> Result<(), ActionError> {
+	async fn Again(
+		&self,
+		Action: Box<dyn ActionTrait>,
+	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum> {
 		let MaxRetries = self.Life.Fate.get_int("max_retries").unwrap_or(3) as u32;
 
 		let mut Retries = 0;
@@ -56,16 +59,10 @@ impl Struct {
 	}
 }
 
-use config::{Config, File};
 use log::{error, warn};
-use metrics::{counter, gauge};
 use rand::Rng;
 use std::{sync::Arc, time::Duration};
-use thiserror::Error;
-use tokio::{
-	sync::Mutex,
-	time::{sleep, Duration},
-};
+use tokio::time::sleep;
 
 pub mod Action;
 pub mod Life;

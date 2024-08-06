@@ -1,6 +1,6 @@
 #[derive(Clone, Debug)]
 pub struct Struct<T: Send + Sync> {
-	pub Metadata: VectorDatabase,
+	pub Metadata: Vector,
 	pub Content: T,
 	pub LicenseSignal: Signal<bool>,
 	pub Plan: Arc<Formality>,
@@ -26,7 +26,7 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
 
 impl<T: Send + Sync> Struct<T> {
 	pub fn New(ActionType: &str, Content: T, Plan: Arc<Formality>) -> Self {
-		let mut Metadata = VectorDatabase::New();
+		let mut Metadata = Vector::New();
 
 		Metadata.Insert("ActionType".to_string(), serde_json::json!(ActionType));
 
@@ -41,14 +41,14 @@ impl<T: Send + Sync> Struct<T> {
 		self
 	}
 
-	pub async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
+	pub async fn Execute(&self, Context: &Life) -> Result<(), Error> {
 		let ActionType = self
 			.Metadata
 			.Get("ActionType")
 			.await
-			.ok_or_else(|| ActionError::ExecutionError("ActionType not found".to_string()))?
+			.ok_or_else(|| Error::ExecutionError("ActionType not found".to_string()))?
 			.as_str()
-			.ok_or_else(|| ActionError::ExecutionError("ActionType is not a string".to_string()))?
+			.ok_or_else(|| Error::ExecutionError("ActionType is not a string".to_string()))?
 			.to_string();
 
 		info!("Executing action: {}", ActionType);
@@ -66,15 +66,15 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn CheckLicense(&self) -> Result<(), ActionError> {
+	async fn CheckLicense(&self) -> Result<(), Error> {
 		if !self.LicenseSignal.Get().await {
-			return Err(ActionError::InvalidLicense("Invalid action license".to_string()));
+			return Err(Error::InvalidLicense("Invalid action license".to_string()));
 		}
 
 		Ok(())
 	}
 
-	async fn HandleDelay(&self) -> Result<(), ActionError> {
+	async fn HandleDelay(&self) -> Result<(), Error> {
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
 			let Delay = Duration::from_secs(Delay.as_u64().unwrap_or(0));
 
@@ -84,7 +84,7 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn ExecuteHooks(&self, Context: &Life) -> Result<(), ActionError> {
+	async fn ExecuteHooks(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap_or(&Vec::new()) {
 				if let Some(HookFn) = Context.Span.get(Hook.as_str().unwrap_or("")) {
@@ -96,11 +96,11 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn ExecuteFunction(&self, ActionType: &str) -> Result<(), ActionError> {
+	async fn ExecuteFunction(&self, ActionType: &str) -> Result<(), Error> {
 		if let Some(Function) = self.Plan.Remove(ActionType) {
 			self.Result(Function.borrow()(self.Argument().await?).await?).await?;
 		} else {
-			return Err(ActionError::ExecutionError(format!(
+			return Err(Error::ExecutionError(format!(
 				"No function found for action type: {}",
 				ActionType
 			)));
@@ -109,12 +109,10 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn HandleNextAction(&self, Context: &Life) -> Result<(), ActionError> {
+	async fn HandleNextAction(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
-			let NextAction: Struct<T> =
-				serde_json::from_value(NextAction.clone()).map_err(|e| {
-					ActionError::ExecutionError(format!("Failed to parse NextAction: {}", e))
-				})?;
+			let NextAction: Struct<T> = serde_json::from_value(NextAction.clone())
+				.map_err(|e| Error::ExecutionError(format!("Failed to parse NextAction: {}", e)))?;
 
 			NextAction.Execute(Context).await?;
 		}
@@ -122,11 +120,11 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn Argument(&self) -> Result<Vec<serde_json::Value>, ActionError> {
+	async fn Argument(&self) -> Result<Vec<serde_json::Value>, Error> {
 		Ok(vec![])
 	}
 
-	async fn Result(&self, Result: serde_json::Value) -> Result<(), ActionError> {
+	async fn Result(&self, Result: serde_json::Value) -> Result<(), Error> {
 		Ok(())
 	}
 }
@@ -135,5 +133,9 @@ use log::info;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{fmt::Debug, sync::Arc};
 
+use crate::{
+	Enum::Sequence::Action::Error::Enum as Error,
+	Struct::Sequence::{Signal::Struct as Signal, Vector::Struct as Vector},
+};
+
 pub mod Signature;
-pub mod Error;

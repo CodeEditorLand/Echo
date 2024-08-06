@@ -1,13 +1,10 @@
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum Enum {
-	#[error("Invalid license: {0}")]
+	// TODO: ADD MORE LIKE (InvalidLicense, ExecutionError, RoutingErro CancellationError)
+	#[error("Invalid License: {0}")]
 	InvalidLicense(String),
-	#[error("Execution error: {0}")]
+	#[error("Execution Error: {0}")]
 	ExecutionError(String),
-	#[error("Routing error: {0}")]
-	RoutingError(String),
-	#[error("Cancellation error: {0}")]
-	CancellationError(String),
 }
 
 use thiserror::Error;

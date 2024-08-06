@@ -17,5 +17,5 @@ pub trait Trait: Send + Sync {
 		&self,
 		Action: Box<dyn super::Action::Trait>,
 		Context: &Life,
-	) -> Result<(), crate::Struct::Sequence::Action::Error::Enum>;
+	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum>;
 }

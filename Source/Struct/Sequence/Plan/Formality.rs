@@ -6,8 +6,7 @@ pub struct Struct {
 		Box<
 			dyn Fn(
 					Vec<serde_json::Value>,
-				)
-					-> Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
+				) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, Error>> + Send>>
 				+ Send
 				+ Sync,
 		>,
@@ -32,7 +31,7 @@ impl Struct {
 	) -> Result<&mut Self, String>
 	where
 		Function: Fn(Vec<serde_json::Value>) -> Future + Send + Sync + 'static,
-		Future: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
+		Future: Future<Output = Result<serde_json::Value, Error>> + Send + 'static,
 	{
 		if !self.Signature.contains_key(Name) {
 			return Err(format!("No signature found for function: {}", Name));
@@ -42,7 +41,7 @@ impl Struct {
 			Name.to_string(),
 			Box::new(move |Argument: Vec<serde_json::Value>| {
 				Box::pin(Function(Argument))
-					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
+					as Pin<Box<dyn Future<Output = Result<serde_json::Value, Error>> + Send>>
 			}),
 		);
 
@@ -57,9 +56,9 @@ impl Struct {
 			Box<
 				dyn Fn(
 						Vec<serde_json::Value>,
-					) -> Pin<
-						Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>,
-					> + Send
+					)
+						-> Pin<Box<dyn Future<Output = Result<serde_json::Value, Error>> + Send>>
+					+ Send
 					+ Sync,
 			>,
 		>,
@@ -68,6 +67,9 @@ impl Struct {
 	}
 }
 
-use crate::Struct::Sequence::Action::Signature::Struct as Signature;
+use crate::{
+	Enum::Sequence::Action::Error::Enum as Error,
+	Struct::Sequence::Action::Signature::Struct as Signature,
+};
 use dashmap::DashMap;
 use futures::Future;
