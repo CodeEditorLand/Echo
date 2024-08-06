@@ -1,4 +1,4 @@
-pub mod Queue {
+pub mod Sequence {
 	pub mod Action {
 		pub mod Error;
 	}

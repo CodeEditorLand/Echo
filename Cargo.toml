@@ -18,8 +18,8 @@ tokio = { version = "1.39.2", features = ["full"] }
 tokio-tungstenite = "0.23.1"
 
 [[example]]
-name = "Queue"
-path = "Example/Queue.rs"
+name = "Sequence"
+path = "Example/Sequence.rs"
 
 [lib]
 crate-type = ["rlib"]
