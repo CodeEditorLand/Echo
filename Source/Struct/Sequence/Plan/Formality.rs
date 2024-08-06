@@ -25,10 +25,14 @@ impl Struct {
 		self
 	}
 
-	pub fn Add<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
+	pub fn Add<Function, Future>(
+		&mut self,
+		Name: &str,
+		Function: Function,
+	) -> Result<&mut Self, String>
 	where
-		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
-		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
+		Function: Fn(Vec<serde_json::Value>) -> Future + Send + Sync + 'static,
+		Future: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
 		if !self.Signature.contains_key(Name) {
 			return Err(format!("No signature found for function: {}", Name));
@@ -67,4 +71,3 @@ impl Struct {
 use crate::Struct::Sequence::Action::Signature::Struct as Signature;
 use dashmap::DashMap;
 use futures::Future;
-

@@ -1,5 +1,5 @@
 pub mod Sequence {
 	pub mod Action {
-		pub mod StartEnd;
+		pub mod Cycle;
 	}
 }
