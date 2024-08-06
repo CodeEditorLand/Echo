@@ -3,7 +3,7 @@
 #[async_trait]
 pub trait ActionLogic {
 	type Content;
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<Self::Content, ActionError>;
+	async fn Execute(&self, Context: &Life) -> Result<Self::Content, ActionError>;
 }
 
 // Example specific action implementations
@@ -31,7 +31,7 @@ struct FilePrintAction {
 impl ActionLogic for Action<ReadAction> {
 	type Content = String;
 
-	async fn Execute(&self, _Context: &ExecutionContext) -> Result<String, ActionError> {
+	async fn Execute(&self, _Context: &Life) -> Result<String, ActionError> {
 		info!("Reading from path: {}", self.Content.Path);
 
 		let mut Content = String::new();
@@ -49,14 +49,14 @@ impl ActionLogic for Action<ReadAction> {
 
 impl ActionLogic for Action<ProcessQueueAction> {
 	type Content = ();
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+	async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
 		info!("Processing queue: {}", self.Content.QueueName);
 
-		let Queue = Context.Queues.get(&self.Content.QueueName).ok_or_else(|| {
+		let Queue = Context.Karma.get(&self.Content.QueueName).ok_or_else(|| {
 			ActionError::ExecutionError(format!("Queue {} not found", self.Content.QueueName))
 		})?;
 
-		while let Some(Action) = Queue.Execute().await {
+		while let Some(Action) = Queue.Do().await {
 			Action.Execute(Context).await?;
 		}
 
@@ -66,7 +66,7 @@ impl ActionLogic for Action<ProcessQueueAction> {
 
 impl ActionLogic for Action<PrintAction> {
 	type Content = ();
-	async fn Execute(&self, _Context: &ExecutionContext) -> Result<(), ActionError> {
+	async fn Execute(&self, _Context: &Life) -> Result<(), ActionError> {
 		println!("Printing content: {}", self.Content.Content);
 
 		Ok(())
@@ -75,7 +75,7 @@ impl ActionLogic for Action<PrintAction> {
 
 impl ActionLogic for Action<FilePrintAction> {
 	type Content = ();
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+	async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
 		// Execute the ReadAction to get the content
 		File_tokio::create(&self.Content.OutputPath)
 			.await
@@ -102,7 +102,7 @@ impl Worker for Worker {
 	async fn Receive(
 		&self,
 		Action: Box<dyn ActionTrait>,
-		Context: &ExecutionContext,
+		Context: &Life,
 	) -> Result<(), ActionError> {
 		Action.Execute(Context).await
 	}
@@ -114,9 +114,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let Config = Config::builder().add_source(File_config::with_name("config.toml")).build()?;
 
-	let MainWork = Arc::new(Work::New());
+	let MainWork = Arc::new(Production::New());
 
-	let SecondaryWork = Arc::new(Work::New());
+	let SecondaryWork = Arc::new(Production::New());
 
 	let mut HookMap: DashMap<String, Hook> = DashMap::new();
 
@@ -135,14 +135,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	Queues.insert("Secondary".to_string(), SecondaryWork.clone());
 
-	let Context = ExecutionContext {
-		HookMap: Arc::new(HookMap),
-		Config: Arc::new(Config),
+	let Context = Life {
+		Span: Arc::new(HookMap),
+		Fate: Arc::new(Config),
 		Cache: Arc::new(tokio::sync::Mutex::new(DashMap::new())),
-		Queues: Arc::new(Queues),
+		Karma: Arc::new(Queues),
 	};
 
-	let Plan = PlanBuilder::New()
+	let Plan = Plan::New()
 		.WithSignature(ActionSignature {
 			Name: "Read".to_string(),
 			InputTypes: vec!["String".to_string()],
@@ -211,7 +211,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let Site = Arc::new(Worker);
 
-	let Processor = Arc::new(ActionProcessor::New(Site, MainWork.clone(), Context.clone()));
+	let Processor = Arc::new(Sequence::New(Site, MainWork.clone(), Context.clone()));
 
 	let ProcessorClone = Processor.clone();
 
@@ -225,7 +225,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Add actions to the main queue
 	MainWork
-		.Assign(Box::new(
+		.Take(Box::new(
 			Action::New("Read", ReadAction { Path: "SomePath".to_string() }, SharedPlan.clone())
 				.WithMetadata("CommandingOfficer", serde_json::to_value(&CommanderAction).unwrap())
 				.WithMetadata("Hooks", serde_json::json!(["LogStart"]))
@@ -234,7 +234,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.await;
 
 	MainWork
-		.Assign(Box::new(
+		.Take(Box::new(
 			Action::New("Print", PrintAction { Content: "".to_string() }, SharedPlan.clone())
 				.WithMetadata("CommandingOfficer", serde_json::to_value(&CommanderAction).unwrap())
 				.WithMetadata("Hooks", serde_json::json!(["LogStart"])),
@@ -242,7 +242,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.await;
 
 	MainWork
-		.Assign(Box::new(
+		.Take(Box::new(
 			Action::New(
 				"FilePrint",
 				FilePrintAction {
@@ -257,7 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.await;
 
 	MainWork
-		.Assign(Box::new(
+		.Take(Box::new(
 			Action::New(
 				"ProcessQueue",
 				ProcessQueueAction { QueueName: "Secondary".to_string() },
@@ -270,7 +270,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Add some actions to the secondary queue
 	SecondaryWork
-		.Assign(Box::new(
+		.Take(Box::new(
 			Action::New(
 				"Print",
 				PrintAction { Content: format!("This is from the secondary queue") },

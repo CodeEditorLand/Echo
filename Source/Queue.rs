@@ -22,20 +22,20 @@ impl<T> Signal<T> {
 // Isolate VectorDatabase logic from Action
 #[derive(Clone, Debug)]
 pub struct VectorDatabase {
-	Entries: DashMap<String, serde_json::Value>,
+	Entry: DashMap<String, serde_json::Value>,
 }
 
 impl VectorDatabase {
 	pub fn New() -> Self {
-		Self { Entries: DashMap::new() }
+		Self { Entry: DashMap::new() }
 	}
 
 	pub fn Insert(&mut self, Key: String, Value: serde_json::Value) {
-		self.Entries.insert(Key, Value);
+		self.Entry.insert(Key, Value);
 	}
 
 	pub async fn Get(&self, Key: &str) -> Option<serde_json::Value> {
-		self.Entries.get(Key).map(|v| v.value().clone())
+		self.Entry.get(Key).map(|v| v.value().clone())
 	}
 }
 
@@ -54,9 +54,9 @@ pub struct ActionSignature {
 }
 
 #[derive(Debug)]
-pub struct Plan {
-	Signatures: DashMap<String, ActionSignature>,
-	Functions: DashMap<
+pub struct Formality {
+	Signature: DashMap<String, ActionSignature>,
+	Function: DashMap<
 		String,
 		Box<
 			dyn Fn(
@@ -69,38 +69,39 @@ pub struct Plan {
 	>,
 }
 
-impl Plan {
+impl Formality {
 	pub fn New() -> Self {
-		Self { Signatures: DashMap::new(), Functions: DashMap::new() }
+		Self { Signature: DashMap::new(), Function: DashMap::new() }
 	}
 
 	pub fn AddSignature(&mut self, Signature: ActionSignature) -> &mut Self {
-		self.Signatures.insert(Signature.Name.clone(), Signature);
+		self.Signature.insert(Signature.Name.clone(), Signature);
 
 		self
 	}
 
-	pub fn AddFunction<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
+	pub fn FunctionA<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
 		// Return early if no signature
-		if !self.Signatures.contains_key(Name) {
+		if !self.Signature.contains_key(Name) {
 			return Err(format!("No signature found for function: {}", Name));
 		}
 
-		let BoxedFunc = Box::new(move |Args: Vec<serde_json::Value>| {
-			Box::pin(Function(Args))
-				as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
-		});
-
-		self.Functions.insert(Name.to_string(), BoxedFunc);
+		self.Function.insert(
+			Name.to_string(),
+			Box::new(move |Args: Vec<serde_json::Value>| {
+				Box::pin(Function(Args))
+					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
+			}),
+		);
 
 		Ok(self)
 	}
 
-	pub fn GetFunction(
+	pub fn FunctionB(
 		&self,
 		Name: &str,
 	) -> Option<
@@ -115,21 +116,21 @@ impl Plan {
 			>,
 		>,
 	> {
-		self.Functions.get(Name)
+		self.Function.get(Name)
 	}
 }
 
-pub struct PlanBuilder {
-	Plan: Plan,
+pub struct Plan {
+	Formality: Formality,
 }
 
-impl PlanBuilder {
+impl Plan {
 	pub fn New() -> Self {
-		Self { Plan: Plan::New() }
+		Self { Formality: Formality::New() }
 	}
 
 	pub fn WithSignature(mut self, Signature: ActionSignature) -> Self {
-		self.Plan.AddSignature(Signature);
+		self.Formality.AddSignature(Signature);
 
 		self
 	}
@@ -139,13 +140,13 @@ impl PlanBuilder {
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<serde_json::Value, ActionError>> + Send + 'static,
 	{
-		self.Plan.AddFunction(Name, Function)?;
+		self.Formality.FunctionA(Name, Function)?;
 
 		Ok(self)
 	}
 
-	pub fn Build(self) -> Plan {
-		self.Plan
+	pub fn Build(self) -> Formality {
+		self.Formality
 	}
 }
 
@@ -154,7 +155,7 @@ pub struct Action<T: Send + Sync> {
 	pub Metadata: VectorDatabase,
 	pub Content: T,
 	pub LicenseSignal: Signal<bool>,
-	pub Plan: Arc<Plan>,
+	pub Plan: Arc<Formality>,
 }
 
 impl<T: Send + Sync + Serialize> Serialize for Action<T> {
@@ -176,7 +177,7 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Action<T> {
 }
 
 impl<T: Send + Sync> Action<T> {
-	pub fn New(ActionType: &str, Content: T, Plan: Arc<Plan>) -> Self {
+	pub fn New(ActionType: &str, Content: T, Plan: Arc<Formality>) -> Self {
 		let mut Metadata = VectorDatabase::New();
 
 		// Can these be statically typed?
@@ -193,7 +194,7 @@ impl<T: Send + Sync> Action<T> {
 		self
 	}
 
-	pub async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+	pub async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
 		// Can we avoid this unwrap chain?
 		let ActionType =
 			self.Metadata.Get("ActionType").await.unwrap().as_str().unwrap().to_string();
@@ -201,14 +202,6 @@ impl<T: Send + Sync> Action<T> {
 		info!("Executing action: {}", ActionType);
 
 		// These checks can be extracted to separate functions for clarity
-		if let Some(Officer) = self.Metadata.Get("CommandingOfficer").await {
-			if Officer.get("License").unwrap().as_str().unwrap() != "valid" {
-				return Err(ActionError::InvalidLicense(
-					"Invalid commanding officer license".to_string(),
-				));
-			}
-		}
-
 		if !self.LicenseSignal.Get().await {
 			return Err(ActionError::InvalidLicense("Invalid action license".to_string()));
 		}
@@ -222,19 +215,19 @@ impl<T: Send + Sync> Action<T> {
 		// Consider using an enum or similar for different hook types
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap() {
-				if let Some(HookFn) = Context.HookMap.get(Hook.as_str().unwrap()) {
+				if let Some(HookFn) = Context.Span.get(Hook.as_str().unwrap()) {
 					HookFn()?;
 				}
 			}
 		}
 
 		// This could be simplified if `Action` new up the function on creation
-		if let Some(Function) = self.Plan.GetFunction(&ActionType) {
-			let Args = self.GetArgumentsFromMetadata().await?;
+		if let Some(Function) = self.Plan.FunctionB(&ActionType) {
+			let Args = self.Argument().await?;
 
 			let Result = Function.borrow()(Args).await?;
 
-			self.HandleFunctionResult(Result).await?;
+			self.Result(Result).await?;
 		} else {
 			return Err(ActionError::ExecutionError(format!(
 				"No function found for action type: {}",
@@ -253,25 +246,25 @@ impl<T: Send + Sync> Action<T> {
 	}
 
 	// Is it possible to type these to return specific values?
-	async fn GetArgumentsFromMetadata(&self) -> Result<Vec<serde_json::Value>, ActionError> {
+	async fn Argument(&self) -> Result<Vec<serde_json::Value>, ActionError> {
 		Ok(vec![])
 	}
 
-	async fn HandleFunctionResult(&self, Result: serde_json::Value) -> Result<(), ActionError> {
+	async fn Result(&self, Result: serde_json::Value) -> Result<(), ActionError> {
 		Ok(())
 	}
 }
 
 #[async_trait]
 pub trait ActionTrait: Send + Sync {
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError>;
+	async fn Execute(&self, Context: &Life) -> Result<(), ActionError>;
 
 	fn Clone(&self) -> Box<dyn ActionTrait>;
 }
 
 #[async_trait]
 impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
-	async fn Execute(&self, Context: &ExecutionContext) -> Result<(), ActionError> {
+	async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
 		self.Execute(Context).await
 	}
 
@@ -280,57 +273,57 @@ impl<T: Send + Sync + Clone + 'static> ActionTrait for Action<T> {
 	}
 }
 
-pub struct ExecutionContext {
-	pub HookMap: Arc<DashMap<String, Hook>>,
-	pub Config: Arc<Config>,
+pub struct Life {
+	pub Span: Arc<DashMap<String, StartEnd>>,
+	pub Fate: Arc<Config>,
 	Cache: Arc<Mutex<DashMap<String, serde_json::Value>>>,
-	pub Queues: Arc<DashMap<String, Arc<Work>>>,
+	pub Karma: Arc<DashMap<String, Arc<Production>>>,
 }
 
-type Hook = Arc<dyn Fn() -> Result<(), ActionError> + Send + Sync>;
+type StartEnd = Arc<dyn Fn() -> Result<(), ActionError> + Send + Sync>;
 
 #[async_trait]
 pub trait Worker: Send + Sync {
 	async fn Receive(
 		&self,
 		Action: Box<dyn ActionTrait>,
-		Context: &ExecutionContext,
+		Context: &Life,
 	) -> Result<(), ActionError>;
 }
 
-pub struct Work {
-	Queue: Arc<Mutex<VecDeque<Box<dyn ActionTrait>>>>,
+pub struct Production {
+	Line: Arc<Mutex<VecDeque<Box<dyn ActionTrait>>>>,
 }
 
-impl Work {
+impl Production {
 	pub fn New() -> Self {
-		Work { Queue: Arc::new(Mutex::new(VecDeque::new())) }
+		Production { Line: Arc::new(Mutex::new(VecDeque::new())) }
 	}
 
-	pub async fn Execute(&self) -> Option<Box<dyn ActionTrait>> {
-		self.Queue.lock().await.pop_front()
+	pub async fn Do(&self) -> Option<Box<dyn ActionTrait>> {
+		self.Line.lock().await.pop_front()
 	}
 
-	pub async fn Assign(&self, Action: Box<dyn ActionTrait>) {
-		self.Queue.lock().await.push_back(Action);
+	pub async fn Take(&self, Action: Box<dyn ActionTrait>) {
+		self.Line.lock().await.push_back(Action);
 	}
 }
 
-pub struct ActionProcessor {
+pub struct Sequence {
 	Site: Arc<dyn Worker>,
-	Work: Arc<Work>,
-	Context: ExecutionContext,
-	ShutdownSignal: Signal<bool>,
+	Work: Arc<Production>,
+	Life: Life,
+	Time: Signal<bool>,
 }
 
-impl ActionProcessor {
-	pub fn New(Site: Arc<dyn Worker>, Work: Arc<Work>, Context: ExecutionContext) -> Self {
-		ActionProcessor { Site, Work, Context, ShutdownSignal: Signal::New(false) }
+impl Sequence {
+	pub fn New(Site: Arc<dyn Worker>, Work: Arc<Production>, Context: Life) -> Self {
+		Sequence { Site, Work, Life: Context, Time: Signal::New(false) }
 	}
 
 	pub async fn Run(&self) {
-		while !self.ShutdownSignal.Get().await {
-			if let Some(Action) = self.Work.Execute().await {
+		while !self.Time.Get().await {
+			if let Some(Action) = self.Work.Do().await {
 				let Result = self.ExecuteWithRetry(Action).await;
 
 				if let Err(e) = Result {
@@ -342,12 +335,12 @@ impl ActionProcessor {
 
 	async fn ExecuteWithRetry(&self, Action: Box<dyn ActionTrait>) -> Result<(), ActionError> {
 		// Make this configurable?
-		let MaxRetries = self.Context.Config.get_int("max_retries").unwrap_or(3) as u32;
+		let MaxRetries = self.Life.Fate.get_int("max_retries").unwrap_or(3) as u32;
 
 		let mut Retries = 0;
 
 		loop {
-			match self.Site.Receive(Action.Clone(), &self.Context).await {
+			match self.Site.Receive(Action.Clone(), &self.Life).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
 					if Retries >= MaxRetries {
@@ -373,7 +366,7 @@ impl ActionProcessor {
 	}
 
 	pub async fn Shutdown(&self) {
-		self.ShutdownSignal.Set(true).await;
+		self.Time.Set(true).await;
 	}
 }
 
