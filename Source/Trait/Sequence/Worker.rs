@@ -15,7 +15,7 @@ pub trait Trait: Send + Sync {
 	/// An `ActionResult` containing the result of the action.
 	async fn Receive(
 		&self,
-		Action: Box<dyn ActionTrait>,
+		Action: Box<dyn super::Action::Trait>,
 		Context: &Life,
-	) -> Result<(), ActionError>;
+	) -> Result<(), crate::Struct::Sequence::Action::Error::Enum>;
 }

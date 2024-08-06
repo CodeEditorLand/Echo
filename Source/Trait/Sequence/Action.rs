@@ -6,7 +6,7 @@ pub trait Trait: Send + Sync {
 }
 
 #[async_trait]
-impl<T: Send + Sync + Clone + 'static> Trait for Action<T> {
+impl<T: Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action::Struct<T> {
 	async fn Execute(&self, Context: &Life) -> Result<(), ActionError> {
 		self.Execute(Context).await
 	}

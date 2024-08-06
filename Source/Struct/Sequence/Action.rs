@@ -1,12 +1,12 @@
 #[derive(Clone, Debug)]
-pub struct Action<T: Send + Sync> {
+pub struct Struct<T: Send + Sync> {
 	pub Metadata: VectorDatabase,
 	pub Content: T,
 	pub LicenseSignal: Signal<bool>,
 	pub Plan: Arc<Formality>,
 }
 
-impl<T: Send + Sync + Serialize> Serialize for Action<T> {
+impl<T: Send + Sync + Serialize> Serialize for Struct<T> {
 	fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
@@ -15,7 +15,7 @@ impl<T: Send + Sync + Serialize> Serialize for Action<T> {
 	}
 }
 
-impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Action<T> {
+impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
 	fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
 	where
 		D: Deserializer<'de>,
@@ -24,7 +24,7 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Action<T> {
 	}
 }
 
-impl<T: Send + Sync> Action<T> {
+impl<T: Send + Sync> Struct<T> {
 	pub fn New(ActionType: &str, Content: T, Plan: Arc<Formality>) -> Self {
 		let mut Metadata = VectorDatabase::New();
 
@@ -32,7 +32,7 @@ impl<T: Send + Sync> Action<T> {
 
 		Metadata.Insert("License".to_string(), serde_json::json!("valid"));
 
-		Action { Metadata, Content, LicenseSignal: Signal::New(true), Plan }
+		Struct { Metadata, Content, LicenseSignal: Signal::New(true), Plan }
 	}
 
 	pub fn WithMetadata(mut self, Key: &str, Value: serde_json::Value) -> Self {
@@ -78,7 +78,7 @@ impl<T: Send + Sync> Action<T> {
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
 			let Delay = Duration::from_secs(Delay.as_u64().unwrap_or(0));
 
-			sleep(Delay).await;
+			tokio::time::sleep(Delay).await;
 		}
 
 		Ok(())
@@ -111,7 +111,7 @@ impl<T: Send + Sync> Action<T> {
 
 	async fn HandleNextAction(&self, Context: &Life) -> Result<(), ActionError> {
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
-			let NextAction: Action<T> =
+			let NextAction: Struct<T> =
 				serde_json::from_value(NextAction.clone()).map_err(|e| {
 					ActionError::ExecutionError(format!("Failed to parse NextAction: {}", e))
 				})?;
@@ -131,8 +131,9 @@ impl<T: Send + Sync> Action<T> {
 	}
 }
 
-pub mod Error;
-pub mod Signature;
 use log::info;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{fmt::Debug, sync::Arc, time::Duration};
+use std::{fmt::Debug, sync::Arc};
+
+pub mod Signature;
+pub mod Error;

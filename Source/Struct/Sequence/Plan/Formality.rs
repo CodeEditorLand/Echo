@@ -36,8 +36,8 @@ impl Struct {
 
 		self.Function.insert(
 			Name.to_string(),
-			Box::new(move |Args: Vec<serde_json::Value>| {
-				Box::pin(Function(Args))
+			Box::new(move |Argument: Vec<serde_json::Value>| {
+				Box::pin(Function(Argument))
 					as Pin<Box<dyn Future<Output = Result<serde_json::Value, ActionError>> + Send>>
 			}),
 		);

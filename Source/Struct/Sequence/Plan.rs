@@ -7,6 +7,7 @@ impl Struct {
 		Self { Formality: Formality::New() }
 	}
 
+	// Shorten WithX to Provision(Signature | Action)
 	pub fn WithSignature(mut self, Signature: ActionSignature) -> Self {
 		self.Formality.Sign(Signature);
 
@@ -28,5 +29,6 @@ impl Struct {
 	}
 }
 
-pub mod Formality;
 use futures::Future;
+
+pub mod Formality;
