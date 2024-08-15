@@ -1,15 +1,38 @@
+/// Represents a sequence structure that manages actions and their execution.
 pub struct Struct {
+	/// The worker responsible for processing actions.
 	Site: Arc<dyn Worker>,
+
+	/// The production line containing actions to be executed.
 	Work: Arc<Production::Struct>,
+
+	/// The context for the sequence execution.
 	Life: Life::Struct,
+
+	/// A signal indicating whether the sequence should continue running.
 	Time: Signal::Struct<bool>,
 }
 
 impl Struct {
+	/// Creates a new `Struct` instance.
+	///
+	/// # Arguments
+	///
+	/// * `Site` - The worker responsible for processing actions.
+	/// * `Work` - The production line containing actions to be executed.
+	/// * `Context` - The context for the sequence execution.
+	///
+	/// # Returns
+	///
+	/// A new `Struct` instance with the `Time` signal initialized to `false`.
 	pub fn New(Site: Arc<dyn Worker>, Work: Arc<Production>, Context: Life::Struct) -> Self {
 		Struct { Site, Work, Life: Context, Time: Signal::Struct::New(false) }
 	}
 
+	/// Runs the sequence, processing actions until the `Time` signal is set to true.
+	///
+	/// This method continuously checks for new actions in the `Work` queue and processes them.
+	/// If an error occurs during processing, it logs the error.
 	pub async fn Run(&self) {
 		while !self.Time.Get().await {
 			if let Some(Action) = self.Work.Do().await {
@@ -22,38 +45,49 @@ impl Struct {
 		}
 	}
 
+	/// Attempts to execute an action with retry logic.
+	///
+	/// # Arguments
+	///
+	/// * `Action` - The action to be executed.
+	///
+	/// # Returns
+	///
+	/// A `Result` indicating success or failure of the action execution.
+	///
+	/// This method will retry the action execution up to a maximum number of times
+	/// (defined by `End` in `Life.Fate`) with exponential backoff and jitter.
 	async fn Again(
 		&self,
 		Action: Box<dyn ActionTrait>,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum> {
-		let MaxRetries = self.Life.Fate.get_int("max_retries").unwrap_or(3) as u32;
+		let End = self.Life.Fate.get_int("End").unwrap_or(3) as u32;
 
-		let mut Retries = 0;
+		let mut Attempt = 0;
 
 		loop {
 			match self.Site.Receive(Action.Clone(), &self.Life).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
-					if Retries >= MaxRetries {
+					if Attempt >= End {
 						return Err(e);
 					}
-					Retries += 1;
 
-					let Delay = Duration::from_secs(
-						2u64.pow(Retries) + rand::thread_rng().gen_range(0..1000),
+					Attempt += 1;
+
+					let Again = Duration::from_secs(
+						2u64.pow(Attempt) + rand::thread_rng().gen_range(0..1000),
 					);
 
-					warn!(
-						"Action failed, retrying in {:?}. Attempt {} of {}",
-						Delay, Retries, MaxRetries
-					);
+					warn!("Action failed, retrying in {:?}. Attempt {} of {}", Again, Attempt, End);
 
-					sleep(Delay).await;
+					sleep(Again).await;
 				}
 			}
 		}
 	}
 
+	/// Signals the sequence to shut down by setting the `Time` signal to true.
 	pub async fn Shutdown(&self) {
 		self.Time.Set(true).await;
 	}
