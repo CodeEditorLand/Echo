@@ -163,6 +163,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			Ok(serde_json::json!(Content))
 		})?
 		.WithSignature(ActionSignature {
+			Name: "WriteFile".to_string(),
+			InputTypes: vec!["String".to_string(), "String".to_string()],
+			OutputType: "()".to_string(),
+		})
+		.WithFunction("WriteFile", |Args: Vec<serde_json::Value>| async move {
+			let Path = Args[0].as_str().unwrap();
+			let Content = Args[1].as_str().unwrap();
+	
+			tokio::fs::File::create(Path)
+				.await
+				.map_err(|e| ActionError::ExecutionError(format!("Failed to create file: {}", e)))?
+				.write_all(Content.as_bytes())
+				.await
+				.map_err(|e| ActionError::ExecutionError(format!("Failed to write to file: {}", e)))?;
+	
+			info!("Content written to file: {}", Path);
+	
+			Ok(serde_json::json!(null))
+		})?
+		.WithSignature(ActionSignature {
 			Name: "ProcessQueue".to_string(),
 			InputTypes: vec!["String".to_string()],
 			OutputType: "()".to_string(),
@@ -301,4 +321,4 @@ use tokio::{
 	time::{sleep, Duration},
 };
 
-use Echo::
+use Echo::*;
