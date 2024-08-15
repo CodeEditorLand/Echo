@@ -1,13 +1,13 @@
 #[derive(Debug, Error)]
 pub enum Enum {
 	#[error("Invalid License: {0}")]
-	InvalidLicense(String),
+	License(String),
 	#[error("Execution Error: {0}")]
-	ExecutionError(String),
+	Execution(String),
 	#[error("Routing error: {0}")]
-	RoutingError(String),
+	Routing(String),
 	#[error("Cancellation error: {0}")]
-	CancellationError(String),
+	Cancellation(String),
 }
 
 use thiserror::Error;

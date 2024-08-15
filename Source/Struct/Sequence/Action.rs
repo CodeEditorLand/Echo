@@ -46,9 +46,9 @@ impl<T: Send + Sync> Struct<T> {
 			.Metadata
 			.Get("Action")
 			.await
-			.ok_or_else(|| Error::ExecutionError("Action not found".to_string()))?
+			.ok_or_else(|| Error::Execution("Action not found".to_string()))?
 			.as_str()
-			.ok_or_else(|| Error::ExecutionError("Action is not a string".to_string()))?
+			.ok_or_else(|| Error::Execution("Action is not a string".to_string()))?
 			.to_string();
 
 		info!("Executing action: {}", Action);
@@ -68,7 +68,7 @@ impl<T: Send + Sync> Struct<T> {
 
 	async fn License(&self) -> Result<(), Error> {
 		if !self.LicenseSignal.Get().await {
-			return Err(Error::InvalidLicense("Invalid action license".to_string()));
+			return Err(Error::License("Invalid action license".to_string()));
 		}
 
 		Ok(())
@@ -100,7 +100,7 @@ impl<T: Send + Sync> Struct<T> {
 		if let Some(Function) = self.Plan.Remove(Action) {
 			self.Result(Function.borrow()(self.Argument().await?).await?).await?;
 		} else {
-			return Err(Error::ExecutionError(format!(
+			return Err(Error::Execution(format!(
 				"No function found for action type: {}",
 				Action
 			)));
@@ -112,7 +112,7 @@ impl<T: Send + Sync> Struct<T> {
 	async fn Next(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
 			let NextAction: Struct<T> = serde_json::from_value(NextAction.clone())
-				.map_err(|e| Error::ExecutionError(format!("Failed to parse NextAction: {}", e)))?;
+				.map_err(|e| Error::Execution(format!("Failed to parse NextAction: {}", e)))?;
 
 			NextAction.Execute(Context).await?;
 		}
