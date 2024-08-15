@@ -1,4 +1,5 @@
 /// Represents the lifecycle context for a sequence of actions.
+#[derive(Clone)]
 pub struct Struct {
 	/// A thread-safe map of action cycles, identified by string keys.
 	/// These cycles represent reusable action functions that can be invoked during execution.

@@ -9,7 +9,6 @@ pub struct Struct {
 	///
 	/// These functions take a vector of JSON values as input and return a pinned future
 	/// that resolves to a Result containing either a JSON value or an Error.
-	#[debug_ignore]
 	Function: DashMap<
 		String,
 		Box<
@@ -110,7 +109,7 @@ impl Debug for Struct {
 use dashmap::DashMap;
 use futures::Future;
 use serde_json::Value;
-use std::{borrow::Borrow, fmt::Debug, pin::Pin};
+use std::{fmt::Debug, pin::Pin};
 
 use crate::{
 	Enum::Sequence::Action::Error::Enum as Error,

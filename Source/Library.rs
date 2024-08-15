@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![feature(fn_traits)]
 
 pub mod Struct;
 

@@ -1,4 +1,5 @@
 /// Represents a sequence structure that manages actions and their execution.
+#[derive(Clone)]
 pub struct Struct {
 	/// The worker responsible for processing actions.
 	Site: Arc<dyn Worker>,
@@ -40,11 +41,13 @@ impl Struct {
 	pub async fn Run(&self) {
 		while !self.Time.Get().await {
 			if let Some(Action) = self.Work.Do().await {
-				let Result = self.Again(Action).await;
-
-				if let Err(e) = Result {
-					error!("Error processing action: {}", e);
+				match self.Again(Action).await {
+					Ok(_) => {}
+					Err(e) => error!("Error processing action: {}", e),
 				}
+			} else {
+				// Add a small delay to prevent tight looping when there are no actions
+				sleep(std::time::Duration::from_millis(100)).await;
 			}
 		}
 	}
@@ -69,15 +72,15 @@ impl Struct {
 
 		let mut Attempt = 0;
 
-		loop {
+		while Attempt < End {
 			match self.Site.Receive(Action.Clone(), &self.Life).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
+					Attempt += 1;
+
 					if Attempt >= End {
 						return Err(e);
 					}
-
-					Attempt += 1;
 
 					let Again = Duration::from_secs(
 						2u64.pow(Attempt) + rand::thread_rng().gen_range(0..1000),
@@ -89,6 +92,8 @@ impl Struct {
 				}
 			}
 		}
+
+		unreachable!("Loop should have returned or errored")
 	}
 
 	/// Signals the sequence to shut down by setting the `Time` signal to true.

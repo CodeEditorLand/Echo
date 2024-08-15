@@ -133,7 +133,7 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Executes the function associated with the action.
 	async fn Function(&self, Action: &str) -> Result<(), Error> {
 		if let Some(Function) = self.Plan.Remove(Action) {
-			self.Result(Function.borrow().call((self.Argument().await?,)).await?).await?;
+			self.Result(Function.call((self.Argument().await?,)).await?).await?;
 		} else {
 			return Err(Error::Execution(format!("No function found for action type: {}", Action)));
 		}
@@ -143,11 +143,11 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 
 	/// Executes the next action, if specified.
 	async fn Next(&self, Context: &Life) -> Result<(), Error> {
-		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
-			let NextAction: Struct<T> = serde_json::from_value(NextAction.clone())
+		if let Some(Next) = self.Metadata.Get("NextAction").await {
+			let Next: Struct<T> = serde_json::from_value(Next.clone())
 				.map_err(|e| Error::Execution(format!("Failed to parse NextAction: {}", e)))?;
 
-			NextAction.Execute(Context).await?;
+			Next.Execute(Context).await?;
 		}
 
 		Ok(())
@@ -166,7 +166,7 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 
 use log::info;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{borrow::Borrow, fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use crate::{
 	Enum::Sequence::Action::Error::Enum as Error,
