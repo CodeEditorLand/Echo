@@ -25,10 +25,10 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
 }
 
 impl<T: Send + Sync> Struct<T> {
-	pub fn New(ActionType: &str, Content: T, Plan: Arc<Formality>) -> Self {
+	pub fn New(Action: &str, Content: T, Plan: Arc<Formality>) -> Self {
 		let mut Metadata = Vector::New();
 
-		Metadata.Insert("ActionType".to_string(), serde_json::json!(ActionType));
+		Metadata.Insert("Action".to_string(), serde_json::json!(Action));
 
 		Metadata.Insert("License".to_string(), serde_json::json!("valid"));
 
@@ -42,31 +42,31 @@ impl<T: Send + Sync> Struct<T> {
 	}
 
 	pub async fn Execute(&self, Context: &Life) -> Result<(), Error> {
-		let ActionType = self
+		let Action = self
 			.Metadata
-			.Get("ActionType")
+			.Get("Action")
 			.await
-			.ok_or_else(|| Error::ExecutionError("ActionType not found".to_string()))?
+			.ok_or_else(|| Error::ExecutionError("Action not found".to_string()))?
 			.as_str()
-			.ok_or_else(|| Error::ExecutionError("ActionType is not a string".to_string()))?
+			.ok_or_else(|| Error::ExecutionError("Action is not a string".to_string()))?
 			.to_string();
 
-		info!("Executing action: {}", ActionType);
+		info!("Executing action: {}", Action);
 
-		self.CheckLicense().await?;
+		self.License().await?;
 
-		self.HandleDelay().await?;
+		self.Delay().await?;
 
-		self.ExecuteHooks(Context).await?;
+		self.Hooks(Context).await?;
 
-		self.ExecuteFunction(&ActionType).await?;
+		self.Function(&Action).await?;
 
-		self.HandleNextAction(Context).await?;
+		self.Next(Context).await?;
 
 		Ok(())
 	}
 
-	async fn CheckLicense(&self) -> Result<(), Error> {
+	async fn License(&self) -> Result<(), Error> {
 		if !self.LicenseSignal.Get().await {
 			return Err(Error::InvalidLicense("Invalid action license".to_string()));
 		}
@@ -74,7 +74,7 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn HandleDelay(&self) -> Result<(), Error> {
+	async fn Delay(&self) -> Result<(), Error> {
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
 			let Delay = Duration::from_secs(Delay.as_u64().unwrap_or(0));
 
@@ -84,7 +84,7 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn ExecuteHooks(&self, Context: &Life) -> Result<(), Error> {
+	async fn Hooks(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap_or(&Vec::new()) {
 				if let Some(HookFn) = Context.Span.get(Hook.as_str().unwrap_or("")) {
@@ -96,20 +96,20 @@ impl<T: Send + Sync> Struct<T> {
 		Ok(())
 	}
 
-	async fn ExecuteFunction(&self, ActionType: &str) -> Result<(), Error> {
-		if let Some(Function) = self.Plan.Remove(ActionType) {
+	async fn Function(&self, Action: &str) -> Result<(), Error> {
+		if let Some(Function) = self.Plan.Remove(Action) {
 			self.Result(Function.borrow()(self.Argument().await?).await?).await?;
 		} else {
 			return Err(Error::ExecutionError(format!(
 				"No function found for action type: {}",
-				ActionType
+				Action
 			)));
 		}
 
 		Ok(())
 	}
 
-	async fn HandleNextAction(&self, Context: &Life) -> Result<(), Error> {
+	async fn Next(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(NextAction) = self.Metadata.Get("NextAction").await {
 			let NextAction: Struct<T> = serde_json::from_value(NextAction.clone())
 				.map_err(|e| Error::ExecutionError(format!("Failed to parse NextAction: {}", e)))?;
