@@ -47,4 +47,4 @@ impl<T: Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action
 
 use async_trait::async_trait;
 
-use crate::Enum::Sequence::Action::Error::Enum as Error;
+use crate::{Enum::Sequence::Action::Error::Enum as Error, Struct::Sequence::Life::Struct as Life};

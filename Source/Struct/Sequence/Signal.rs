@@ -48,3 +48,5 @@ impl<T> Struct<T> {
 		*self.0.lock().await = To;
 	}
 }
+
+use crate::Struct::Sequence::{Arc, Mutex};

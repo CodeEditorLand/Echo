@@ -28,6 +28,6 @@ pub trait Trait: Send + Sync {
 	async fn Receive(
 		&self,
 		Action: Box<dyn super::Action::Trait>,
-		Context: &Life,
+		Context: &crate::Struct::Sequence::Life::Struct,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum>;
 }

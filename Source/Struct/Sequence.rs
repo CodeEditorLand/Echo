@@ -25,7 +25,11 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` instance with the `Time` signal initialized to `false`.
-	pub fn New(Site: Arc<dyn Worker>, Work: Arc<Production>, Context: Life::Struct) -> Self {
+	pub fn New(
+		Site: Arc<dyn Worker>,
+		Work: Arc<Production::Struct>,
+		Context: Life::Struct,
+	) -> Self {
 		Struct { Site, Work, Life: Context, Time: Signal::Struct::New(false) }
 	}
 
@@ -59,7 +63,7 @@ impl Struct {
 	/// (defined by `End` in `Life.Fate`) with exponential backoff and jitter.
 	async fn Again(
 		&self,
-		Action: Box<dyn ActionTrait>,
+		Action: Box<dyn crate::Trait::Sequence::Action::Trait>,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum> {
 		let End = self.Life.Fate.get_int("End").unwrap_or(3) as u32;
 
@@ -95,8 +99,11 @@ impl Struct {
 
 use log::{error, warn};
 use rand::Rng;
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use tokio::time::sleep;
+
+pub use std::sync::Arc;
+pub use tokio::sync::Mutex;
 
 pub mod Action;
 pub mod Life;
@@ -104,3 +111,5 @@ pub mod Plan;
 pub mod Production;
 pub mod Signal;
 pub mod Vector;
+
+use crate::Trait::Sequence::Worker::Trait as Worker;

@@ -37,11 +37,12 @@ impl Struct {
 	/// # Arguments
 	///
 	/// * `Action` - The action to be added to the queue.
-	pub async fn Take(&self, Action: Box<dyn Action>) {
+	pub async fn Assign(&self, Action: Box<dyn Action>) {
 		self.Line.lock().await.push_back(Action);
 	}
 }
 
 use std::{collections::VecDeque, sync::Arc};
 
+use crate::Struct::Sequence::Mutex;
 use crate::Trait::Sequence::Action::Trait as Action;

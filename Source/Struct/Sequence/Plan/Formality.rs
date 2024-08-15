@@ -1,7 +1,6 @@
 /// A structure that manages signatures and functions for actions.
 ///
 /// This struct uses concurrent hash maps to store signatures and their corresponding functions.
-#[derive(Debug)]
 pub struct Struct {
 	/// A concurrent hash map storing action signatures, keyed by their names.
 	Signature: DashMap<String, Signature>,
@@ -10,6 +9,7 @@ pub struct Struct {
 	///
 	/// These functions take a vector of JSON values as input and return a pinned future
 	/// that resolves to a Result containing either a JSON value or an Error.
+	#[debug_ignore]
 	Function: DashMap<
 		String,
 		Box<
@@ -59,22 +59,21 @@ impl Struct {
 	/// # Errors
 	///
 	/// Returns an error if no signature is found for the given function name.
-	pub fn Add<Function, Future>(
-		&mut self,
-		Name: &str,
-		Function: Function,
-	) -> Result<&mut Self, String>
+	pub fn Add<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
 	where
-		Function: Fn(Vec<Value>) -> Future + Send + Sync + 'static,
-		Future: Future<Output = Result<Value, Error>> + Send + 'static,
+		F: Fn(Vec<Value>) -> Fut + Send + Sync + 'static,
+		Fut: Future<Output = Result<Value, Error>> + Send + 'static,
 	{
 		if !self.Signature.contains_key(Name) {
 			return Err(format!("No signature found for function: {}", Name));
 		}
 
-		self.Function.insert(Name.to_string(), Box::new(move |Argument: Vec<Value>| -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> {
-			Box::pin(Function(Argument))
-		}));
+		self.Function.insert(
+			Name.to_string(),
+			Box::new(move |Argument: Vec<Value>| -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> {
+				Box::pin(Function(Argument))
+			}),
+		);
 
 		Ok(self)
 	}
@@ -92,22 +91,28 @@ impl Struct {
 		&self,
 		Name: &str,
 	) -> Option<
-		impl Borrow<
-			Box<
-				dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
-					+ Send
-					+ Sync,
-			>,
+		Box<
+			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
+				+ Send
+				+ Sync,
 		>,
 	> {
-		self.Function.get(Name)
+		self.Function.remove(Name).map(|(_, v)| v)
 	}
 }
+
+impl Debug for Struct {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Formality").field("Signature", &self.Signature).finish_non_exhaustive()
+	}
+}
+
+use dashmap::DashMap;
+use futures::Future;
+use serde_json::Value;
+use std::{borrow::Borrow, fmt::Debug, pin::Pin};
 
 use crate::{
 	Enum::Sequence::Action::Error::Enum as Error,
 	Struct::Sequence::Action::Signature::Struct as Signature,
 };
-use dashmap::DashMap;
-use futures::Future;
-use serde_json::Value;

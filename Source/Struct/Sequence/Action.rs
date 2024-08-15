@@ -27,7 +27,7 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
 	}
 }
 
-impl<T: Send + Sync> Struct<T> {
+impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Creates a new `Struct` instance.
 	///
 	/// # Arguments
@@ -111,9 +111,7 @@ impl<T: Send + Sync> Struct<T> {
 	/// Applies any delay specified in the metadata.
 	async fn Delay(&self) -> Result<(), Error> {
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
-			let Delay = Duration::from_secs(Delay.as_u64().unwrap_or(0));
-
-			tokio::time::sleep(Delay).await;
+			tokio::time::sleep(tokio::time::Duration::from_secs(Delay.as_u64().unwrap_or(0))).await;
 		}
 
 		Ok(())
@@ -135,7 +133,7 @@ impl<T: Send + Sync> Struct<T> {
 	/// Executes the function associated with the action.
 	async fn Function(&self, Action: &str) -> Result<(), Error> {
 		if let Some(Function) = self.Plan.Remove(Action) {
-			self.Result(Function.borrow()(self.Argument().await?).await?).await?;
+			self.Result(Function.borrow().call((self.Argument().await?,)).await?).await?;
 		} else {
 			return Err(Error::Execution(format!("No function found for action type: {}", Action)));
 		}
@@ -161,18 +159,21 @@ impl<T: Send + Sync> Struct<T> {
 	}
 
 	/// Processes the result of the action.
-	async fn Result(&self, Result: serde_json::Value) -> Result<(), Error> {
+	async fn Result(&self, _Result: serde_json::Value) -> Result<(), Error> {
 		Ok(())
 	}
 }
 
 use log::info;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{fmt::Debug, sync::Arc};
+use std::{borrow::Borrow, fmt::Debug, sync::Arc};
 
 use crate::{
 	Enum::Sequence::Action::Error::Enum as Error,
-	Struct::Sequence::{Signal::Struct as Signal, Vector::Struct as Vector},
+	Struct::Sequence::{
+		Life::Struct as Life, Plan::Formality::Struct as Formality, Signal::Struct as Signal,
+		Vector::Struct as Vector,
+	},
 };
 
 pub mod Signature;

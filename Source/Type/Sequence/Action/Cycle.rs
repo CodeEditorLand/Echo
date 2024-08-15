@@ -10,5 +10,6 @@
 ///
 /// It's commonly used for defining actions or callbacks that can be executed asynchronously
 /// and shared across multiple parts of an application.
-pub type Type =
-	Arc<dyn Fn() -> Result<(), crate::Enum::Sequence::Action::Error::Enum> + Send + Sync>;
+pub type Type = crate::Struct::Sequence::Arc<
+	dyn Fn() -> Result<(), crate::Enum::Sequence::Action::Error::Enum> + Send + Sync,
+>;

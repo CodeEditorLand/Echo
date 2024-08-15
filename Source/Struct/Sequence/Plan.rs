@@ -10,7 +10,7 @@ impl Struct {
 	/// # Returns
 	/// A new `Struct` instance with an empty `Formality`.
 	pub fn New() -> Self {
-		Self { Formality: Formality::New() }
+		Self { Formality: Formality::Struct::New() }
 	}
 
 	// TODO: Combine / shorten WithX to Provision(Signature | Action)
@@ -22,7 +22,10 @@ impl Struct {
 	///
 	/// # Returns
 	/// The modified `Struct` instance, allowing for method chaining.
-	pub fn WithSignature(mut self, Signature: ActionSignature) -> Self {
+	pub fn WithSignature(
+		mut self,
+		Signature: crate::Struct::Sequence::Action::Signature::Struct,
+	) -> Self {
 		self.Formality.Sign(Signature);
 
 		self
@@ -60,7 +63,7 @@ impl Struct {
 	///
 	/// # Returns
 	/// The `Formality` instance containing all added signatures and functions.
-	pub fn Build(self) -> Formality {
+	pub fn Build(self) -> Formality::Struct {
 		self.Formality
 	}
 }
