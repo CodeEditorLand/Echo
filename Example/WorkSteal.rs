@@ -66,11 +66,11 @@ impl Worker for StealingWorker {
 	}
 }
 
-async fn worker_loop(worker: Arc<StealingWorker>, context: Arc<Life>, running: Arc<Mutex<bool>>) {
-	while *running.lock().await {
-		if let Some(action) = worker.Queue.Do(worker.Id).await {
-			if let Err(e) = action.Execute(&context).await {
-				eprintln!("Error executing action: {:?}", e);
+async fn worker_loop(Worker: Arc<StealingWorker>, Life: Arc<Life>, Running: Arc<Mutex<bool>>) {
+	while *Running.lock().await {
+		if let Some(Action) = Worker.Queue.Do(Worker.Id).await {
+			if let Err(_Error) = Action.Execute(&Life).await {
+				eprintln!("Error executing action: {:?}", _Error);
 			}
 		} else {
 			sleep(Duration::from_millis(10)).await;
@@ -96,12 +96,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Queue = Arc::new(WorkerStealingQueue::New(Force));
 
 	// Create a life context
-	let Life = Arc::new(Life {
+	let Life = Life {
 		Span: Arc::new(dashmap::DashMap::new()),
 		Fate: Arc::new(config::Config::default()),
 		Cache: Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
 		Karma: Arc::new(dashmap::DashMap::new()),
-	});
+	};
 
 	// Create workers
 	let Workers: Vec<Arc<StealingWorker>> =
@@ -113,21 +113,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Spawn worker tasks
 	let Handles: Vec<_> = Workers
 		.iter()
-		.map(|worker| {
-			let worker = worker.clone();
+		.map(|Worker| {
+			let Worker = Worker.clone();
 
-			let context = Life.clone();
+			let Life = Life.clone();
 
-			let running = Running.clone();
+			let Running = Running.clone();
 
 			tokio::spawn(async move {
-				worker_loop(worker, context, running).await;
+				worker_loop(Worker, Life, Running).await;
 			})
 		})
 		.collect();
 
 	// Add actions to the queue
-	for i in 0..10 {
+	for i in 0..4 {
 		let Action = if i % 2 == 0 {
 			Action::New(
 				"Write",

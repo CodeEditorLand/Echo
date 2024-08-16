@@ -2,13 +2,13 @@
 #[derive(Clone)]
 pub struct Struct {
 	/// The worker responsible for processing actions.
-	Site: Arc<dyn Worker>,
+	pub Site: Arc<dyn Worker>,
 
 	/// The production line containing actions to be executed.
-	Work: Arc<Production::Struct>,
+	pub Work: Arc<Production::Struct>,
 
 	/// The context for the sequence execution.
-	Life: Life::Struct,
+	pub Life: Life::Struct,
 
 	/// A signal indicating whether the sequence should continue running.
 	pub Time: Signal::Struct<bool>,

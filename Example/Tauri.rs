@@ -7,7 +7,7 @@ impl Worker for SimpleWorker {
 	async fn Receive(
 		&self,
 		Action: Box<dyn Sequence::Action::Trait>,
-		Context: &Life::Struct,
+		Context: &Life,
 	) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
@@ -15,15 +15,18 @@ impl Worker for SimpleWorker {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	let Plan = Plan::Struct::New()
-		.WithSignature(Action::Signature::Struct { Name: "Read".to_string() })
-		.WithSignature(Action::Signature::Struct { Name: "Write".to_string() })
-		.WithFunction("Read", Common::Read::Fn)?
-		.WithFunction("Write", Common::Write::Fn)?
-		.Build();
+	let Plan = Arc::new(
+		Echo::Struct::Sequence::Plan::Struct::New()
+			.WithSignature(Action::Signature::Struct { Name: "Read".to_string() })
+			.WithSignature(Action::Signature::Struct { Name: "Write".to_string() })
+			.WithFunction("Read", Common::Read::Fn)?
+			.WithFunction("Write", Common::Write::Fn)?
+			.Build(),
+	);
 
-	let Production = Arc::new(Production::Struct::New());
-	let Life = Life::Struct {
+	let Production = Arc::new(Echo::Struct::Sequence::Production::Struct::New());
+
+	let Life = Life {
 		Span: Arc::new(dashmap::DashMap::new()),
 		Fate: Arc::new(config::Config::default()),
 		Cache: Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
@@ -34,20 +37,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Sequence = Arc::new(Sequence::Struct::New(Worker, Production.clone(), Life));
 
 	// Channel for sending action results
-	let (tx, mut rx) = mpsc::unbounded_channel();
+	let (Approval, mut Receipt) = mpsc::unbounded_channel();
 
 	// Spawn worker tasks
-	let mut workers = JoinSet::new();
-	let worker_count = 4;
+	let mut Force = JoinSet::new();
 
-	for _ in 0..worker_count {
-		let sequence = Sequence.clone();
-		let tx = tx.clone();
+	for _ in 0..4 {
+		let Sequence = Sequence.clone();
+		let tx = Approval.clone();
 
-		workers.spawn(async move {
-			while !sequence.Time.Get().await {
-				if let Some(action) = sequence.Work.Do().await {
-					let result = sequence.Worker.Receive(action, &sequence.Life).await;
+		Force.spawn(async move {
+			while !Sequence.Time.Get().await {
+				if let Some(action) = Sequence.Work.Do().await {
+					let result = Sequence.Site.Receive(action, &Sequence.Life).await;
 					tx.send(result).unwrap();
 				}
 			}
@@ -80,7 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 					.await;
 
 				// Process action results
-				while let Some(result) = rx.recv().await {
+				while let Some(result) = Receipt.recv().await {
 					match result {
 						Ok(_) => Handle
 							.emit_all("ActionResult", "Action completed successfully")
@@ -98,7 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.expect("error while running tauri application");
 
 	// Wait for all workers to complete
-	while let Some(result) = workers.join_next().await {
+	while let Some(result) = Force.join_next().await {
 		if let Err(e) = result {
 			eprintln!("Worker task failed: {}", e);
 		}
@@ -123,7 +125,7 @@ use tokio::{
 
 use Echo::{
 	Enum::Sequence::Action::Error::Enum as Error,
-	Struct::Sequence::{self, Action, Life, Plan, Production},
+	Struct::Sequence::{self, Action, Life::Struct as Life, Plan},
 	Trait::Sequence::Worker,
 };
 
