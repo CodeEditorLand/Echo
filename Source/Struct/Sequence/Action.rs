@@ -144,8 +144,9 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Executes the next action, if specified.
 	async fn Next(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(Next) = self.Metadata.Get("NextAction").await {
-			let Next: Struct<T> = serde_json::from_value(Next.clone())
-				.map_err(|e| Error::Execution(format!("Failed to parse NextAction: {}", e)))?;
+			let Next: Struct<T> = serde_json::from_value(Next.clone()).map_err(|_Error| {
+				Error::Execution(format!("Failed to parse NextAction: {}", _Error))
+			})?;
 
 			Next.Execute(Context).await?;
 		}

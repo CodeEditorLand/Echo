@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
-// Define a simple worker that implements the Worker trait
-struct SimpleWorker;
+// Define a simple site that implements the Site trait
+struct SimpleSite;
 
 #[async_trait::async_trait]
-impl Worker for SimpleWorker {
+impl Site for SimpleSite {
 	async fn Receive(
 		&self,
 		Action: Box<dyn Echo::Trait::Sequence::Action::Trait>,
@@ -37,23 +37,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Karma: Arc::new(DashMap::new()),
 	};
 
-	// Create a worker
-	let Worker = Arc::new(SimpleWorker);
+	// Create a site
+	let Site = Arc::new(SimpleSite);
 
 	// Create a sequence
-	let Sequence = Echo::Struct::Sequence::Struct::New(Worker, Production.clone(), Life);
+	let Sequence = Echo::Struct::Sequence::Struct::New(Site, Production.clone(), Life);
 
 	// Add actions to the production line
-
 	// Create actions for reading and writing files
+	Production
+		.Assign(Box::new(Common::New("Read", json!(["input.txt"]), Plan.clone()).clone()))
+		.await;
+
 	Production
 		.Assign(Box::new(
 			Common::New("Write", json!(["output.txt", "Hello, World!"]), Plan.clone()).clone(),
 		))
-		.await;
-
-	Production
-		.Assign(Box::new(Common::New("Read", json!(["input.txt"]), Plan.clone()).clone()))
 		.await;
 
 	let CloneSequence = Sequence.clone();
@@ -89,7 +88,7 @@ use Echo::{
 		Arc,
 		Life::Struct as Life,
 	},
-	Trait::Sequence::Worker::Trait as Worker,
+	Trait::Sequence::Site::Trait as Site,
 };
 
 pub mod Common;

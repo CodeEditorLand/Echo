@@ -96,12 +96,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Queue = Arc::new(WorkerStealingQueue::New(Force));
 
 	// Create a life context
-	let Life = Life {
+	let Life = Arc::new(Life {
 		Span: Arc::new(dashmap::DashMap::new()),
 		Fate: Arc::new(config::Config::default()),
 		Cache: Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
 		Karma: Arc::new(dashmap::DashMap::new()),
-	};
+	});
 
 	// Create workers
 	let Workers: Vec<Arc<StealingWorker>> =
@@ -127,19 +127,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.collect();
 
 	// Add actions to the queue
+	Action::New("Write", json!([format!("output.txt"), "Hello, World!"]), Plan.clone());
+
 	for i in 0..4 {
 		let Action = if i % 2 == 0 {
-			Action::New(
-				"Write",
-				json!([format!("output_{}.txt", i), "Hello, World!"]),
-				Plan.clone(),
-			)
 		} else {
 			Action::New("Read", json!(["input.txt"]), Plan.clone())
 		};
-
-		Queue.Assign(i % Force, Box::new(Action)).await;
 	}
+
+	Queue.Assign(i % Force, Box::new(Action)).await;
 
 	// Wait for a moment to allow actions to complete
 	sleep(Duration::from_secs(10)).await;
@@ -175,7 +172,7 @@ use Echo::{
 		Arc,
 		Life::Struct as Life,
 	},
-	Trait::Sequence::Worker::Trait as Worker,
+	Trait::Sequence::Site::Trait as Worker,
 };
 
 pub mod Common;

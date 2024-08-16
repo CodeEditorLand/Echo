@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-struct SimpleWorker;
+struct SimpleSite;
 
 #[async_trait::async_trait]
-impl Worker for SimpleWorker {
+impl Site for SimpleSite {
 	async fn Receive(
 		&self,
 		Action: Box<dyn Sequence::Action::Trait>,
@@ -33,8 +33,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Karma: Arc::new(dashmap::DashMap::new()),
 	};
 
-	let Worker = Arc::new(SimpleWorker);
-	let Sequence = Arc::new(Sequence::Struct::New(Worker, Production.clone(), Life));
+	let Site = Arc::new(SimpleSite);
+	let Sequence = Arc::new(Sequence::Struct::New(Site, Production.clone(), Life));
 
 	// Channel for sending action results
 	let (Approval, mut Receipt) = mpsc::unbounded_channel();
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 		Force.spawn(async move {
 			while !Sequence.Time.Get().await {
-				if let Some(action) = Sequence.Work.Do().await {
+				if let Some(action) = Sequence.Production.Do().await {
 					let result = Sequence.Site.Receive(action, &Sequence.Life).await;
 					tx.send(result).unwrap();
 				}
@@ -101,8 +101,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Wait for all workers to complete
 	while let Some(result) = Force.join_next().await {
-		if let Err(e) = result {
-			eprintln!("Worker task failed: {}", e);
+		if let Err(_Error) = result {
+			eprintln!("Site task failed: {}", _Error);
 		}
 	}
 
@@ -126,7 +126,7 @@ use tokio::{
 use Echo::{
 	Enum::Sequence::Action::Error::Enum as Error,
 	Struct::Sequence::{self, Action, Life::Struct as Life, Plan},
-	Trait::Sequence::Worker,
+	Trait::Sequence::Site,
 };
 
 pub mod Common;

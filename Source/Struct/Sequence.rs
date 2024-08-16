@@ -1,11 +1,11 @@
 /// Represents a sequence structure that manages actions and their execution.
 #[derive(Clone)]
 pub struct Struct {
-	/// The worker responsible for processing actions.
-	pub Site: Arc<dyn Worker>,
+	/// The site responsible for processing actions.
+	pub Site: Arc<dyn Site>,
 
 	/// The production line containing actions to be executed.
-	pub Work: Arc<Production::Struct>,
+	pub Production: Arc<Production::Struct>,
 
 	/// The context for the sequence execution.
 	pub Life: Life::Struct,
@@ -20,18 +20,18 @@ impl Struct {
 	/// # Arguments
 	///
 	/// * `Site` - The worker responsible for processing actions.
-	/// * `Work` - The production line containing actions to be executed.
+	/// * `Production` - The production line containing actions to be executed.
 	/// * `Context` - The context for the sequence execution.
 	///
 	/// # Returns
 	///
 	/// A new `Struct` instance with the `Time` signal initialized to `false`.
 	pub fn New(
-		Site: Arc<dyn Worker>,
-		Work: Arc<Production::Struct>,
-		Context: Life::Struct,
+		Site: Arc<dyn Site>,
+		Production: Arc<Production::Struct>,
+		Life: Life::Struct,
 	) -> Self {
-		Struct { Site, Work, Life: Context, Time: Signal::Struct::New(false) }
+		Struct { Site, Production, Life, Time: Signal::Struct::New(false) }
 	}
 
 	/// Runs the sequence, processing actions until the `Time` signal is set to true.
@@ -40,7 +40,7 @@ impl Struct {
 	/// If an error occurs during processing, it logs the error.
 	pub async fn Run(&self) {
 		while !self.Time.Get().await {
-			if let Some(Action) = self.Work.Do().await {
+			if let Some(Action) = self.Production.Do().await {
 				match self.Again(Action).await {
 					Ok(_) => {}
 					Err(e) => error!("Error processing action: {}", e),
@@ -117,4 +117,4 @@ pub mod Production;
 pub mod Signal;
 pub mod Vector;
 
-use crate::Trait::Sequence::Worker::Trait as Worker;
+use crate::Trait::Sequence::Site::Trait as Site;
