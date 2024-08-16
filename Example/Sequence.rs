@@ -31,10 +31,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Create a life context
 	let Life = Life {
-		Span: Arc::new(dashmap::DashMap::new()),
+		Span: Arc::new(DashMap::new()),
 		Fate: Arc::new(config::Config::default()),
-		Cache: Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
-		Karma: Arc::new(dashmap::DashMap::new()),
+		Cache: Arc::new(tokio::sync::Mutex::new(DashMap::new())),
+		Karma: Arc::new(DashMap::new()),
 	};
 
 	// Create a worker
@@ -75,6 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	Ok(())
 }
 
+use dashmap::DashMap;
 use serde_json::{json, Value};
 use tokio::{
 	fs::{File, OpenOptions},
