@@ -66,37 +66,6 @@ impl Worker for StealingWorker {
 	}
 }
 
-// Define actions for file reading and writing
-async fn Read(Argument: Vec<Value>) -> Result<Value, Error> {
-	let mut Content = String::new();
-
-	File::open(Argument[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?
-		.read_to_string(&mut Content)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?;
-
-	Ok(json!(Content))
-}
-
-async fn Write(Argument: Vec<Value>) -> Result<Value, Error> {
-	OpenOptions::new()
-		.write(true)
-		.create(true)
-		.truncate(true)
-		.open(Argument[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?
-		.write_all(
-			Argument[1].as_str().ok_or(Error::Execution("Invalid content".to_string()))?.as_bytes(),
-		)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?;
-
-	Ok(json!("File written successfully"))
-}
-
 async fn worker_loop(worker: Arc<StealingWorker>, context: Arc<Life>, running: Arc<Mutex<bool>>) {
 	while *running.lock().await {
 		if let Some(action) = worker.Queue.Do(worker.Id).await {
@@ -116,8 +85,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Echo::Struct::Sequence::Plan::Struct::New()
 			.WithSignature(Signature { Name: "Read".to_string() })
 			.WithSignature(Signature { Name: "Write".to_string() })
-			.WithFunction("Read", Read)?
-			.WithFunction("Write", Write)?
+			.WithFunction("Read", Common::Read::Fn)?
+			.WithFunction("Write", Common::Write::Fn)?
 			.Build(),
 	);
 
@@ -136,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Create workers
 	let Workers: Vec<Arc<StealingWorker>> =
-		(0..Force).map(|id| Arc::new(StealingWorker { Id, Queue: Queue.clone() })).collect();
+		(0..Force).map(|Id| Arc::new(StealingWorker { Id, Queue: Queue.clone() })).collect();
 
 	// Create a flag to control worker loops
 	let Running = Arc::new(Mutex::new(true));
@@ -208,3 +177,5 @@ use Echo::{
 	},
 	Trait::Sequence::Worker::Trait as Worker,
 };
+
+pub mod Common;

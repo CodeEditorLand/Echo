@@ -8,44 +8,9 @@ impl Worker for SimpleWorker {
 		&self,
 		Action: Box<dyn Sequence::Action::Trait>,
 		Context: &Life::Struct,
-	) -> Result<(), Error::Enum> {
+	) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
-}
-
-async fn Read(Argument: Vec<Value>) -> Result<Value, Error::Enum> {
-	let mut Content = String::new();
-
-	File::open(
-		Argument[0].as_str().ok_or(Error::Enum::Execution("Invalid file path".to_string()))?,
-	)
-	.await
-	.map_err(|e| Error::Enum::Execution(e.to_string()))?
-	.read_to_string(&mut Content)
-	.await
-	.map_err(|e| Error::Enum::Execution(e.to_string()))?;
-
-	Ok(json!(Content))
-}
-
-async fn Write(Argument: Vec<Value>) -> Result<Value, Error::Enum> {
-	OpenOptions::new()
-		.write(true)
-		.create(true)
-		.truncate(true)
-		.open(Argument[0].as_str().ok_or(Error::Enum::Execution("Invalid file path".to_string()))?)
-		.await
-		.map_err(|e| Error::Enum::Execution(e.to_string()))?
-		.write_all(
-			Argument[1]
-				.as_str()
-				.ok_or(Error::Enum::Execution("Invalid content".to_string()))?
-				.as_bytes(),
-		)
-		.await
-		.map_err(|e| Error::Enum::Execution(e.to_string()))?;
-
-	Ok(json!("File written successfully"))
 }
 
 #[tokio::main]
@@ -53,8 +18,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Plan = Plan::Struct::New()
 		.WithSignature(Action::Signature::Struct { Name: "Read".to_string() })
 		.WithSignature(Action::Signature::Struct { Name: "Write".to_string() })
-		.WithFunction("Read", Read)?
-		.WithFunction("Write", Write)?
+		.WithFunction("Read", Common::Read::Fn)?
+		.WithFunction("Write", Common::Write::Fn)?
 		.Build();
 
 	let Production = Arc::new(Production::Struct::New());
@@ -157,7 +122,9 @@ use tokio::{
 };
 
 use Echo::{
-	Enum::Sequence::Action::Error,
+	Enum::Sequence::Action::Error::Enum as Error,
 	Struct::Sequence::{self, Action, Life, Plan, Production},
 	Trait::Sequence::Worker,
 };
+
+pub mod Common;

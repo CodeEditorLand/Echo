@@ -14,37 +14,6 @@ impl Worker for SimpleWorker {
 	}
 }
 
-// Define actions for file reading and writing
-async fn Read(Argument: Vec<Value>) -> Result<Value, Error> {
-	let mut Content = String::new();
-
-	File::open(Argument[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?
-		.read_to_string(&mut Content)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?;
-
-	Ok(json!(Content))
-}
-
-async fn Write(args: Vec<Value>) -> Result<Value, Error> {
-	OpenOptions::new()
-		.write(true)
-		.create(true)
-		.truncate(true)
-		.open(args[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?
-		.write_all(
-			args[1].as_str().ok_or(Error::Execution("Invalid content".to_string()))?.as_bytes(),
-		)
-		.await
-		.map_err(|e| Error::Execution(e.to_string()))?;
-
-	Ok(json!("File written successfully"))
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Create a plan with file reading and writing actions
@@ -52,8 +21,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Echo::Struct::Sequence::Plan::Struct::New()
 			.WithSignature(Signature { Name: "Read".to_string() })
 			.WithSignature(Signature { Name: "Write".to_string() })
-			.WithFunction("Read", Read)?
-			.WithFunction("Write", Write)?
+			.WithFunction("Read", Common::Read::Fn)?
+			.WithFunction("Write", Common::Write::Fn)?
 			.Build(),
 	);
 
@@ -79,12 +48,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Create actions for reading and writing files
 	Production
 		.Assign(Box::new(
-			Action::New("Write", json!(["output.txt", "Hello, World!"]), Plan.clone()).clone(),
+			Common::New("Write", json!(["output.txt", "Hello, World!"]), Plan.clone()).clone(),
 		))
 		.await;
 
 	Production
-		.Assign(Box::new(Action::New("Read", json!(["input.txt"]), Plan.clone()).clone()))
+		.Assign(Box::new(Common::New("Read", json!(["input.txt"]), Plan.clone()).clone()))
 		.await;
 
 	let CloneSequence = Sequence.clone();
@@ -121,3 +90,5 @@ use Echo::{
 	},
 	Trait::Sequence::Worker::Trait as Worker,
 };
+
+pub mod Common;
