@@ -91,7 +91,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Run the sequence
 	tokio::spawn(async move {
-		CloneSequence.Run().await;
+		// TODO: thread 'tokio-runtime-worker' has overflowed its stack
+		// CloneSequence.Run().await;
 	});
 
 	// Wait for a moment to allow actions to complete

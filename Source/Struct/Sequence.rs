@@ -11,7 +11,7 @@ pub struct Struct {
 	Life: Life::Struct,
 
 	/// A signal indicating whether the sequence should continue running.
-	Time: Signal::Struct<bool>,
+	pub Time: Signal::Struct<bool>,
 }
 
 impl Struct {

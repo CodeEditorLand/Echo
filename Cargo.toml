@@ -21,6 +21,14 @@ tokio-tungstenite = "0.23.1"
 name = "Sequence"
 path = "Example/Sequence.rs"
 
+[[example]]
+name = "WorkSteal"
+path = "Example/WorkSteal.rs"
+
+[[example]]
+name = "Tauri"
+path = "Example/Tauri.rs"
+
 [lib]
 crate-type = ["rlib"]
 name = "Echo"
