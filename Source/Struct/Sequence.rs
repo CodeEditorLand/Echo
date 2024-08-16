@@ -72,7 +72,7 @@ impl Struct {
 
 		let mut Attempt = 0;
 
-		while Attempt < End {
+		loop {
 			match self.Site.Receive(Action.Clone(), &self.Life).await {
 				Ok(_) => return Ok(()),
 				Err(e) => {
@@ -93,7 +93,7 @@ impl Struct {
 			}
 		}
 
-		unreachable!("Loop should have returned or errored")
+		// unreachable!("Loop should have returned or errored")
 	}
 
 	/// Signals the sequence to shut down by setting the `Time` signal to true.
