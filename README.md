@@ -238,7 +238,7 @@ classDiagram
     Work o-- ActionTrait
     ActionProcessor o-- Signal~T~
     Action~T~ o-- Vector
-    Life o-- Cycle::Type
+    Life o-- Cycle
     Life o-- Production
 ```
 
