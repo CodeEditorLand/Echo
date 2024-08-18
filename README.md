@@ -23,7 +23,7 @@ metadata management, function planning, and error handling.
 - **Asynchronous Operations:** Built with Rust's async/await syntax for non-blocking execution.
 - **Action Planning:** Define and execute actions with custom logic using a flexible plan system.
 - **Metadata Management:** Attach metadata to actions for additional context and control.
-- **Error Handling:** Comprehensive error management with custom `ActionError` types.
+- **Error Handling:** Comprehensive error management with custom `Error` types.
 - **Retry Mechanism:** Built-in retry logic for failed actions with exponential backoff.
 - **Hooks:** Supports pre and post-execution hooks for added flexibility.
 - **Serialization:** Actions can be serialized and deserialized for persistence or network transfer (in progress).
@@ -51,12 +51,12 @@ Here's a basic example demonstrating how to define and execute an action:
 
 ```rust
 use Echo::Sequence::{
-    Action::{Error::Enum as ActionError, Struct as Action, Trait as ActionTrait},
+    Action::{Error::Enum as Error, Struct as Action, Trait as ActionTrait},
     Life::Struct as Life,
     Plan::{Formality::Struct as Formality, Struct as Plan},
-    Production::Struct as Work,
-    Site::Trait as Worker,
-    Struct as ActionProcessor,
+    Production::Struct as Production,
+    Site::Trait as Site,
+    Struct as Sequence,
 };
 use serde_json::json;
 use std::sync::Arc;
@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .Build();
 
     // Create a work queue
-    let work = Arc::new(Work::New());
+    let work = Arc::new(Production::New());
 
     // Create a lifecycle context (replace with your actual configuration)
     let context = Life::Struct {
@@ -98,19 +98,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     struct SimpleWorker;
 
     #[async_trait::async_trait]
-    impl Worker for SimpleWorker {
+    impl Site for SimpleWorker {
         async fn Receive(
             &self,
             action: Box<dyn ActionTrait>,
             context: &Life,
-        ) -> Result<(), ActionError> {
+        ) -> Result<(), Error> {
             action.Execute(context).await
         }
     }
     let worker = Arc::new(SimpleWorker);
 
     // Create an action processor
-    let processor = Arc::new(ActionProcessor::New(worker, work.clone(), context));
+    let processor = Arc::new(Sequence::New(worker, work.clone(), context));
 
     // Create an action and add it to the queue
     let action = Action::New(
@@ -133,9 +133,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - **Action:** Represents a unit of work with associated metadata, content, and execution logic.
 - **Plan:** Defines the structure and functions for different action types.
-- **Work:** A thread-safe queue for managing pending actions.
-- **Worker:** Implements the logic for receiving and executing actions from the queue.
-- **ActionProcessor:** Orchestrates the execution of actions using workers and the work queue.
+- **Production:** A thread-safe queue for managing pending actions.
+- **Site:** Implements the logic for receiving and executing actions from the queue.
+- **Sequence:** Orchestrates the execution of actions using workers and the work queue.
 - **Life:** Provides a shared context and configuration for actions during execution.
 
 ### Diagrams
@@ -144,7 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```mermaid
 classDiagram
-    class ActionError {
+    class Error {
         <<enumeration>>
         +License
         +Execution
@@ -190,7 +190,7 @@ classDiagram
         +Build
     }
 
-    class Work {
+    class Production {
         +Line
         +New
         +Do
@@ -211,7 +211,7 @@ classDiagram
         +Get
     }
 
-    class ActionProcessor {
+    class Sequence {
         +Site
         +Production
         +Life
@@ -229,14 +229,14 @@ classDiagram
 
     Action --|> ActionTrait
     SimpleWorker ..|> Site
-    ActionProcessor o-- Site
-    ActionProcessor o-- Work
-    ActionProcessor o-- Life
+    Sequence o-- Site
+    Sequence o-- Production
+    Sequence o-- Life
     Action o-- Formality
     Formality o-- ActionSignature
     Plan o-- Formality
-    Work o-- ActionTrait
-    ActionProcessor o-- Signal
+    Production o-- ActionTrait
+    Sequence o-- Signal
     Action o-- Vector
     Life o-- Cycle
     Life o-- Production
@@ -248,10 +248,10 @@ classDiagram
 sequenceDiagram
     participant Main
     participant Plan
-    participant Work
+    participant Production
     participant Life
     participant SimpleWorker
-    participant ActionProcessor
+    participant Sequence
     participant Action
 
     Main->>Plan: New()
@@ -259,21 +259,21 @@ sequenceDiagram
     Main->>Plan: WithFunction()
     Plan->>Formality: Sign()
     Plan->>Formality: Add()
-    Main->>Work: New()
+    Main->>Production: New()
     Main->>Life: Create
     Main->>SimpleWorker: Create
-    Main->>ActionProcessor: New(worker, work, context)
+    Main->>Sequence: New(worker, work, context)
     Main->>Action: New("Read", json!("SomeData"), plan)
-    Main->>Work: Assign(action)
-    Main->>ActionProcessor: Run()
-    ActionProcessor->>Work: Do()
-    Work-->>ActionProcessor: Some(Action)
-    ActionProcessor->>SimpleWorker: Receive(action, context)
+    Main->>Production: Assign(action)
+    Main->>Sequence: Run()
+    Sequence->>Production: Do()
+    Production-->>Sequence: Some(Action)
+    Sequence->>SimpleWorker: Receive(action, context)
     SimpleWorker->>Action: Execute(context)
     Action->>Formality: Remove()
     Formality-->>Action: Function
     Action->>Function: call()
-    Main->>ActionProcessor: Shutdown()
+    Main->>Sequence: Shutdown()
 ```
 
 ## Contributing
