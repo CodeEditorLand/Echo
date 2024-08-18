@@ -264,7 +264,7 @@ sequenceDiagram
     participant Client
     participant Struct
     participant Metadata (Vector)
-    participant License (Signal<bool>)
+    participant License (Signal~bool~)
     participant Context (Life)
     participant Plan (Formality)
     participant Hooks
@@ -322,7 +322,7 @@ sequenceDiagram
                         alt NextAction Error
                             Struct->>Struct: Return Err(Error)
                         end
-                    end
+                    end 
                 end
             end
         end
