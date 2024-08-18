@@ -224,12 +224,12 @@ classDiagram
         Cancellation
     }
 
-    Struct~T~ "1" --> "1" Vector : has
-    Struct~T~ "1" --> "1" Signal : has
-    Struct~T~ "1" --> "1" Formality : has
-    Life "1" --> "*" Production : has
-    Production "1" --> "*" Struct~T~ : contains
-    Formality "1" --> "*" Signature: has
+    Struct~T~  -->  Vector : has
+    Struct~T~  -->  Signal : has
+    Struct~T~  -->  Formality : has
+    Life  --> "*" Production : has
+    Production  --> "*" Struct~T~ : contains
+    Formality  --> "*" Signature: has
     Struct~T~ ..> Error : throws
     Trait~Action~ <|.. Struct~T~
     Trait~Site~ -- Struct~T~: uses
