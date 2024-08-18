@@ -224,7 +224,7 @@ classDiagram
         Note right of Signature: Represents a signature for an action.
     }
 
-    enum Error {
+    class "enum Error" {
         License
         Execution
         Routing
