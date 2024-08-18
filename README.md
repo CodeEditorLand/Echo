@@ -1,6 +1,9 @@
 # 📣 [Echo] — Asynchronous Action Processing System
 
-`Echo` is a Rust library designed for managing and executing asynchronous actions efficiently. It leverages a worker-stealer pattern and asynchronous queues to handle complex workflows with features like metadata management, function planning, and robust error handling.
+`Echo` is a Rust library designed for managing and executing asynchronous
+actions efficiently. It leverages a worker-stealer pattern and asynchronous
+queues to handle complex workflows with features like metadata management,
+function planning, and robust error handling.
 
 ## Table of Contents
 
@@ -20,13 +23,19 @@ metadata management, function planning, and error handling.
 
 ## Features
 
-- **Asynchronous Operations:** Built with Rust's async/await syntax for non-blocking execution.
-- **Action Planning:** Define and execute actions with custom logic using a flexible plan system.
-- **Metadata Management:** Attach metadata to actions for additional context and control.
-- **Error Handling:** Comprehensive error management with custom `Error` types.
-- **Retry Mechanism:** Built-in retry logic for failed actions with exponential backoff.
-- **Hooks:** Supports pre and post-execution hooks for added flexibility.
-- **Serialization:** Actions can be serialized and deserialized for persistence or network transfer (in progress).
+-   **Asynchronous Operations:** Built with Rust's async/await syntax for
+    non-blocking execution.
+-   **Action Planning:** Define and execute actions with custom logic using a
+    flexible Plan system.
+-   **Metadata Management:** Attach metadata to actions for additional Life
+    and control.
+-   **Error Handling:** Comprehensive error management with custom `Error`
+    types.
+-   **Retry Mechanism:** Built-in retry logic for failed actions with
+    exponential backoff.
+-   **Hooks:** Supports pre and post-execution hooks for added flexibility.
+-   **Serialization:** Actions can be serialized and deserialized for
+    persistence or network transfer (in progress).
 
 ## Installation
 
@@ -47,9 +56,78 @@ cargo build
 
 ## Usage
 
-Here's a basic example demonstrating how to define and execute an action:
+Here's a basic example demonstrating how to define and execute an Action:
 
 ```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Define the Action's logic
+    let Read = |_Argument: Vec<serde_json::Value>| async move {
+        // Access the provided path (replace with actual logic)
+        let Path = "path/to/file.txt";
+
+        // Simulate reading from the path
+        let Content = format!("Content read from: {}", Path);
+
+        Ok(json!(Content))
+    };
+
+    // Create an Action Plan
+    let Plan = Plan::New()
+        .WithSignature(Echo::Struct::Sequence::Action::Signature::Struct {
+            Name: "Read".to_string(),
+        })
+        .WithFunction("Read", Read)?
+        .Build();
+
+    // Create a work queue
+    let Production = Arc::new(Production::New());
+
+    // Create a lifecycle Life (replace with your actual configuration)
+    let Life = Life::Struct {
+        Span: Arc::new(dashmap::DashMap::new()),
+        Fate: Arc::new(config::Config::default()),
+        Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
+        Karma: Arc::new(dashmap::DashMap::new()),
+    };
+
+    // Define a Site to execute actions
+    struct SimpleSite;
+
+    #[async_trait::async_trait]
+    impl Site for SimpleSite {
+        async fn Receive(
+            &self,
+            Action: Box<dyn ActionTrait>,
+            Life: &Life,
+        ) -> Result<(), Error> {
+            Action.Execute(Life).await
+        }
+    }
+    let Site = Arc::new(SimpleSite);
+
+    // Create an Action Sequence
+    let Sequence = Arc::new(Sequence::New(Site, Production.clone(), Life));
+
+    // Create an Action and add it to the queue
+    let Action = Action::New(
+        "Read",
+        json!("SomeData"),
+        Arc::clone(&Plan),
+    );
+
+    Production.Assign(Box::new(Action)).await;
+
+    // Run the Sequence
+    Sequence.Run().await;
+
+    Ok(())
+}
+
+use serde_json::json;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
 use Echo::Sequence::{
     Action::{Error::Enum as Error, Struct as Action, Trait as ActionTrait},
     Life::Struct as Life,
@@ -58,85 +136,22 @@ use Echo::Sequence::{
     Site::Trait as Site,
     Struct as Sequence,
 };
-use serde_json::json;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Define the action's logic
-    let read_function = |_args: Vec<serde_json::Value>| async move {
-        // Access the provided path (replace with actual logic)
-        let path = "path/to/file.txt"; 
-
-        // Simulate reading from the path
-        let content = format!("Content read from: {}", path);
-
-        Ok(json!(content))
-    };
-
-    // Create an action plan
-    let plan = Plan::New()
-        .WithSignature(Echo::Struct::Sequence::Action::Signature::Struct {
-            Name: "Read".to_string(),
-        })
-        .WithFunction("Read", read_function)?
-        .Build();
-
-    // Create a work queue
-    let work = Arc::new(Production::New());
-
-    // Create a lifecycle context (replace with your actual configuration)
-    let context = Life::Struct {
-        Span: Arc::new(dashmap::DashMap::new()),
-        Fate: Arc::new(config::Config::default()),
-        Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
-        Karma: Arc::new(dashmap::DashMap::new()),
-    };
-
-    // Define a worker to execute actions
-    struct SimpleWorker;
-
-    #[async_trait::async_trait]
-    impl Site for SimpleWorker {
-        async fn Receive(
-            &self,
-            action: Box<dyn ActionTrait>,
-            context: &Life,
-        ) -> Result<(), Error> {
-            action.Execute(context).await
-        }
-    }
-    let worker = Arc::new(SimpleWorker);
-
-    // Create an action processor
-    let processor = Arc::new(Sequence::New(worker, work.clone(), context));
-
-    // Create an action and add it to the queue
-    let action = Action::New(
-        "Read",
-        json!("SomeData"), 
-        Arc::clone(&plan),
-    );
-    work.Assign(Box::new(action)).await;
-
-    // Run the processor
-    processor.Run().await;
-
-    Ok(())
-}
 ```
 
 ## Architecture
 
 ### Core Components
 
-- **Action:** Represents a unit of work with associated metadata, content, and execution logic.
-- **Plan:** Defines the structure and functions for different action types.
-- **Production:** A thread-safe queue for managing pending actions.
-- **Site:** Implements the logic for receiving and executing actions from the queue.
-- **Sequence:** Orchestrates the execution of actions using workers and the work queue.
-- **Life:** Provides a shared context and configuration for actions during execution.
+-   **Action:** Represents a unit of Production with associated metadata,
+    content, and execution logic.
+-   **Plan:** Defines the structure and functions for different Action types.
+-   **Production:** A thread-safe queue for managing pending actions.
+-   **Site:** Implements the logic for receiving and executing actions from the
+    queue.
+-   **Sequence:** Orchestrates the execution of actions using workers and the
+    work queue.
+-   **Life:** Provides a shared Life and configuration for actions during
+    execution.
 
 ### Diagrams
 
@@ -222,13 +237,13 @@ classDiagram
         +Shutdown
     }
 
-    class SimpleWorker {
+    class SimpleSite {
         <<Example>>
         +Receive
     }
 
     Action --|> ActionTrait
-    SimpleWorker ..|> Site
+    SimpleSite ..|> Site
     Sequence o-- Site
     Sequence o-- Production
     Sequence o-- Life
@@ -250,7 +265,7 @@ sequenceDiagram
     participant Plan
     participant Production
     participant Life
-    participant SimpleWorker
+    participant SimpleSite
     participant Sequence
     participant Action
 
@@ -261,15 +276,15 @@ sequenceDiagram
     Plan->>Formality: Add()
     Main->>Production: New()
     Main->>Life: Create
-    Main->>SimpleWorker: Create
-    Main->>Sequence: New(worker, work, context)
-    Main->>Action: New("Read", json!("SomeData"), plan)
-    Main->>Production: Assign(action)
+    Main->>SimpleSite: Create
+    Main->>Sequence: New(Site, work, Life)
+    Main->>Action: New("Read", json!("SomeData"), Plan)
+    Main->>Production: Assign(Action)
     Main->>Sequence: Run()
     Sequence->>Production: Do()
     Production-->>Sequence: Some(Action)
-    Sequence->>SimpleWorker: Receive(action, context)
-    SimpleWorker->>Action: Execute(context)
+    Sequence->>SimpleSite: Receive(Action, Life)
+    SimpleSite->>Action: Execute(Life)
     Action->>Formality: Remove()
     Formality-->>Action: Function
     Action->>Function: call()
@@ -278,7 +293,8 @@ sequenceDiagram
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for
+guidelines.
 
 ## License
 
