@@ -232,12 +232,12 @@ classDiagram
         Represents various error types that can occur during sequence actions.
     }
 
-    Struct "1" --> "1" Vector : has
-    Struct "1" --> "1" Signal : has
-    Struct "1" --> "1" Formality : has
-    Life "1" --> "*" Production : has
-    Production "1" --> "*" Struct : contains
-    Formality "1" --> "*" Signature: has
+    Struct --> Vector : has
+    Struct --> Signal : has
+    Struct --> Formality : has
+    Life --> "*" Production : has
+    Production --> "*" Struct : contains
+    Formality --> "*" Signature: has
     Struct ..> Error : throws
     Trait~Action~ <|.. Struct
     Trait~Site~ -- Struct: uses
