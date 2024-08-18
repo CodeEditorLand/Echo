@@ -61,67 +61,67 @@ Here's a basic example demonstrating how to define and execute an Action:
 ```rust
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Define the Action's logic
-    let Read = |_Argument: Vec<serde_json::Value>| async move {
-        // Access the provided path (replace with actual logic)
-        let Path = "path/to/file.txt";
+  // Define the Action's logic
+  let Read = |_Argument: Vec<serde_json::Value>| async move {
+    // Access the provided path (replace with actual logic)
+    let Path = "path/to/file.txt";
 
-        // Simulate reading from the path
-        let Content = format!("Content read from: {}", Path);
+    // Simulate reading from the path
+    let Content = format!("Content read from: {}", Path);
 
-        Ok(json!(Content))
-    };
+    Ok(json!(Content))
+  };
 
-    // Create an Action Plan
-    let Plan = Plan::New()
-        .WithSignature(Echo::Struct::Sequence::Action::Signature::Struct {
-            Name: "Read".to_string(),
-        })
-        .WithFunction("Read", Read)?
-        .Build();
+  // Create an Action Plan
+  let Plan = Plan::New()
+    .WithSignature(Echo::Struct::Sequence::Action::Signature::Struct {
+      Name: "Read".to_string(),
+    })
+    .WithFunction("Read", Read)?
+    .Build();
 
-    // Create a work queue
-    let Production = Arc::new(Production::New());
+  // Create a work queue
+  let Production = Arc::new(Production::New());
 
-    // Create a lifecycle Life (replace with your actual configuration)
-    let Life = Life::Struct {
-        Span: Arc::new(dashmap::DashMap::new()),
-        Fate: Arc::new(config::Config::default()),
-        Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
-        Karma: Arc::new(dashmap::DashMap::new()),
-    };
+  // Create a lifecycle Life (replace with your actual configuration)
+  let Life = Life::Struct {
+    Span: Arc::new(dashmap::DashMap::new()),
+    Fate: Arc::new(config::Config::default()),
+    Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
+    Karma: Arc::new(dashmap::DashMap::new()),
+  };
 
-    // Define a Site to execute actions
-    struct SimpleSite;
+  // Define a Site to execute actions
+  struct SimpleSite;
 
-    #[async_trait::async_trait]
-    impl Site for SimpleSite {
-        async fn Receive(
-            &self,
-            Action: Box<dyn ActionTrait>,
-            Life: &Life,
-        ) -> Result<(), Error> {
-            Action.Execute(Life).await
-        }
+  #[async_trait::async_trait]
+  impl Site for SimpleSite {
+    async fn Receive(
+      &self,
+      Action: Box<dyn ActionTrait>,
+      Life: &Life,
+    ) -> Result<(), Error> {
+      Action.Execute(Life).await
     }
-    let Site = Arc::new(SimpleSite);
+  }
+  let Site = Arc::new(SimpleSite);
 
-    // Create an Action Sequence
-    let Sequence = Arc::new(Sequence::New(Site, Production.clone(), Life));
+  // Create an Action Sequence
+  let Sequence = Arc::new(Sequence::New(Site, Production.clone(), Life));
 
-    // Create an Action and add it to the queue
-    let Action = Action::New(
-        "Read",
-        json!("SomeData"),
-        Arc::clone(&Plan),
-    );
+  // Create an Action and add it to the queue
+  let Action = Action::New(
+    "Read",
+    json!("SomeData"),
+    Arc::clone(&Plan),
+  );
 
-    Production.Assign(Box::new(Action)).await;
+  Production.Assign(Box::new(Action)).await;
 
-    // Run the Sequence
-    Sequence.Run().await;
+  // Run the Sequence
+  Sequence.Run().await;
 
-    Ok(())
+  Ok(())
 }
 
 use serde_json::json;
@@ -129,12 +129,12 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use Echo::Sequence::{
-    Action::{Error::Enum as Error, Struct as Action, Trait as ActionTrait},
-    Life::Struct as Life,
-    Plan::{Formality::Struct as Formality, Struct as Plan},
-    Production::Struct as Production,
-    Site::Trait as Site,
-    Struct as Sequence,
+  Action::{Error::Enum as Error, Struct as Action, Trait as ActionTrait},
+  Life::Struct as Life,
+  Plan::{Formality::Struct as Formality, Struct as Plan},
+  Production::Struct as Production,
+  Site::Trait as Site,
+  Struct as Sequence,
 };
 ```
 
@@ -159,154 +159,154 @@ use Echo::Sequence::{
 
 ```mermaid
 classDiagram
-    class Struct~T~ {
-        +Metadata: Vector
-        +Content: T
-        +License: Signal~bool~
-        +Plan: Arc~Formality~
-        +New(Action: str, Content: T, Plan: Arc~Formality~) Struct~T~
-        +WithMetadata(Key: str, Value: serde_json::Value) Struct~T~
-        +Execute(Context: &Life) Result~(), Error~
-        -License() Result~(), Error~
-        -Delay() Result~(), Error~
-        -Hooks(Context: &Life) Result~(), Error~
-        -Function(Action: str) Result~(), Error~
-        -Next(Context: &Life) Result~(), Error~
-        -Argument() Result~Vec~serde_json::Value~, Error~~
-        -Result(Result: serde_json::Value) Result~(), Error~
-    }
+  class Struct~T~ {
+    +Metadata: Vector
+    +Content: T
+    +License: Signal~bool~
+    +Plan: Arc~Formality~
+    +New(Action: str, Content: T, Plan: Arc~Formality~) Struct~T~
+    +WithMetadata(Key: str, Value: serde_json::Value) Struct~T~
+    +Execute(Context: &Life) Result~(), Error~
+    -License() Result~(), Error~
+    -Delay() Result~(), Error~
+    -Hooks(Context: &Life) Result~(), Error~
+    -Function(Action: str) Result~(), Error~
+    -Next(Context: &Life) Result~(), Error~
+    -Argument() Result~Vec~serde_json::Value~, Error~~
+    -Result(Result: serde_json::Value) Result~(), Error~
+  }
 
-    class Life {
-        +Span: Arc~DashMap~String, Cycle::Type~~
-        +Fate: Arc~Config~
-        +Cache: Arc~Mutex~DashMap~String, serde_json::Value~~~
-        +Karma: Arc~DashMap~String, Arc~Production~~~
-    }
+  class Life {
+    +Span: Arc~DashMap~String, Cycle::Type~~
+    +Fate: Arc~Config~
+    +Cache: Arc~Mutex~DashMap~String, serde_json::Value~~~
+    +Karma: Arc~DashMap~String, Arc~Production~~~
+  }
 
-    class Formality {
-        -Signature: DashMap~String, Signature~
-        -Function: DashMap~String, Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
-        +New() Formality
-        +Sign(Signature: Signature) Formality
-        +Add~F, Fut~(Name: str, Function: F) Result~Formality, String~
-        +Remove(Name: str) Option~Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
-    }
+  class Formality {
+    -Signature: DashMap~String, Signature~
+    -Function: DashMap~String, Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
+    +New() Formality
+    +Sign(Signature: Signature) Formality
+    +Add~F, Fut~(Name: str, Function: F) Result~Formality, String~
+    +Remove(Name: str) Option~Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
+  }
 
-    class Production {
-        -Line: Arc~Mutex~VecDeque~Box~Action~~~>~
-        +New() Production
-        +Do() Option~Box~Action~~
-        +Assign(Action: Box~Action~)
-    }
+  class Production {
+    -Line: Arc~Mutex~VecDeque~Box~Action~~~>~
+    +New() Production
+    +Do() Option~Box~Action~~
+    +Assign(Action: Box~Action~)
+  }
 
-    class Signal~T~ {
-        -value: Arc~Mutex~T~~
-        +New(Value: T) Signal~T~
-        +Get() T
-        +Set(To: T)
-    }
+  class Signal~T~ {
+    -value: Arc~Mutex~T~~
+    +New(Value: T) Signal~T~
+    +Get() T
+    +Set(To: T)
+  }
 
-    class Vector {
-        -Entry: DashMap~String, serde_json::Value~
-        +New() Vector
-        +Insert(Key: String, Value: serde_json::Value)
-        +Get(Key: str) Option~serde_json::Value~
-    }
+  class Vector {
+    -Entry: DashMap~String, serde_json::Value~
+    +New() Vector
+    +Insert(Key: String, Value: serde_json::Value)
+    +Get(Key: str) Option~serde_json::Value~
+  }
 
-    class Signature {
-        +Name: String
-    }
+  class Signature {
+    +Name: String
+  }
 
-    class enum Error {
-        License
-        Execution
-        Routing
-        Cancellation
-    }
+  class enum Error {
+    License
+    Execution
+    Routing
+    Cancellation
+  }
 
-    Struct~T~  -->  Vector : has
-    Struct~T~  -->  Signal : has
-    Struct~T~  -->  Formality : has
-    Life  --> "*" Production : has
-    Production  --> "*" Struct~T~ : contains
-    Formality  --> "*" Signature: has
-    Struct~T~ ..> Error : throws
-    Trait~Action~ <|.. Struct~T~
-    Trait~Site~ -- Struct~T~: uses
+  Struct~T~ --> Vector : has
+  Struct~T~ --> Signal : has
+  Struct~T~ --> Formality : has
+  Life --> "*" Production : has
+  Production --> "*" Struct~T~ : contains
+  Formality --> "*" Signature: has
+  Struct~T~ ..> Error : throws
+  Trait~Action~ <|.. Struct~T~
+  Trait~Site~ -- Struct~T~: uses
 ```
 
 #### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Struct
-    participant Metadata (Vector)
-    participant License (Signal~bool~)
-    participant Context (Life)
-    participant Plan (Formality)
-    participant Hooks
-    participant Function
+  participant Client
+  participant Struct
+  participant Metadata (Vector)
+  participant License (Signal~bool~)
+  participant Context (Life)
+  participant Plan (Formality)
+  participant Hooks
+  participant Function
 
-    activate Client
-    Client->>Struct: Execute(Context)
-    activate Struct
-    Struct->>Metadata: Get("Action")
-    alt "Action" not found
-        Struct->>Struct: Return Err(Error::Execution)
-    else "Action" found
-        Metadata-->>Struct: Return Action
-        Struct->>License: Get()
-        alt License Invalid
-            Struct->>Struct: Return Err(Error::License)
-        else License Valid
-            Struct->>Metadata: Get("Delay")
-            alt Delay exists
-                Metadata-->>Struct: Return Delay
-                Struct->>Struct: sleep(Delay)
+  activate Client
+  Client->>Struct: Execute(Context)
+  activate Struct
+  Struct->>Metadata: Get("Action")
+  alt "Action" not found
+    Struct->>Struct: Return Err(Error::Execution)
+  else "Action" found
+    Metadata-->>Struct: Return Action
+    Struct->>License: Get()
+    alt License Invalid
+      Struct->>Struct: Return Err(Error::License)
+    else License Valid
+      Struct->>Metadata: Get("Delay")
+      alt Delay exists
+        Metadata-->>Struct: Return Delay
+        Struct->>Struct: sleep(Delay)
+      end
+      Struct->>Metadata: Get("Hooks")
+      alt Hooks exist
+        Metadata-->>Struct: Return Hooks
+        loop Hook in Hooks
+          Struct->>Context: Span.get(Hook)
+          alt Hook Function found
+            Context-->>Struct: Return HookFn
+            Struct->>HookFn: call()
+            alt HookFn Error
+              Struct->>Struct: Return Err(Error)
             end
-            Struct->>Metadata: Get("Hooks")
-            alt Hooks exist
-                Metadata-->>Struct: Return Hooks
-                loop Hook in Hooks
-                    Struct->>Context: Span.get(Hook)
-                    alt Hook Function found
-                        Context-->>Struct: Return HookFn
-                        Struct->>HookFn: call()
-                        alt HookFn Error
-                            Struct->>Struct: Return Err(Error)
-                        end
-                    end
-                end
-            end
-            Struct->>Plan: Remove(Action)
-            alt Function not found
-                Struct->>Struct: Return Err(Error::Execution)
-            else Function found
-                Plan-->>Struct: Return Function
-                Struct->>Struct: Argument()
-                Struct->>Function: call(Argument)
-                activate Function
-                Function-->>Struct: Return Result
-                deactivate Function
-                alt Function Error
-                    Struct->>Struct: Return Err(Error)
-                else Function Success
-                    Struct->>Struct: Result(Result)
-                    Struct->>Metadata: Get("NextAction")
-                    alt NextAction exists
-                        Metadata-->>Struct: Return NextAction
-                        Struct->>Struct: Execute(NextAction, Context)
-                        alt NextAction Error
-                            Struct->>Struct: Return Err(Error)
-                        end
-                    end
-                end
-            end
+          end
         end
+      end
+      Struct->>Plan: Remove(Action)
+      alt Function not found
+        Struct->>Struct: Return Err(Error::Execution)
+      else Function found
+        Plan-->>Struct: Return Function
+        Struct->>Struct: Argument()
+        Struct->>Function: call(Argument)
+        activate Function
+        Function-->>Struct: Return Result
+        deactivate Function
+        alt Function Error
+          Struct->>Struct: Return Err(Error)
+        else Function Success
+          Struct->>Struct: Result(Result)
+          Struct->>Metadata: Get("NextAction")
+          alt NextAction exists
+            Metadata-->>Struct: Return NextAction
+            Struct->>Struct: Execute(NextAction, Context)
+            alt NextAction Error
+              Struct->>Struct: Return Err(Error)
+            end
+          end
+        end
+      end
     end
-    deactivate Struct
-    Client->>Client: Return Result
+  end
+  deactivate Struct
+  Client->>Client: Return Result
 ```
 
 ## Contributing
