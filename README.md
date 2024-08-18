@@ -259,8 +259,6 @@ sequenceDiagram
     activate Client
     Client->>Struct: Execute(Context)
     activate Struct
-    The client initiates the execution of an action represented by the 'Struct' object
-	
     Struct->>Metadata: Get("Action")
     alt "Action" not found
         Struct->>Struct: Return Error
