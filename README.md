@@ -159,12 +159,12 @@ use Echo::Sequence::{
 
 ```mermaid
 classDiagram
-    class Struct {
+    class Action {
         +Metadata: Vector
         +Content
         +License: Signal
         +Plan
-        +New() Struct
+        +New() Action
         +WithMetadata() Struct
         +Execute() Result
         -License() Result
@@ -232,15 +232,15 @@ classDiagram
         Represents various error types that can occur during sequence actions.
     }
 
-    Struct --> Vector : has
-    Struct --> Signal : has
-    Struct --> Formality : has
+    Action --> Vector : has
+    Action --> Signal : has
+    Action --> Formality : has
     Life --> "*" Production : has
-    Production --> "*" Struct : contains
+    Production --> "*" Action : contains
     Formality --> "*" Signature: has
-    Struct ..> Error : throws
-    Trait~Action~ <|.. Struct
-    Trait~Site~ -- Struct: uses
+    Action ..> Error : throws
+    Trait~Action~ <|.. Action
+    Trait~Site~ -- Action: uses
 ```
 
 #### Sequence Diagram
@@ -248,7 +248,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Struct
+    participant Action
     participant Metadata
     participant License
     participant Context
@@ -257,72 +257,72 @@ sequenceDiagram
     participant Function
 
     activate Client
-    Client->>Struct: Execute(Context)
-    activate Struct
-    Note right of Struct: The client initiates the execution of an action represented by the 'Struct' object
+    Client->>Action: Execute(Context)
+    activate Action
+    Note right of Action: The client initiates the execution of an action represented by the 'Action' object
 	
-    Struct->>Metadata: Get("Action")
+    Action->>Metadata: Get("Action")
     alt "Action" not found
-        Struct->>Struct: Return Error
-        Note right of Struct: Returns an error if "Action" is not found in the metadata
+        Action->>Action: Return Error
+        Note right of Action: Returns an error if "Action" is not found in the metadata
     else "Action" found
-        Metadata-->>Struct: Return Action
-        Struct->>License: Get()
+        Metadata-->>Action: Return Action
+        Action->>License: Get()
         alt License Invalid
-            Struct->>Struct: Return Error
-            Note right of Struct: Return an error if the action is not properly licensed
+            Action->>Action: Return Error
+            Note right of Action: Return an error if the action is not properly licensed
         else License Valid
-            Struct->>Metadata: Get("Delay")
+            Action->>Metadata: Get("Delay")
             alt Delay exists
-                Metadata-->>Struct: Return Delay
-                Struct->>Struct: sleep(Delay)
-                Note right of Struct: If a delay is specified, wait for the given duration
+                Metadata-->>Action: Return Delay
+                Action->>Action: sleep(Delay)
+                Note right of Action: If a delay is specified, wait for the given duration
             end
-            Struct->>Metadata: Get("Hooks")
+            Action->>Metadata: Get("Hooks")
             alt Hooks exist
-                Metadata-->>Struct: Return Hooks
+                Metadata-->>Action: Return Hooks
                 loop Hook in Hooks
-                    Struct->>Context: Span.get(Hook)
+                    Action->>Context: Span.get(Hook)
                     alt Hook Function found
-                        Context-->>Struct: Return HookFn
-                        Struct->>HookFn: call()
+                        Context-->>Action: Return HookFn
+                        Action->>HookFn: call()
                         alt HookFn Error
-                            Struct->>Struct: Return Error
-                            Note right of Struct: If a hook function returns an error, stop execution and return the error 
+                            Action->>Action: Return Error
+                            Note right of Action: If a hook function returns an error, stop execution and return the error 
                         end
                     end
                 end
             end
-            Struct->>Plan: Remove(Action)
+            Action->>Plan: Remove(Action)
             alt Function not found
-                Struct->>Struct: Return Error
-                Note right of Struct: Return an error if no function is found for the given action
+                Action->>Action: Return Error
+                Note right of Action: Return an error if no function is found for the given action
             else Function found
-                Plan-->>Struct: Return Function
-                Struct->>Struct: Argument()
-                Struct->>Function: call(Argument)
+                Plan-->>Action: Return Function
+                Action->>Action: Argument()
+                Action->>Function: call(Argument)
                 activate Function
-                Function-->>Struct: Return Result
+                Function-->>Action: Return Result
                 deactivate Function
                 alt Function Error
-                    Struct->>Struct: Return Error
-                    Note right of Struct: If the function execution returns an error, propagate the error
+                    Action->>Action: Return Error
+                    Note right of Action: If the function execution returns an error, propagate the error
                 else Function Success
-                    Struct->>Struct: Result(Result)
-                    Struct->>Metadata: Get("NextAction")
+                    Action->>Action: Result(Result)
+                    Action->>Metadata: Get("NextAction")
                     alt NextAction exists
-                        Metadata-->>Struct: Return NextAction
-                        Struct->>Struct: Execute(NextAction, Context)
+                        Metadata-->>Action: Return NextAction
+                        Action->>Action: Execute(NextAction, Context)
                         alt NextAction Error
-                            Struct->>Struct: Return Error
-                            Note right of Struct: If the execution of the next action results in an error, return the error
+                            Action->>Action: Return Error
+                            Note right of Action: If the execution of the next action results in an error, return the error
                         end
                     end 
                 end
             end
         end
     end
-    deactivate Struct
+    deactivate Action
     Client->>Client: Return Result
     Note right of Client: Returns the result of the action execution, which can be a success or an error
 
