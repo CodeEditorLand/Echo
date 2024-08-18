@@ -27,8 +27,8 @@ metadata management, function planning, and error handling.
     non-blocking execution.
 -   **Action Planning:** Define and execute actions with custom logic using a
     flexible Plan system.
--   **Metadata Management:** Attach metadata to actions for additional Life
-    and control.
+-   **Metadata Management:** Attach metadata to actions for additional Life and
+    control.
 -   **Error Handling:** Comprehensive error management with custom `Error`
     types.
 -   **Retry Mechanism:** Built-in retry logic for failed actions with
@@ -261,34 +261,74 @@ classDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Main
-    participant Plan
-    participant Production
-    participant Life
-    participant SimpleSite
-    participant Sequence
-    participant Action
+    participant Client
+    participant Struct
+    participant Metadata (Vector)
+    participant License (Signal<bool>)
+    participant Context (Life)
+    participant Plan (Formality)
+    participant Hooks
+    participant Function
 
-    Main->>Plan: New()
-    Main->>Plan: WithSignature()
-    Main->>Plan: WithFunction()
-    Plan->>Formality: Sign()
-    Plan->>Formality: Add()
-    Main->>Production: New()
-    Main->>Life: Create
-    Main->>SimpleSite: Create
-    Main->>Sequence: New(Site, work, Life)
-    Main->>Action: New("Read", json!("SomeData"), Plan)
-    Main->>Production: Assign(Action)
-    Main->>Sequence: Run()
-    Sequence->>Production: Do()
-    Production-->>Sequence: Some(Action)
-    Sequence->>SimpleSite: Receive(Action, Life)
-    SimpleSite->>Action: Execute(Life)
-    Action->>Formality: Remove()
-    Formality-->>Action: Function
-    Action->>Function: call()
-    Main->>Sequence: Shutdown()
+    activate Client
+    Client->>Struct: Execute(Context)
+    activate Struct
+    Struct->>Metadata: Get("Action")
+    alt "Action" not found
+        Struct->>Struct: Return Err(Error::Execution)
+    else "Action" found
+        Metadata-->>Struct: Return Action
+        Struct->>License: Get()
+        alt License Invalid
+            Struct->>Struct: Return Err(Error::License)
+        else License Valid
+            Struct->>Metadata: Get("Delay")
+            alt Delay exists
+                Metadata-->>Struct: Return Delay
+                Struct->>Struct: sleep(Delay)
+            end
+            Struct->>Metadata: Get("Hooks")
+            alt Hooks exist
+                Metadata-->>Struct: Return Hooks
+                loop Hook in Hooks
+                    Struct->>Context: Span.get(Hook)
+                    alt Hook Function found
+                        Context-->>Struct: Return HookFn
+                        Struct->>HookFn: call()
+                        alt HookFn Error
+                            Struct->>Struct: Return Err(Error)
+                        end
+                    end
+                end
+            end
+            Struct->>Plan: Remove(Action)
+            alt Function not found
+                Struct->>Struct: Return Err(Error::Execution)
+            else Function found
+                Plan-->>Struct: Return Function
+                Struct->>Struct: Argument()
+                Struct->>Function: call(Argument)
+                activate Function
+                Function-->>Struct: Return Result
+                deactivate Function
+                alt Function Error
+                    Struct->>Struct: Return Err(Error)
+                else Function Success
+                    Struct->>Struct: Result(Result)
+                    Struct->>Metadata: Get("NextAction")
+                    alt NextAction exists
+                        Metadata-->>Struct: Return NextAction
+                        Struct->>Struct: Execute(NextAction, Context)
+                        alt NextAction Error
+                            Struct->>Struct: Return Err(Error)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    deactivate Struct
+    Client->>Client: Return Result
 ```
 
 ## Contributing
