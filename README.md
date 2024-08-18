@@ -259,22 +259,24 @@ sequenceDiagram
     activate Client
     Client->>Struct: Execute(Context)
     activate Struct
+    Note right of Struct: The client initiates the execution of an action represented by the 'Struct' object
+	
     Struct->>Metadata: Get("Action")
     alt "Action" not found
         Struct->>Struct: Return Error
-        Returns an error if "Action" is not found in the metadata
+        Note right of Struct: Returns an error if "Action" is not found in the metadata
     else "Action" found
         Metadata-->>Struct: Return Action
         Struct->>License: Get()
         alt License Invalid
             Struct->>Struct: Return Error
-            Return an error if the action is not properly licensed
+            Note right of Struct: Return an error if the action is not properly licensed
         else License Valid
             Struct->>Metadata: Get("Delay")
             alt Delay exists
                 Metadata-->>Struct: Return Delay
                 Struct->>Struct: sleep(Delay)
-                If a delay is specified, wait for the given duration
+                Note right of Struct: If a delay is specified, wait for the given duration
             end
             Struct->>Metadata: Get("Hooks")
             alt Hooks exist
@@ -286,7 +288,7 @@ sequenceDiagram
                         Struct->>HookFn: call()
                         alt HookFn Error
                             Struct->>Struct: Return Error
-                            If a hook function returns an error, stop execution and return the error
+                            Note right of Struct: If a hook function returns an error, stop execution and return the error 
                         end
                     end
                 end
@@ -294,7 +296,7 @@ sequenceDiagram
             Struct->>Plan: Remove(Action)
             alt Function not found
                 Struct->>Struct: Return Error
-                Return an error if no function is found for the given action
+                Note right of Struct: Return an error if no function is found for the given action
             else Function found
                 Plan-->>Struct: Return Function
                 Struct->>Struct: Argument()
@@ -304,7 +306,7 @@ sequenceDiagram
                 deactivate Function
                 alt Function Error
                     Struct->>Struct: Return Error
-                    If the function execution returns an error, propagate the error
+                    Note right of Struct: If the function execution returns an error, propagate the error
                 else Function Success
                     Struct->>Struct: Result(Result)
                     Struct->>Metadata: Get("NextAction")
@@ -313,16 +315,17 @@ sequenceDiagram
                         Struct->>Struct: Execute(NextAction, Context)
                         alt NextAction Error
                             Struct->>Struct: Return Error
-                            If the execution of the next action results in an error, return the error
+                            Note right of Struct: If the execution of the next action results in an error, return the error
                         end
-                    end
+                    end 
                 end
             end
         end
     end
     deactivate Struct
     Client->>Client: Return Result
-    Returns the result of the action execution, which can be a success or an error
+    Note right of Client: Returns the result of the action execution, which can be a success or an error
+
 ```
 
 ## Contributing
