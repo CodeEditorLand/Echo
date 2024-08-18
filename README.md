@@ -287,3 +287,5 @@ This project is licensed under the [LICENSE](LICENSE) file.
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this component.
+
+[Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
