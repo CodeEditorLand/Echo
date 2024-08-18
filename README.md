@@ -174,7 +174,7 @@ classDiagram
         -Next() Result
         -Argument() Result
         -Result() Result
-        Note right of Struct: Represents an action with metadata, content, license, and plan.
+        Represents an action with metadata, content, license, and plan.
     }
 
     class Life {
@@ -182,7 +182,7 @@ classDiagram
         +Fate
         +Cache
         +Karma
-        Note right of Life: Represents the lifecycle context for a sequence of actions.
+        Represents the lifecycle context for a sequence of actions.
     }
 
     class Formality {
@@ -192,7 +192,7 @@ classDiagram
         +Sign() Formality
         +Add() Result
         +Remove() Option
-        Note right of Formality: A structure that manages signatures and functions for actions.
+        A structure that manages signatures and functions for actions.
     }
 
     class Production {
@@ -200,7 +200,7 @@ classDiagram
         +New() Production
         +Do() Option
         +Assign()
-        Note right of Production: Represents a thread-safe queue of actions to be processed.
+        Represents a thread-safe queue of actions to be processed.
     }
 
     class Signal {
@@ -208,7 +208,7 @@ classDiagram
         +New() Signal
         +Get() 
         +Set()
-        Note right of Signal: A thread-safe wrapper around a value.
+        A thread-safe wrapper around a value.
     }
 
     class Vector {
@@ -216,12 +216,12 @@ classDiagram
         +New() Vector
         +Insert()
         +Get() Option
-        Note right of Vector: A thread-safe key-value store.
+        A thread-safe key-value store.
     }
 
     class Signature {
         +Name: String
-        Note right of Signature: Represents a signature for an action.
+        Represents a signature for an action.
     }
 
     class enum Error {
@@ -229,7 +229,7 @@ classDiagram
         Execution
         Routing
         Cancellation
-        Note right of Error: Represents various error types that can occur during sequence actions.
+        Represents various error types that can occur during sequence actions.
     }
 
     Struct "1" --> "1" Vector : has
@@ -259,23 +259,23 @@ sequenceDiagram
     activate Client
     Client->>Struct: Execute(Context)
     activate Struct
-    Note right of Struct: The client initiates the execution of an action represented by the 'Struct' object
+    The client initiates the execution of an action represented by the 'Struct' object
     Struct->>Metadata: Get("Action")
     alt "Action" not found
         Struct->>Struct: Return Error
-        Note right of Struct: Returns an error if "Action" is not found in the metadata
+        Returns an error if "Action" is not found in the metadata
     else "Action" found
         Metadata-->>Struct: Return Action
         Struct->>License: Get()
         alt License Invalid
             Struct->>Struct: Return Error
-            Note right of Struct: Return an error if the action is not properly licensed
+            Return an error if the action is not properly licensed
         else License Valid
             Struct->>Metadata: Get("Delay")
             alt Delay exists
                 Metadata-->>Struct: Return Delay
                 Struct->>Struct: sleep(Delay)
-                Note right of Struct: If a delay is specified, wait for the given duration
+                If a delay is specified, wait for the given duration
             end
             Struct->>Metadata: Get("Hooks")
             alt Hooks exist
@@ -287,7 +287,7 @@ sequenceDiagram
                         Struct->>HookFn: call()
                         alt HookFn Error
                             Struct->>Struct: Return Error
-                            Note right of Struct: If a hook function returns an error, stop execution and return the error
+                            If a hook function returns an error, stop execution and return the error
                         end
                     end
                 end
@@ -295,7 +295,7 @@ sequenceDiagram
             Struct->>Plan: Remove(Action)
             alt Function not found
                 Struct->>Struct: Return Error
-                Note right of Struct: Return an error if no function is found for the given action
+                Return an error if no function is found for the given action
             else Function found
                 Plan-->>Struct: Return Function
                 Struct->>Struct: Argument()
@@ -305,7 +305,7 @@ sequenceDiagram
                 deactivate Function
                 alt Function Error
                     Struct->>Struct: Return Error
-                    Note right of Struct: If the function execution returns an error, propagate the error
+                    If the function execution returns an error, propagate the error
                 else Function Success
                     Struct->>Struct: Result(Result)
                     Struct->>Metadata: Get("NextAction")
@@ -314,7 +314,7 @@ sequenceDiagram
                         Struct->>Struct: Execute(NextAction, Context)
                         alt NextAction Error
                             Struct->>Struct: Return Error
-                            Note right of Struct: If the execution of the next action results in an error, return the error
+                            If the execution of the next action results in an error, return the error
                         end
                     end 
                 end
@@ -323,7 +323,7 @@ sequenceDiagram
     end
     deactivate Struct
     Client->>Client: Return Result
-    Note right of Client: Returns the result of the action execution, which can be a success or an error
+    Returns the result of the action execution, which can be a success or an error
 ```
 
 ## Contributing
