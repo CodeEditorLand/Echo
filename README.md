@@ -146,98 +146,98 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 classDiagram
     class ActionError {
         <<enumeration>>
-        +License(String)
-        +Execution(String)
-        +Routing(String)
-        +Cancellation(String)
+        +License
+        +Execution
+        +Routing
+        +Cancellation
     }
 
     class ActionSignature {
-        +Name: String
+        +Name
     }
 
-    class Action~T~ {
-        +Metadata: Vector
-        +Content: T
-        +License: Signal<bool>
-        +Plan: Arc<Formality>
-        +New(Action: &str, Content: T, Plan: Arc<Formality>)
-        +WithMetadata(Key: &str, Value: serde_json::Value)
-        +Execute(Context: &Life) Result<(), Error>
+    class Action {
+        +Metadata
+        +Content
+        +License
+        +Plan
+        +New
+        +WithMetadata
+        +Execute
     }
 
     class Life {
-        +Span: Arc<DashMap<String, Cycle::Type>>
-        +Fate: Arc<Config>
-        +Cache: Arc<Mutex<DashMap<String, serde_json::Value>>>
-        +Karma: Arc<DashMap<String, Arc<Production>>>
+        +Span
+        +Fate
+        +Cache
+        +Karma
     }
 
     class Formality {
-        +Signature: DashMap<String, ActionSignature>
-        +Function: DashMap<String, Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>
-        +New()
-        +Sign(Signature: ActionSignature)
-        +Add(Name: &str, Function: F) Result<&mut Self, String>
-        +Remove(Name: &str) Option<Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>
+        +Signature
+        +Function
+        +New
+        +Sign
+        +Add
+        +Remove
     }
 
     class Plan {
-        +Formality: Formality
-        +New()
-        +WithSignature(Signature: ActionSignature)
-        +WithFunction(Name: &str, Function: F) Result<Self, String>
-        +Build() Formality
+        +Formality
+        +New
+        +WithSignature
+        +WithFunction
+        +Build
     }
 
     class Work {
-        +Line: Arc<Mutex<VecDeque<Box<dyn ActionTrait>>>>
-        +New()
-        +Do() Option<Box<dyn ActionTrait>>
-        +Assign(Action: Box<dyn ActionTrait>)
+        +Line
+        +New
+        +Do
+        +Assign
     }
 
-    class Signal~T~ {
-        +0: Arc<Mutex<T>>
-        +New(Value: T)
-        +Get() T
-        +Set(To: T)
+    class Signal {
+        +0
+        +New
+        +Get
+        +Set
     }
 
     class Vector {
-        +Entry: DashMap<String, serde_json::Value>
-        +New()
-        +Insert(Key: String, Value: serde_json::Value)
-        +Get(Key: &str) Option<serde_json::Value>
+        +Entry
+        +New
+        +Insert
+        +Get
     }
 
     class ActionProcessor {
-        +Site: Arc<dyn Site>
-        +Production: Arc<Work>
-        +Life: Life
-        +Time: Signal<bool>
-        +New(Site: Arc<dyn Site>, Production: Arc<Work>, Life: Life)
-        +Run()
-        +Again(Action: Box<dyn ActionTrait>) Result<(), ActionError>
-        +Shutdown()
+        +Site
+        +Production
+        +Life
+        +Time
+        +New
+        +Run
+        +Again
+        +Shutdown
     }
 
     class SimpleWorker {
         <<Example>>
-        +Receive(action: Box<dyn ActionTrait>, context: &Life) Result<(), ActionError>
+        +Receive
     }
 
-    Action~T~ --|> ActionTrait
+    Action --|> ActionTrait
     SimpleWorker ..|> Site
     ActionProcessor o-- Site
     ActionProcessor o-- Work
     ActionProcessor o-- Life
-    Action~T~ o-- Formality
+    Action o-- Formality
     Formality o-- ActionSignature
     Plan o-- Formality
     Work o-- ActionTrait
-    ActionProcessor o-- Signal~T~
-    Action~T~ o-- Vector
+    ActionProcessor o-- Signal
+    Action o-- Vector
     Life o-- Cycle
     Life o-- Production
 ```
