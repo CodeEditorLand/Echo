@@ -234,7 +234,7 @@ classDiagram
 
     Action --> Vector : has
     Action --> Signal : has
-    Plan --> Formality : has
+    Action --> Formality : has
     Life --> "*" Production : has
     Production --> "*" Action : contains
     Formality --> "*" Signature: has
