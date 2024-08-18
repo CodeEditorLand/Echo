@@ -206,7 +206,7 @@ classDiagram
     class Signal {
         -value
         +New() Signal
-        +Get() 
+        +Get()
         +Set()
         A thread-safe wrapper around a value.
     }
@@ -260,6 +260,7 @@ sequenceDiagram
     Client->>Struct: Execute(Context)
     activate Struct
     The client initiates the execution of an action represented by the 'Struct' object
+	
     Struct->>Metadata: Get("Action")
     alt "Action" not found
         Struct->>Struct: Return Error
@@ -316,7 +317,7 @@ sequenceDiagram
                             Struct->>Struct: Return Error
                             If the execution of the next action results in an error, return the error
                         end
-                    end 
+                    end
                 end
             end
         end
