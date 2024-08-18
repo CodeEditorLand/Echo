@@ -217,7 +217,7 @@ classDiagram
         +Name: String
     }
 
-    enum Error {
+    class enum Error {
         License
         Execution
         Routing
@@ -300,7 +300,7 @@ sequenceDiagram
                         alt NextAction Error
                             Struct->>Struct: Return Err(Error)
                         end
-                    end 
+                    end
                 end
             end
         end
