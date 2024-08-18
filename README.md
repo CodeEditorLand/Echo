@@ -159,102 +159,80 @@ use Echo::Sequence::{
 
 ```mermaid
 classDiagram
-    class Error {
-        <<enumeration>>
-        +License
-        +Execution
-        +Routing
-        +Cancellation
-    }
-
-    class ActionSignature {
-        +Name
-    }
-
-    class Action {
-        +Metadata
-        +Content
-        +License
-        +Plan
-        +New
-        +WithMetadata
-        +Execute
+    class Struct~T~ {
+        +Metadata: Vector
+        +Content: T
+        +License: Signal~bool~
+        +Plan: Arc~Formality~
+        +New(Action: str, Content: T, Plan: Arc~Formality~) Struct~T~
+        +WithMetadata(Key: str, Value: serde_json::Value) Struct~T~
+        +Execute(Context: &Life) Result~(), Error~
+        -License() Result~(), Error~
+        -Delay() Result~(), Error~
+        -Hooks(Context: &Life) Result~(), Error~
+        -Function(Action: str) Result~(), Error~
+        -Next(Context: &Life) Result~(), Error~
+        -Argument() Result~Vec~serde_json::Value~, Error~~
+        -Result(Result: serde_json::Value) Result~(), Error~
     }
 
     class Life {
-        +Span
-        +Fate
-        +Cache
-        +Karma
+        +Span: Arc~DashMap~String, Cycle::Type~~
+        +Fate: Arc~Config~
+        +Cache: Arc~Mutex~DashMap~String, serde_json::Value~~~
+        +Karma: Arc~DashMap~String, Arc~Production~~~
     }
 
     class Formality {
-        +Signature
-        +Function
-        +New
-        +Sign
-        +Add
-        +Remove
-    }
-
-    class Plan {
-        +Formality
-        +New
-        +WithSignature
-        +WithFunction
-        +Build
+        -Signature: DashMap~String, Signature~
+        -Function: DashMap~String, Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
+        +New() Formality
+        +Sign(Signature: Signature) Formality
+        +Add~F, Fut~(Name: str, Function: F) Result~Formality, String~
+        +Remove(Name: str) Option~Box~dyn Fn(Vec~Value~) -> Future~Result~Value, Error~~>>~
     }
 
     class Production {
-        +Line
-        +New
-        +Do
-        +Assign
+        -Line: Arc~Mutex~VecDeque~Box~Action~~~>~
+        +New() Production
+        +Do() Option~Box~Action~~
+        +Assign(Action: Box~Action~)
     }
 
-    class Signal {
-        +0
-        +New
-        +Get
-        +Set
+    class Signal~T~ {
+        -value: Arc~Mutex~T~~
+        +New(Value: T) Signal~T~
+        +Get() T
+        +Set(To: T)
     }
 
     class Vector {
-        +Entry
-        +New
-        +Insert
-        +Get
+        -Entry: DashMap~String, serde_json::Value~
+        +New() Vector
+        +Insert(Key: String, Value: serde_json::Value)
+        +Get(Key: str) Option~serde_json::Value~
     }
 
-    class Sequence {
-        +Site
-        +Production
-        +Life
-        +Time
-        +New
-        +Run
-        +Again
-        +Shutdown
+    class Signature {
+        +Name: String
     }
 
-    class SimpleSite {
-        <<Example>>
-        +Receive
+    enum Error {
+        License
+        Execution
+        Routing
+        Cancellation
     }
 
-    Action --|> ActionTrait
-    SimpleSite ..|> Site
-    Sequence o-- Site
-    Sequence o-- Production
-    Sequence o-- Life
-    Action o-- Formality
-    Formality o-- ActionSignature
-    Plan o-- Formality
-    Production o-- ActionTrait
-    Sequence o-- Signal
-    Action o-- Vector
-    Life o-- Cycle
-    Life o-- Production
+    Struct~T~ "1" --> "1" Vector : has
+    Struct~T~ "1" --> "1" Signal : has
+    Struct~T~ "1" --> "1" Formality : has
+    Life "1" --> "*" Production : has
+    Production "1" --> "*" Struct~T~ : contains
+    Formality "1" --> "*" Signature: has
+    Struct~T~ ..> Error : throws
+    Trait~Action~ <|.. Struct~T~
+    Trait~Site~ -- Struct~T~: uses
 ```
 
 #### Sequence Diagram
