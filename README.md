@@ -325,7 +325,6 @@ sequenceDiagram
     deactivate Action
     Client->>Client: Return Result
     Note right of Client: Returns the result of the action execution, which can be a success or an error
-
 ```
 
 ## Contributing
