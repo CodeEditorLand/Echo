@@ -260,7 +260,7 @@ sequenceDiagram
     Client->>Action: Execute(Context)
     activate Action
     Note right of Action: The client initiates the execution of an action represented by the 'Action' object
-	
+
     Action->>Metadata: Get("Action")
     alt "Action" not found
         Action->>Action: Return Error
@@ -288,7 +288,7 @@ sequenceDiagram
                         Action->>HookFn: call()
                         alt HookFn Error
                             Action->>Action: Return Error
-                            Note right of Action: If a hook function returns an error, stop execution and return the error 
+                            Note right of Action: If a hook function returns an error, stop execution and return the error
                         end
                     end
                 end
@@ -317,7 +317,7 @@ sequenceDiagram
                             Action->>Action: Return Error
                             Note right of Action: If the execution of the next action results in an error, return the error
                         end
-                    end 
+                    end
                 end
             end
         end
