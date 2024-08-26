@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Production = Arc::new(Production::New());
 
 	// Create a lifecycle Life (replace with your actual configuration)
-	let Life = Life::Struct {
+	let Life = Life {
 		Span: Arc::new(dashmap::DashMap::new()),
 		Fate: Arc::new(config::Config::default()),
 		Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
