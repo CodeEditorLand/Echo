@@ -37,7 +37,7 @@ metadata management, function planning, and error handling.
 -   **Serialization:** Actions can be serialized and deserialized for
     persistence or network transfer (in progress).
 
-## Installation
+## 🚀 Installation
 
 To get started with `Echo`, follow these steps:
 
@@ -54,7 +54,7 @@ Echo = { git = "HTTPS://GitHub.Com/CodeEditorLand/Echo.git" }
 cargo build
 ```
 
-## Usage
+## 🛠️ Usage
 
 Here's a basic example demonstrating how to define and execute an Action:
 
@@ -138,7 +138,7 @@ use Echo::Sequence::{
 };
 ```
 
-## Architecture
+## 🏛️ Architecture
 
 ### Core Components
 
@@ -327,14 +327,14 @@ sequenceDiagram
     Note right of Client: Returns the result of the action execution, which can be a success or an error
 ```
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for
-guidelines.
+guidelines and feel free to submit a Pull Request.
 
-## License
+## 📄 License
 
-This project is licensed under the [LICENSE](LICENSE) file.
+This project is licensed under the MIT [LICENSE](LICENSE).
 
 ## Changelog
 
