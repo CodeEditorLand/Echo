@@ -188,16 +188,16 @@ stateDiagram-v2
 
 ```mermaid
 classDiagram
-    class `Enum.Sequence.Action.Error` {
+    class `Enum::Sequence::Action::Error` {
         -License
         -Execution
         -Routing
         -Cancellation
     }
-    class `Struct.Sequence.Action.Signature` {
+    class `Struct::Sequence::Action::Signature` {
         -Name
     }
-    class `Struct.Sequence.Action` {
+    class `Struct::Sequence::Action` {
         -Metadata
         -Content
         -License
@@ -206,13 +206,13 @@ classDiagram
         +WithMetadata
         +Execute
     }
-    class `Struct.Sequence.Life` {
+    class `Struct::Sequence::Life` {
         -Span
         -Fate
         -Cache
         -Karma
     }
-    class `Struct.Sequence.Plan.Formality` {
+    class `Struct::Sequence::Plan::Formality` {
         -Signature
         -Function
         +New
@@ -220,31 +220,31 @@ classDiagram
         +Add
         +Remove
     }
-    class `Struct.Sequence.Plan` {
+    class `Struct::Sequence::Plan` {
         -Formality
         +New
         +WithSignature
         +WithFunction
         +Build
     }
-    class `Struct.Sequence.Production` {
+    class `Struct::Sequence::Production` {
         -Line
         +New
         +Do
         +Assign
     }
-    class `Struct.Sequence.Signal` {
+    class `Struct::Sequence::Signal` {
         +New
         +Get
         +Set
     }
-    class `Struct.Sequence.Vector` {
+    class `Struct::Sequence::Vector` {
         -Entry
         +New
         +Insert
         +Get
     }
-    class `Struct.Sequence` {
+    class `Struct::Sequence` {
         -Site
         -Production
         -Life
@@ -253,28 +253,28 @@ classDiagram
         +Run
         +Shutdown
     }
-    class `Trait.Sequence.Action` {
+    class `Trait::Sequence::Action` {
         +Execute
         +Clone
     }
-    class `Trait.Sequence.Site` {
+    class `Trait::Sequence::Site` {
         +Receive
     }
-    `Enum.Sequence.Action.Error` --|> `thiserror::Error`
-    `Struct.Sequence.Action` --|> `serde::Serialize`
-    `Struct.Sequence.Action` --|> `serde::Deserialize`
-    `Struct.Sequence.Action` --|> `Trait.Sequence.Action`
-    `Struct.Sequence.Plan.Formality` --|> `std::fmt::Debug`
-    `Struct.Sequence.Plan` *-- `Struct.Sequence.Plan.Formality`
-    `Struct.Sequence` *-- `Trait.Sequence.Site`
-    `Struct.Sequence` *-- `Struct.Sequence.Production`
-    `Struct.Sequence` *-- `Struct.Sequence.Life`
-    `Trait.Sequence.Action` <.. `Struct.Sequence.Life`
-    `Trait.Sequence.Action` <.. `Enum.Sequence.Action.Error`
-    `Trait.Sequence.Site` --|> `async_trait::async_trait`
-    `Trait.Sequence.Site` <.. `Trait.Sequence.Action`
-    `Trait.Sequence.Site` <.. `Struct.Sequence.Life`
-    `Trait.Sequence.Site` <.. `Enum.Sequence.Action.Error`
+    `Enum::Sequence::Action::Error` --|> `thiserror::Error`
+    `Struct::Sequence::Action` --|> `serde::Serialize`
+    `Struct::Sequence::Action` --|> `serde::Deserialize`
+    `Struct::Sequence::Action` --|> `Trait::Sequence::Action`
+    `Struct::Sequence::Plan::Formality` --|> `std::fmt::Debug`
+    `Struct::Sequence::Plan` *-- `Struct::Sequence::Plan::Formality`
+    `Struct::Sequence` *-- `Trait::Sequence::Site`
+    `Struct::Sequence` *-- `Struct::Sequence::Production`
+    `Struct::Sequence` *-- `Struct::Sequence::Life`
+    `Trait::Sequence::Action` <.. `Struct::Sequence::Life`
+    `Trait::Sequence::Action` <.. `Enum::Sequence::Action::Error`
+    `Trait::Sequence::Site` --|> `async_trait::async_trait`
+    `Trait::Sequence::Site` <.. `Trait::Sequence::Action`
+    `Trait::Sequence::Site` <.. `Struct::Sequence::Life`
+    `Trait::Sequence::Site` <.. `Enum::Sequence::Action::Error`
 ```
 
 #### Sequence Diagram
