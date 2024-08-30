@@ -155,6 +155,35 @@ use Echo::Sequence::{
 
 ### Diagrams
 
+#### State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Library
+    Library --> Enum
+    Library --> Struct
+    Library --> Trait
+    Library --> Type
+    Enum --> Sequence
+    Sequence --> Action
+    Action --> Error
+    Struct --> Sequence
+    Sequence --> Action
+    Action --> Signature
+    Sequence --> Life
+    Sequence --> Plan
+    Plan --> Formality
+    Sequence --> Production
+    Sequence --> Signal
+    Sequence --> Vector
+    Trait --> Sequence
+    Sequence --> Action
+    Sequence --> Site
+    Type --> Sequence
+    Sequence --> Action
+    Action --> Cycle
+```
+
 #### Class Diagram
 
 ```mermaid
