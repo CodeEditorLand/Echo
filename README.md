@@ -188,88 +188,97 @@ stateDiagram-v2
 
 ```mermaid
 classDiagram
-    class Action {
-        +Metadata: Vector
-        +Content
-        +License: Signal
-        +Plan
-        +New() Action
-        +WithMetadata() Struct
-        +Execute() Result
-        -License() Result
-        -Delay() Result
-        -Hooks() Result
-        -Function() Result
-        -Next() Result
-        -Argument() Result
-        -Result() Result
-        Represents an action with metadata, content, license, and plan.
+    class `Enum::Sequence::Action::Error::Enum` {
+        -License(String)
+        -Execution(String)
+        -Routing(String)
+        -Cancellation(String)
     }
-
-    class Life {
-        +Span
-        +Fate
-        +Cache
-        +Karma
-        Represents the lifecycle context for a sequence of actions.
+    class `Struct::Sequence::Action::Signature::Struct` {
+        -Name: String
     }
-
-    class Formality {
-        -Signature
-        -Function
-        +New() Formality
-        +Sign() Formality
-        +Add() Result
-        +Remove() Option
-        A structure that manages signatures and functions for actions.
+    class `Struct::Sequence::Action::Struct::T` {
+        -Metadata: Vector
+        -Content: T
+        -License: Signal<bool>
+        -Plan: Arc<Formality>
+        +New(Action: &str, Content: T, Plan: Arc<Formality>)
+        +WithMetadata(Key: &str, Value: serde_json::Value)
+        +Execute(Context: &Life)
     }
-
-    class Production {
-        -Line
-        +New() Production
-        +Do() Option
-        +Assign()
-        Represents a thread-safe queue of actions to be processed.
+    class `Struct::Sequence::Life::Struct` {
+        -Span: Arc<DashMap<String, Type::Sequence::Action::Cycle::Type>>
+        -Fate: Arc<Config>
+        -Cache: Arc<Struct::Sequence::Mutex<DashMap<String, serde_json::Value>>>
+        -Karma: Arc<DashMap<String, Arc<Struct::Sequence::Production::Struct>>>
     }
-
-    class Signal {
-        -value
-        +New() Signal
+    class `Struct::Sequence::Plan::Formality::Struct` {
+        -Signature: DashMap<String, Signature>
+        -Function: DashMap<String, Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>
+        +New()
+        +Sign(Signature: Signature)
+        +Add(Name: &str, Function: F)
+        +Remove(Name: &str)
+    }
+    class `Struct::Sequence::Plan::Struct` {
+        -Formality: Formality
+        +New()
+        +WithSignature(Signature: Struct::Sequence::Action::Signature::Struct)
+        +WithFunction(Name: &str, Function: F)
+        +Build()
+    }
+    class `Struct::Sequence::Production::Struct` {
+        -Line: Arc<Mutex<VecDeque<Box<dyn Action>>>>
+        +New()
+        +Do()
+        +Assign(Action: Box<dyn Action>)
+    }
+    class `Struct::Sequence::Signal::Struct::T` {
+        -0: Arc<Mutex<T>>
+        +New(Value: T)
         +Get()
-        +Set()
-        A thread-safe wrapper around a value.
+        +Set(To: T)
     }
-
-    class Vector {
-        -Entry
-        +New() Vector
-        +Insert()
-        +Get() Option
-        A thread-safe key-value store.
+    class `Struct::Sequence::Vector::Struct` {
+        -Entry: DashMap<String, serde_json::Value>
+        +New()
+        +Insert(Key: String, Value: serde_json::Value)
+        +Get(Key: &str)
     }
-
-    class Signature {
-        +Name: String
-        Represents a signature for an action.
+    class `Struct::Sequence::Struct` {
+        -Site: Arc<dyn Site>
+        -Production: Arc<Production>
+        -Life: Life
+        -Time: Signal<bool>
+        +New(Site: Arc<dyn Site>, Production: Arc<Production>, Life: Life)
+        +Run()
+        +Shutdown()
     }
-
-    class enum Error {
-        License
-        Execution
-        Routing
-        Cancellation
-        Represents various error types that can occur during sequence actions.
+    class `Trait::Sequence::Action::Trait` {
+        +Execute(Context: &Life)
+        +Clone()
     }
-
-    Action --> Vector : has
-    Action --> Signal : has
-    Action --> Formality : has
-    Life --> "*" Production : has
-    Production --> "*" Action : contains
-    Formality --> "*" Signature: has
-    Action ..> Error : throws
-    Trait~Action~ <|.. Action
-    Trait~Site~ -- Action: uses
+    class `Trait::Sequence::Site::Trait` {
+        +Receive(Action: Box<dyn Trait::Sequence::Action::Trait>, Context: &Struct::Sequence::Life::Struct)
+    }
+    `Enum::Sequence::Action::Error::Enum` --|> `thiserror::Error`
+    `Struct::Sequence::Action::Struct::T` --|> `serde::Serialize`
+    `Struct::Sequence::Action::Struct::T` --|> `serde::Deserialize`
+    `Struct::Sequence::Action::Struct::T` --|> `Trait::Sequence::Action::Trait`
+    `Struct::Sequence::Plan::Formality::Struct` --|> `std::fmt::Debug`
+    `Struct::Sequence::Plan::Struct` *-- `Struct::Sequence::Plan::Formality::Struct`
+    `Struct::Sequence::Signal::Struct::T` *-- `Struct::Sequence::Mutex`
+    `Struct::Sequence::Struct` *-- `Trait::Sequence::Site::Trait`
+    `Struct::Sequence::Struct` *-- `Struct::Sequence::Production::Struct`
+    `Struct::Sequence::Struct` *-- `Struct::Sequence::Life::Struct`
+    `Struct::Sequence::Struct` *-- `Struct::Sequence::Signal::Struct::T`
+    `Trait::Sequence::Action::Trait` <.. `Struct::Sequence::Life::Struct`
+    `Trait::Sequence::Action::Trait` <.. `Enum::Sequence::Action::Error::Enum`
+    `Trait::Sequence::Site::Trait` --|> `async_trait::async_trait`
+    `Trait::Sequence::Site::Trait` <.. `Trait::Sequence::Action::Trait`
+    `Trait::Sequence::Site::Trait` <.. `Struct::Sequence::Life::Struct`
+    `Trait::Sequence::Site::Trait` <.. `Enum::Sequence::Action::Error::Enum`
+    `Type::Sequence::Action::Cycle::Type` --|> `Struct::Sequence::Arc`
 ```
 
 #### Sequence Diagram
