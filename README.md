@@ -188,16 +188,16 @@ stateDiagram-v2
 
 ```mermaid
 classDiagram
-    class EnumSequenceActionErrorEnum {
+    class Enum-Sequence-Action-Error-Enum {
         -License(String)
         -Execution(String)
         -Routing(String)
         -Cancellation(String)
     }
-    class StructSequenceActionSignatureStruct {
+    class Struct-Sequence-Action-Signature-Struct {
         -Name: String
     }
-    class StructSequenceActionStructT {
+    class Struct-Sequence-Action-Struct-T {
         -Metadata: Vector
         -Content: T
         -License: Signal<bool>
@@ -206,13 +206,13 @@ classDiagram
         +WithMetadata(Key: &str, Value: serde_json::Value)
         +Execute(Context: &Life)
     }
-    class StructSequenceLifeStruct {
-        -Span: Arc<DashMap<String, TypeSequenceActionCycleType>>
+    class Struct-Sequence-Life-Struct {
+        -Span: Arc<DashMap<String, Type-Sequence-Action-Cycle-Type>>
         -Fate: Arc<Config>
-        -Cache: Arc<StructSequenceMutex<DashMap<String, serde_json::Value>>>
-        -Karma: Arc<DashMap<String, Arc<StructSequenceProductionStruct>>>
+        -Cache: Arc<Struct-Sequence-Mutex<DashMap<String, serde_json::Value>>>
+        -Karma: Arc<DashMap<String, Arc<Struct-Sequence-Production-Struct>>>
     }
-    class StructSequencePlanFormalityStruct {
+    class Struct-Sequence-Plan-Formality-Struct {
         -Signature: DashMap<String, Signature>
         -Function: DashMap<String, Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>
         +New()
@@ -220,32 +220,32 @@ classDiagram
         +Add(Name: &str, Function: F)
         +Remove(Name: &str)
     }
-    class StructSequencePlanStruct {
+    class Struct-Sequence-Plan-Struct {
         -Formality: Formality
         +New()
-        +WithSignature(Signature: StructSequenceActionSignatureStruct)
+        +WithSignature(Signature: Struct-Sequence-Action-Signature-Struct)
         +WithFunction(Name: &str, Function: F)
         +Build()
     }
-    class StructSequenceProductionStruct {
+    class Struct-Sequence-Production-Struct {
         -Line: Arc<Mutex<VecDeque<Box<dyn Action>>>>
         +New()
         +Do()
         +Assign(Action: Box<dyn Action>)
     }
-    class StructSequenceSignalStructT {
+    class Struct-Sequence-Signal-Struct-T {
         -0: Arc<Mutex<T>>
         +New(Value: T)
         +Get()
         +Set(To: T)
     }
-    class StructSequenceVectorStruct {
+    class Struct-Sequence-Vector-Struct {
         -Entry: DashMap<String, serde_json::Value>
         +New()
         +Insert(Key: String, Value: serde_json::Value)
         +Get(Key: &str)
     }
-    class StructSequenceStruct {
+    class Struct-Sequence-Struct {
         -Site: Arc<dyn Site>
         -Production: Arc<Production>
         -Life: Life
@@ -254,31 +254,31 @@ classDiagram
         +Run()
         +Shutdown()
     }
-    class TraitSequenceActionTrait {
+    class Trait-Sequence-Action-Trait {
         +Execute(Context: &Life)
         +Clone()
     }
-    class TraitSequenceSiteTrait {
-        +Receive(Action: Box<dyn TraitSequenceActionTrait>, Context: &StructSequenceLifeStruct)
+    class Trait-Sequence-Site-Trait {
+        +Receive(Action: Box<dyn Trait-Sequence-Action-Trait>, Context: &Struct-Sequence-Life-Struct)
     }
-    EnumSequenceActionErrorEnum --|> thiserror::Error
-    StructSequenceActionStructT --|> serde::Serialize
-    StructSequenceActionStructT --|> serde::Deserialize
-    StructSequenceActionStructT --|> TraitSequenceActionTrait
-    StructSequencePlanFormalityStruct --|> std::fmt::Debug
-    StructSequencePlanStruct *-- StructSequencePlanFormalityStruct
-    StructSequenceSignalStructT *-- StructSequenceMutex
-    StructSequenceStruct *-- TraitSequenceSiteTrait
-    StructSequenceStruct *-- StructSequenceProductionStruct
-    StructSequenceStruct *-- StructSequenceLifeStruct
-    StructSequenceStruct *-- StructSequenceSignalStructT
-    TraitSequenceActionTrait <.. StructSequenceLifeStruct
-    TraitSequenceActionTrait <.. EnumSequenceActionErrorEnum
-    TraitSequenceSiteTrait --|> async_trait::async_trait
-    TraitSequenceSiteTrait <.. TraitSequenceActionTrait
-    TraitSequenceSiteTrait <.. StructSequenceLifeStruct
-    TraitSequenceSiteTrait <.. EnumSequenceActionErrorEnum
-    TypeSequenceActionCycleType --|> StructSequenceArc
+    Enum-Sequence-Action-Error-Enum --|> thiserror-Error
+    Struct-Sequence-Action-Struct-T --|> serde-Serialize
+    Struct-Sequence-Action-Struct-T --|> serde-Deserialize
+    Struct-Sequence-Action-Struct-T --|> Trait-Sequence-Action-Trait
+    Struct-Sequence-Plan-Formality-Struct --|> std-fmt-Debug
+    Struct-Sequence-Plan-Struct *-- Struct-Sequence-Plan-Formality-Struct
+    Struct-Sequence-Signal-Struct-T *-- Struct-Sequence-Mutex
+    Struct-Sequence-Struct *-- Trait-Sequence-Site-Trait
+    Struct-Sequence-Struct *-- Struct-Sequence-Production-Struct
+    Struct-Sequence-Struct *-- Struct-Sequence-Life-Struct
+    Struct-Sequence-Struct *-- Struct-Sequence-Signal-Struct-T
+    Trait-Sequence-Action-Trait <.. Struct-Sequence-Life-Struct
+    Trait-Sequence-Action-Trait <.. Enum-Sequence-Action-Error-Enum
+    Trait-Sequence-Site-Trait --|> async_trait-async_trait
+    Trait-Sequence-Site-Trait <.. Trait-Sequence-Action-Trait
+    Trait-Sequence-Site-Trait <.. Struct-Sequence-Life-Struct
+    Trait-Sequence-Site-Trait <.. Enum-Sequence-Action-Error-Enum
+    Type-Sequence-Action-Cycle-Type --|> Struct-Sequence-Arc
 ```
 
 #### Sequence Diagram
