@@ -18,8 +18,10 @@ fn main() {
 
 	println!(
 		"cargo:rustc-env=CARGO_PKG_VERSION={}",
-		(toml::from_str::<Toml>(&fs::read_to_string("Cargo.toml").expect("Cannot Cargo.toml."))
-			.expect("Cannot toml."))
+		(toml::from_str::<Toml>(
+			&fs::read_to_string("Cargo.toml").expect("Cannot read_to_string.")
+		)
+		.expect("Cannot from_str."))
 		.package
 		.version
 	);
