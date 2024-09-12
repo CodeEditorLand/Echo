@@ -17,6 +17,9 @@ thiserror = "1.0.63"
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-tungstenite = "0.23.1"
 
+# Development
+tokio-console = { version = "0.1.12", optional = true }
+
 [[example]]
 name = "Sequence"
 path = "Example/Sequence.rs"
@@ -54,3 +57,6 @@ include = [
 	"build.rs",
 	"Cargo.toml",
 ]
+
+[features]
+Development = ["tokio-console"]

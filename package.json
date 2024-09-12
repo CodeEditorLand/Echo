@@ -21,8 +21,8 @@
 	"main": "./Target/Variable/Worker.js",
 	"types": "./Target/Variable/Worker.d.ts",
 	"scripts": {
-		"Run": "Build 'Source/**/*.ts' --Watch",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
+		"Run": "Build 'Ts/**/*.ts' --Watch",
+		"prepublishOnly": "Build 'Ts/**/*.ts'"
 	},
 	"dependencies": {
 		"@codeeditorland/common": "0.0.6"
