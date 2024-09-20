@@ -28,7 +28,7 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20240909.0",
+		"@cloudflare/workers-types": "4.20240919.0",
 		"@playform/build": "0.1.6",
 		"@types/dotenv": "8.2.0",
 		"miniflare": "3.20240909.3",
