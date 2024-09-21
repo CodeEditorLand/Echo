@@ -44,5 +44,4 @@ impl Struct {
 
 use std::{collections::VecDeque, sync::Arc};
 
-use crate::Struct::Sequence::Mutex;
-use crate::Trait::Sequence::Action::Trait as Action;
+use crate::{Struct::Sequence::Mutex, Trait::Sequence::Action::Trait as Action};
