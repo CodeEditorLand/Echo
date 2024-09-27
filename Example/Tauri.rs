@@ -37,14 +37,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Sequence = Arc::new(Sequence::Struct::New(Site, Production.clone(), Life));
 
 	// Channel for sending action results
-	let (Approval, mut Receipt) = mpsc::unbounded_channel();
+	let (Allow, mut Mark) = mpsc::unbounded_channel();
 
 	// Spawn worker tasks
 	let mut Force = JoinSet::new();
 
 	for _ in 0..4 {
 		let Sequence = Sequence.clone();
-		let tx = Approval.clone();
+
+		let tx = Allow.clone();
 
 		Force.spawn(async move {
 			while !Sequence.Time.Get().await {
@@ -82,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 					.await;
 
 				// Process action results
-				while let Some(result) = Receipt.recv().await {
+				while let Some(result) = Mark.recv().await {
 					match result {
 						Ok(_) => Handle
 							.emit_all("ActionResult", "Action completed successfully")
