@@ -1,3 +1,5 @@
+import type Interface from "../Interface/Response.js";
+
 /**
  * @module Response
  *
@@ -11,8 +13,6 @@ export default (async (
 			"Content-Type": "application/json;charset=utf-8",
 		},
 	})) satisfies Interface;
-
-import type Interface from "../Interface/Response.js";
 
 export const { Response } = await import(
 	"@cloudflare/workers-types/experimental/index.js"

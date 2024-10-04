@@ -1,3 +1,5 @@
+import type { Response } from "@cloudflare/workers-types/experimental/index.js";
+
 /**
  * @module Response
  *
@@ -17,5 +19,3 @@ export default interface Interface {
 	// biome-ignore lint/suspicious/noExplicitAny:
 	(Message: any, Status: number): Promise<Response>;
 }
-
-import type { Response } from "@cloudflare/workers-types/experimental/index.js";

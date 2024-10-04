@@ -1,3 +1,12 @@
+import type {
+	ExecutionContext,
+	ExportedHandler,
+	Request,
+	Response,
+} from "@cloudflare/workers-types/experimental/index.js";
+
+import type Environment from "../Interface/Environment.js";
+
 /**
  * @module Worker
  *
@@ -9,12 +18,3 @@ export default interface Interface extends ExportedHandler<Environment> {
 		Context: ExecutionContext,
 	) => Response;
 }
-
-import type {
-	ExecutionContext,
-	ExportedHandler,
-	Request,
-	Response,
-} from "@cloudflare/workers-types/experimental/index.js";
-
-import type Environment from "../Interface/Environment.js";
