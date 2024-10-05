@@ -9,13 +9,14 @@ pub trait Trait: Send + Sync {
 	///
 	/// # Arguments
 	///
-	/// * `Context` - A reference to the `Life` context in which the action is executed.
+	/// * `Context` - A reference to the `Life` context in which the action is
+	///   executed.
 	///
 	/// # Returns
 	///
-	/// Returns a `Result` which is `Ok(())` if the action executed successfully,
-	/// or an `Error` if the execution failed.
-	async fn Execute(&self, Context: &Life) -> Result<(), Error>;
+	/// Returns a `Result` which is `Ok(())` if the action executed
+	/// successfully, or an `Error` if the execution failed.
+	async fn Execute(&self, Context:&Life) -> Result<(), Error>;
 
 	/// Creates a clone of the action as a trait object.
 	///
@@ -28,13 +29,16 @@ pub trait Trait: Send + Sync {
 	fn Clone(&self) -> Box<dyn Trait>;
 }
 
-/// Implementation of the `Trait` for `crate::Struct::Sequence::Action::Struct<T>`.
+/// Implementation of the `Trait` for
+/// `crate::Struct::Sequence::Action::Struct<T>`.
 ///
 /// This implementation allows any `Struct<T>` that satisfies the bounds
 /// to be used as a `Trait` object.
 #[async_trait]
-impl<T: Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action::Struct<T> {
-	async fn Execute(&self, Context: &Life) -> Result<(), Error> {
+impl<T:Send + Sync + Clone + 'static> Trait
+	for crate::Struct::Sequence::Action::Struct<T>
+{
+	async fn Execute(&self, Context:&Life) -> Result<(), Error> {
 		// Delegates to the struct's own `Execute` method
 		self.Execute(Context).await
 	}
@@ -47,4 +51,7 @@ impl<T: Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action
 
 use async_trait::async_trait;
 
-use crate::{Enum::Sequence::Action::Error::Enum as Error, Struct::Sequence::Life::Struct as Life};
+use crate::{
+	Enum::Sequence::Action::Error::Enum as Error,
+	Struct::Sequence::Life::Struct as Life,
+};

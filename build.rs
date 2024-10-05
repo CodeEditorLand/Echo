@@ -1,16 +1,17 @@
 #![allow(non_snake_case)]
 
-use serde::Deserialize;
 use std::fs;
+
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct Toml {
-	package: Package,
+	package:Package,
 }
 
 #[derive(Deserialize)]
 struct Package {
-	version: String,
+	version:String,
 }
 
 fn main() {

@@ -1,7 +1,8 @@
 /// A trait that defines the behavior for processing actions.
 ///
-/// Types that implement this trait must be able to handle actions asynchronously.
-/// The trait is marked with `Send` and `Sync` to ensure thread safety.
+/// Types that implement this trait must be able to handle actions
+/// asynchronously. The trait is marked with `Send` and `Sync` to ensure thread
+/// safety.
 #[async_trait::async_trait]
 pub trait Trait: Send + Sync {
 	/// Processes a given action asynchronously and returns the result.
@@ -11,9 +12,10 @@ pub trait Trait: Send + Sync {
 	///
 	/// # Arguments
 	///
-	/// * `Action` - A boxed trait object representing the action to be processed.
-	///              It must implement the `super::Action::Trait`.
-	/// * `Context` - A reference to the `Life` context in which the action is executed.
+	/// * `Action` - A boxed trait object representing the action to be
+	///   processed. It must implement the `super::Action::Trait`.
+	/// * `Context` - A reference to the `Life` context in which the action is
+	///   executed.
 	///
 	/// # Returns
 	///
@@ -27,7 +29,7 @@ pub trait Trait: Send + Sync {
 	/// `crate::Enum::Sequence::Action::Error::Enum` enum.
 	async fn Receive(
 		&self,
-		Action: Box<dyn super::Action::Trait>,
-		Context: &crate::Struct::Sequence::Life::Struct,
+		Action:Box<dyn super::Action::Trait>,
+		Context:&crate::Struct::Sequence::Life::Struct,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum>;
 }

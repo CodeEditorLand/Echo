@@ -5,8 +5,9 @@ pub struct Struct {
 	/// - `Arc` provides shared ownership and thread-safety.
 	/// - `Mutex` ensures exclusive access to the queue.
 	/// - `VecDeque` is used as an efficient double-ended queue.
-	/// - `Box<dyn Action>` allows for dynamic dispatch of different action types.
-	Line: Arc<Mutex<VecDeque<Box<dyn Action>>>>,
+	/// - `Box<dyn Action>` allows for dynamic dispatch of different action
+	///   types.
+	Line:Arc<Mutex<VecDeque<Box<dyn Action>>>>,
 }
 
 impl Struct {
@@ -16,7 +17,7 @@ impl Struct {
 	///
 	/// A new `Struct` with an empty action queue.
 	pub fn New() -> Self {
-		Struct { Line: Arc::new(Mutex::new(VecDeque::new())) }
+		Struct { Line:Arc::new(Mutex::new(VecDeque::new())) }
 	}
 
 	/// Attempts to retrieve and remove the first action from the queue.
@@ -25,7 +26,8 @@ impl Struct {
 	///
 	/// # Returns
 	///
-	/// `Option<Box<dyn Action>>` - The first action in the queue if it exists, or `None` if the queue is empty.
+	/// `Option<Box<dyn Action>>` - The first action in the queue if it exists,
+	/// or `None` if the queue is empty.
 	pub async fn Do(&self) -> Option<Box<dyn Action>> {
 		self.Line.lock().await.pop_front()
 	}
@@ -37,11 +39,14 @@ impl Struct {
 	/// # Arguments
 	///
 	/// * `Action` - The action to be added to the queue.
-	pub async fn Assign(&self, Action: Box<dyn Action>) {
+	pub async fn Assign(&self, Action:Box<dyn Action>) {
 		self.Line.lock().await.push_back(Action);
 	}
 }
 
 use std::{collections::VecDeque, sync::Arc};
 
-use crate::{Struct::Sequence::Mutex, Trait::Sequence::Action::Trait as Action};
+use crate::{
+	Struct::Sequence::Mutex,
+	Trait::Sequence::Action::Trait as Action,
+};

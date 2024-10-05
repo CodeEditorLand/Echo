@@ -1,7 +1,7 @@
 /// Represents a plan for a sequence of actions.
 pub struct Struct {
 	/// The formal structure of the plan, containing signatures and functions.
-	Formality: Formality::Struct,
+	Formality:Formality::Struct,
 }
 
 impl Struct {
@@ -9,9 +9,7 @@ impl Struct {
 	///
 	/// # Returns
 	/// A new `Struct` instance with an empty `Formality`.
-	pub fn New() -> Self {
-		Self { Formality: Formality::Struct::New() }
-	}
+	pub fn New() -> Self { Self { Formality:Formality::Struct::New() } }
 
 	// TODO: Combine / shorten WithX to Provision(Signature | Action)
 
@@ -24,7 +22,7 @@ impl Struct {
 	/// The modified `Struct` instance, allowing for method chaining.
 	pub fn WithSignature(
 		mut self,
-		Signature: crate::Struct::Sequence::Action::Signature::Struct,
+		Signature:crate::Struct::Sequence::Action::Signature::Struct,
 	) -> Self {
 		self.Formality.Sign(Signature);
 
@@ -47,13 +45,20 @@ impl Struct {
 	///
 	/// # Errors
 	/// Returns an error if the function cannot be added to the plan.
-	pub fn WithFunction<F, Fut>(mut self, Name: &str, Function: F) -> Result<Self, String>
+	pub fn WithFunction<F, Fut>(
+		mut self,
+		Name:&str,
+		Function:F,
+	) -> Result<Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
-		Fut: Future<Output = Result<serde_json::Value, crate::Enum::Sequence::Action::Error::Enum>>
-			+ Send
-			+ 'static,
-	{
+		Fut: Future<
+				Output = Result<
+					serde_json::Value,
+					crate::Enum::Sequence::Action::Error::Enum,
+				>,
+			> + Send
+			+ 'static, {
 		self.Formality.Add(Name, Function)?;
 
 		Ok(self)
@@ -63,9 +68,7 @@ impl Struct {
 	///
 	/// # Returns
 	/// The `Formality` instance containing all added signatures and functions.
-	pub fn Build(self) -> Formality::Struct {
-		self.Formality
-	}
+	pub fn Build(self) -> Formality::Struct { self.Formality }
 }
 
 use futures::Future;
