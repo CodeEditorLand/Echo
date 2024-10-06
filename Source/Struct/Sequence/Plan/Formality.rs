@@ -14,10 +14,7 @@ pub struct Struct {
 	Function: DashMap<
 		String,
 		Box<
-			dyn Fn(
-					Vec<Value>,
-				)
-					-> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
+			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
 				+ Send
 				+ Sync,
 		>,
@@ -30,9 +27,7 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` instance.
-	pub fn New() -> Self {
-		Self { Signature:DashMap::new(), Function:DashMap::new() }
-	}
+	pub fn New() -> Self { Self { Signature:DashMap::new(), Function:DashMap::new() } }
 
 	/// Adds a signature to the Signature DashMap.
 	///
@@ -64,11 +59,7 @@ impl Struct {
 	/// # Errors
 	///
 	/// Returns an error if no signature is found for the given function name.
-	pub fn Add<F, Fut>(
-		&mut self,
-		Name:&str,
-		Function:F,
-	) -> Result<&mut Self, String>
+	pub fn Add<F, Fut>(&mut self, Name:&str, Function:F) -> Result<&mut Self, String>
 	where
 		F: Fn(Vec<Value>) -> Fut + Send + Sync + 'static,
 		Fut: Future<Output = Result<Value, Error>> + Send + 'static, {
@@ -102,10 +93,7 @@ impl Struct {
 		Name:&str,
 	) -> Option<
 		Box<
-			dyn Fn(
-					Vec<Value>,
-				)
-					-> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
+			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
 				+ Send
 				+ Sync,
 		>,

@@ -16,9 +16,7 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` with an empty action queue.
-	pub fn New() -> Self {
-		Struct { Line:Arc::new(Mutex::new(VecDeque::new())) }
-	}
+	pub fn New() -> Self { Struct { Line:Arc::new(Mutex::new(VecDeque::new())) } }
 
 	/// Attempts to retrieve and remove the first action from the queue.
 	///
@@ -28,9 +26,7 @@ impl Struct {
 	///
 	/// `Option<Box<dyn Action>>` - The first action in the queue if it exists,
 	/// or `None` if the queue is empty.
-	pub async fn Do(&self) -> Option<Box<dyn Action>> {
-		self.Line.lock().await.pop_front()
-	}
+	pub async fn Do(&self) -> Option<Box<dyn Action>> { self.Line.lock().await.pop_front() }
 
 	/// Adds a new action to the end of the queue.
 	///
@@ -39,14 +35,9 @@ impl Struct {
 	/// # Arguments
 	///
 	/// * `Action` - The action to be added to the queue.
-	pub async fn Assign(&self, Action:Box<dyn Action>) {
-		self.Line.lock().await.push_back(Action);
-	}
+	pub async fn Assign(&self, Action:Box<dyn Action>) { self.Line.lock().await.push_back(Action); }
 }
 
 use std::{collections::VecDeque, sync::Arc};
 
-use crate::{
-	Struct::Sequence::Mutex,
-	Trait::Sequence::Action::Trait as Action,
-};
+use crate::{Struct::Sequence::Mutex, Trait::Sequence::Action::Trait as Action};

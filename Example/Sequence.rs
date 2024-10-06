@@ -27,8 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	);
 
 	// Create a production line
-	let Production =
-		Arc::new(Echo::Struct::Sequence::Production::Struct::New());
+	let Production = Arc::new(Echo::Struct::Sequence::Production::Struct::New());
 
 	// Create a life context
 	let Life = Life {
@@ -42,25 +41,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Site = Arc::new(SimpleSite);
 
 	// Create a sequence
-	let Sequence =
-		Echo::Struct::Sequence::Struct::New(Site, Production.clone(), Life);
+	let Sequence = Echo::Struct::Sequence::Struct::New(Site, Production.clone(), Life);
 
 	// Add actions to the production line
 	// Create actions for reading and writing files
 	Production
-		.Assign(Box::new(
-			Common::New("Read", json!(["input.txt"]), Plan.clone()).clone(),
-		))
+		.Assign(Box::new(Common::New("Read", json!(["input.txt"]), Plan.clone()).clone()))
 		.await;
 
 	Production
 		.Assign(Box::new(
-			Common::New(
-				"Write",
-				json!(["output.txt", "Hello, World!"]),
-				Plan.clone(),
-			)
-			.clone(),
+			Common::New("Write", json!(["output.txt", "Hello, World!"]), Plan.clone()).clone(),
 		))
 		.await;
 

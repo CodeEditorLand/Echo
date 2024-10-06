@@ -24,9 +24,7 @@ impl Struct {
 	///
 	/// * `Key` - The key as a `String`.
 	/// * `Value` - The value as a `serde_json::Value`.
-	pub fn Insert(&mut self, Key:String, Value:serde_json::Value) {
-		self.Entry.insert(Key, Value);
-	}
+	pub fn Insert(&mut self, Key:String, Value:serde_json::Value) { self.Entry.insert(Key, Value); }
 
 	/// Retrieves a value from the store by its key.
 	///

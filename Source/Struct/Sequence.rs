@@ -26,11 +26,7 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` instance with the `Time` signal initialized to `false`.
-	pub fn New(
-		Site:Arc<dyn Site>,
-		Production:Arc<Production::Struct>,
-		Life:Life::Struct,
-	) -> Self {
+	pub fn New(Site:Arc<dyn Site>, Production:Arc<Production::Struct>, Life:Life::Struct) -> Self {
 		Struct { Site, Production, Life, Time:Signal::Struct::New(false) }
 	}
 
@@ -87,14 +83,10 @@ impl Struct {
 					}
 
 					let Again = Duration::from_secs(
-						2u64.pow(Attempt)
-							+ rand::thread_rng().gen_range(0..1000),
+						2u64.pow(Attempt) + rand::thread_rng().gen_range(0..1000),
 					);
 
-					warn!(
-						"Action failed, retrying in {:?}. Attempt {} of {}",
-						Again, Attempt, End
-					);
+					warn!("Action failed, retrying in {:?}. Attempt {} of {}", Again, Attempt, End);
 
 					sleep(Again).await;
 				},

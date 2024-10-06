@@ -45,19 +45,11 @@ impl Struct {
 	///
 	/// # Errors
 	/// Returns an error if the function cannot be added to the plan.
-	pub fn WithFunction<F, Fut>(
-		mut self,
-		Name:&str,
-		Function:F,
-	) -> Result<Self, String>
+	pub fn WithFunction<F, Fut>(mut self, Name:&str, Function:F) -> Result<Self, String>
 	where
 		F: Fn(Vec<serde_json::Value>) -> Fut + Send + Sync + 'static,
-		Fut: Future<
-				Output = Result<
-					serde_json::Value,
-					crate::Enum::Sequence::Action::Error::Enum,
-				>,
-			> + Send
+		Fut: Future<Output = Result<serde_json::Value, crate::Enum::Sequence::Action::Error::Enum>>
+			+ Send
 			+ 'static, {
 		self.Formality.Add(Name, Function)?;
 

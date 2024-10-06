@@ -79,9 +79,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 			.await
 			.ok_or_else(|| Error::Execution("Action not found".to_string()))?
 			.as_str()
-			.ok_or_else(|| {
-				Error::Execution("Action is not a string".to_string())
-			})?
+			.ok_or_else(|| Error::Execution("Action is not a string".to_string()))?
 			.to_string();
 
 		info!("Executing action: {}", Action);
@@ -111,10 +109,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Applies any delay specified in the metadata.
 	async fn Delay(&self) -> Result<(), Error> {
 		if let Some(Delay) = self.Metadata.Get("Delay").await {
-			tokio::time::sleep(tokio::time::Duration::from_secs(
-				Delay.as_u64().unwrap_or(0),
-			))
-			.await;
+			tokio::time::sleep(tokio::time::Duration::from_secs(Delay.as_u64().unwrap_or(0))).await;
 		}
 
 		Ok(())
@@ -124,9 +119,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	async fn Hooks(&self, Context:&Life) -> Result<(), Error> {
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap_or(&Vec::new()) {
-				if let Some(HookFn) =
-					Context.Span.get(Hook.as_str().unwrap_or(""))
-				{
+				if let Some(HookFn) = Context.Span.get(Hook.as_str().unwrap_or("")) {
 					HookFn()?;
 				}
 			}
@@ -138,13 +131,9 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Executes the function associated with the action.
 	async fn Function(&self, Action:&str) -> Result<(), Error> {
 		if let Some(Function) = self.Plan.Remove(Action) {
-			self.Result(Function.call((self.Argument().await?,)).await?)
-				.await?;
+			self.Result(Function.call((self.Argument().await?,)).await?).await?;
 		} else {
-			return Err(Error::Execution(format!(
-				"No function found for action type: {}",
-				Action
-			)));
+			return Err(Error::Execution(format!("No function found for action type: {}", Action)));
 		}
 
 		Ok(())
@@ -153,13 +142,9 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Executes the next action, if specified.
 	async fn Next(&self, Context:&Life) -> Result<(), Error> {
 		if let Some(Next) = self.Metadata.Get("NextAction").await {
-			let Next:Struct<T> =
-				serde_json::from_value(Next.clone()).map_err(|_Error| {
-					Error::Execution(format!(
-						"Failed to parse NextAction: {}",
-						_Error
-					))
-				})?;
+			let Next:Struct<T> = serde_json::from_value(Next.clone()).map_err(|_Error| {
+				Error::Execution(format!("Failed to parse NextAction: {}", _Error))
+			})?;
 
 			Next.Execute(Context).await?;
 		}
@@ -168,14 +153,10 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	}
 
 	/// Retrieves the arguments for the action.
-	async fn Argument(&self) -> Result<Vec<serde_json::Value>, Error> {
-		Ok(vec![])
-	}
+	async fn Argument(&self) -> Result<Vec<serde_json::Value>, Error> { Ok(vec![]) }
 
 	/// Processes the result of the action.
-	async fn Result(&self, _Result:serde_json::Value) -> Result<(), Error> {
-		Ok(())
-	}
+	async fn Result(&self, _Result:serde_json::Value) -> Result<(), Error> { Ok(()) }
 }
 
 use std::{fmt::Debug, sync::Arc};

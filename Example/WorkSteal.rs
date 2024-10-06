@@ -8,24 +8,15 @@ struct WorkerStealingQueue {
 impl WorkerStealingQueue {
 	fn New(Force:usize) -> Self {
 		WorkerStealingQueue {
-			Queues:(0..Force)
-				.map(|_| Arc::new(Mutex::new(Vec::new())))
-				.collect(),
+			Queues:(0..Force).map(|_| Arc::new(Mutex::new(Vec::new()))).collect(),
 		}
 	}
 
-	async fn Assign(
-		&self,
-		Identifier:usize,
-		Action:Box<dyn Echo::Trait::Sequence::Action::Trait>,
-	) {
+	async fn Assign(&self, Identifier:usize, Action:Box<dyn Echo::Trait::Sequence::Action::Trait>) {
 		self.Queues[Identifier].lock().await.push(Action);
 	}
 
-	async fn Do(
-		&self,
-		Worker:usize,
-	) -> Option<Box<dyn Echo::Trait::Sequence::Action::Trait>> {
+	async fn Do(&self, Worker:usize) -> Option<Box<dyn Echo::Trait::Sequence::Action::Trait>> {
 		let mut Queue = self.Queues[Worker].lock().await;
 
 		if let Some(Action) = Queue.pop() {
@@ -71,11 +62,7 @@ impl Worker for StealingWorker {
 	}
 }
 
-async fn worker_loop(
-	Worker:Arc<StealingWorker>,
-	Life:Arc<Life>,
-	Running:Arc<Mutex<bool>>,
-) {
+async fn worker_loop(Worker:Arc<StealingWorker>, Life:Arc<Life>, Running:Arc<Mutex<bool>>) {
 	while *Running.lock().await {
 		if let Some(Action) = Worker.Queue.Do(Worker.Id).await {
 			if let Err(_Error) = Action.Execute(&Life).await {
@@ -137,11 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.collect();
 
 	// Add actions to the queue
-	Action::New(
-		"Write",
-		json!([format!("output.txt"), "Hello, World!"]),
-		Plan.clone(),
-	);
+	Action::New("Write", json!([format!("output.txt"), "Hello, World!"]), Plan.clone());
 
 	for i in 0..4 {
 		let Action = if i % 2 == 0 {

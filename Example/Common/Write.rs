@@ -3,11 +3,7 @@ pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
 		.write(true)
 		.create(true)
 		.truncate(true)
-		.open(
-			Argument[0]
-				.as_str()
-				.ok_or(Error::Execution("Invalid file path".to_string()))?,
-		)
+		.open(Argument[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
 		.await
 		.map_err(|_Error| Error::Execution(_Error.to_string()))?
 		.write_all(

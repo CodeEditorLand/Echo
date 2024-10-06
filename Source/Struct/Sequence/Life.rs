@@ -13,14 +13,12 @@ pub struct Struct {
 	/// A thread-safe cache for storing arbitrary JSON values.
 	/// This cache can be used for temporary storage of data during action
 	/// execution.
-	pub Cache:
-		Arc<crate::Struct::Sequence::Mutex<DashMap<String, serde_json::Value>>>,
+	pub Cache:Arc<crate::Struct::Sequence::Mutex<DashMap<String, serde_json::Value>>>,
 
 	/// A thread-safe map of production queues, identified by string keys.
 	/// Each production queue (represented by `Production`) can hold a series
 	/// of actions to be executed.
-	pub Karma:
-		Arc<DashMap<String, Arc<crate::Struct::Sequence::Production::Struct>>>,
+	pub Karma:Arc<DashMap<String, Arc<crate::Struct::Sequence::Production::Struct>>>,
 }
 
 use config::Config;
