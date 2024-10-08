@@ -1,21 +1,22 @@
-name: GitHub
+name: Cloudflare
 
 concurrency:
-    group: GitHub-${{ github.workflow }}-${{ github.ref }}
+    group: Cloudflare-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 permissions:
-    issues: write
-    pull-requests: write
+    security-events: write
 
 on:
-    issues:
-        types: [opened]
+    workflow_dispatch:
+    push:
+        branches: [Current]
     pull_request:
-        types: [opened]
+        branches: [Current]
+    workflow_call:
 
 jobs:
-    Assign:
+    Cloudflare:
         runs-on: ubuntu-latest
 
         env:
@@ -52,8 +53,10 @@ jobs:
             VCPKG_DISABLE_METRICS: 1
 
         steps:
-            - uses: pozil/auto-assign-issue@v2.0.0
+            - uses: actions/checkout@v4.2.1
+
+            - uses: cloudflare/wrangler-action@v3.8.0
               with:
-                  repo-token: ${{ secrets.GITHUB_TOKEN }}
-                  assignees: NikolaRHristov
-                  numOfAssignee: 1
+                  apiToken: ${{ secrets.CF_API_TOKEN }}
+                  accountId: ${{ secrets.CF_ACCOUNT_ID }}
+                  workingDirectory: .

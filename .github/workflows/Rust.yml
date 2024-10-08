@@ -50,20 +50,21 @@ jobs:
             STRIPE_CLI_TELEMETRY_OPTOUT: 1
             TELEMETRY_DISABLED: 1
             TERRAFORM_TELEMETRY: 0
+            VCPKG_DISABLE_METRICS: 1
 
         strategy:
             matrix:
                 toolchain: ["stable", "nightly"]
 
         steps:
-            - uses: actions/checkout@v4.2.0
+            - uses: actions/checkout@v4.2.1
 
             - uses: actions-rs/toolchain@v1.0.7
               with:
                   profile: minimal
                   toolchain: ${{ matrix.toolchain }}
 
-            - uses: actions/cache@v4.1.0
+            - uses: actions/cache@v4.0.2
               with:
                   path: |
                       ~/.cargo/bin/
