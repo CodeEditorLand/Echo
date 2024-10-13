@@ -7,13 +7,13 @@ function planning, and robust error handling.
 
 ## Table of Contents
 
--   [Introduction](#Introduction)
--   [Features](#Features)
--   [Installation](#Installation)
--   [Usage](#Usage)
--   [Architecture](#Architecture)
--   [Contributing](CONTRIBUTING.md)
--   [License](LICENSE)
+-   [`Introduction`](#Introduction)
+-   [`Features`](#Features)
+-   [`Installation`](#Installation)
+-   [`Usage`](#Usage)
+-   [`Architecture`](#Architecture)
+-   [`Contributing`](CONTRIBUTING.md)
+-   [`License`](LICENSE)
 
 ## Introduction
 
@@ -363,15 +363,15 @@ sequenceDiagram
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for
+Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
 guidelines and feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT [LICENSE](LICENSE).
+This project is licensed under the MIT [`LICENSE`](LICENSE).
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a history of changes to this component.
+See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
 
 [Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
