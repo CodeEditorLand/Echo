@@ -13,7 +13,6 @@ function planning, and robust error handling.
 -   [`Usage`](#Usage)
 -   [`Architecture`](#Architecture)
 -   [`Contributing`](CONTRIBUTING.md)
--   [`License`](LICENSE)
 
 ## Introduction
 
@@ -365,10 +364,6 @@ sequenceDiagram
 
 Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
 guidelines and feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT [`LICENSE`](LICENSE).
 
 ## Changelog
 
