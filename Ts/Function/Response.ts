@@ -5,7 +5,7 @@ import type Interface from "../Interface/Response.js";
  *
  */
 export default (async (
-	...[Message = null, Status = 200]: Parameters<Interface>
+	...[Message = null, Status = 200]
 ) =>
 	new Response(JSON.stringify(Message), {
 		status: Status,
