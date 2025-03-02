@@ -7,12 +7,12 @@ function planning, and robust error handling.
 
 ## Table of Contents
 
--   [`Introduction`](#Introduction)
--   [`Features`](#Features)
--   [`Installation`](#Installation)
--   [`Usage`](#Usage)
--   [`Architecture`](#Architecture)
--   [`Contributing`](CONTRIBUTING.md)
+- [`Introduction`](#Introduction)
+- [`Features`](#Features)
+- [`Installation`](#Installation)
+- [`Usage`](#Usage)
+- [`Architecture`](#Architecture)
+- [`Contributing`](CONTRIBUTING.md)
 
 ## Introduction
 
@@ -22,19 +22,18 @@ metadata management, function planning, and error handling.
 
 ## Feature
 
--   **Asynchronous Operations:** Built with Rust's async/await syntax for
-    non-blocking execution.
--   **Action Planning:** Define and execute actions with custom logic using a
-    flexible Plan system.
--   **Metadata Management:** Attach metadata to actions for additional Life and
-    control.
--   **Error Handling:** Comprehensive error management with custom `Error`
-    types.
--   **Retry Mechanism:** Built-in retry logic for failed actions with
-    exponential backoff.
--   **Hooks:** Supports pre and post-execution hooks for added flexibility.
--   **Serialization:** Actions can be serialized and deserialized for
-    persistence or network transfer (in progress).
+- **Asynchronous Operations:** Built with Rust's async/await syntax for
+  non-blocking execution.
+- **Action Planning:** Define and execute actions with custom logic using a
+  flexible Plan system.
+- **Metadata Management:** Attach metadata to actions for additional Life and
+  control.
+- **Error Handling:** Comprehensive error management with custom `Error` types.
+- **Retry Mechanism:** Built-in retry logic for failed actions with exponential
+  backoff.
+- **Hooks:** Supports pre and post-execution hooks for added flexibility.
+- **Serialization:** Actions can be serialized and deserialized for persistence
+  or network transfer (in progress).
 
 ## Installation 🚀
 
@@ -141,16 +140,16 @@ use Echo::Sequence::{
 
 ### Core Components
 
--   **Action:** Represents a unit of Production with associated metadata,
-    content, and execution logic.
--   **Plan:** Defines the structure and functions for different Action types.
--   **Production:** A thread-safe queue for managing pending actions.
--   **Site:** Implements the logic for receiving and executing actions from the
-    queue.
--   **Sequence:** Orchestrates the execution of actions using workers and the
-    work queue.
--   **Life:** Provides a shared Life and configuration for actions during
-    execution.
+- **Action:** Represents a unit of Production with associated metadata, content,
+  and execution logic.
+- **Plan:** Defines the structure and functions for different Action types.
+- **Production:** A thread-safe queue for managing pending actions.
+- **Site:** Implements the logic for receiving and executing actions from the
+  queue.
+- **Sequence:** Orchestrates the execution of actions using workers and the work
+  queue.
+- **Life:** Provides a shared Life and configuration for actions during
+  execution.
 
 ### Diagrams
 
