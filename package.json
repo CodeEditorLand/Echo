@@ -31,7 +31,7 @@
 		"@cloudflare/workers-types": "4.20250311.0",
 		"@playform/build": "0.2.1",
 		"@types/dotenv": "8.2.3",
-		"miniflare": "3.20250224.0",
+		"miniflare": "3.20250310.0",
 		"wrangler": "3.114.1"
 	},
 	"publishConfig": {
