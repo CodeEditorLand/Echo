@@ -4,7 +4,7 @@
 /// corresponding functions.
 pub struct Struct {
 	/// A concurrent hash map storing action signatures, keyed by their names.
-	Signature:DashMap<String, Signature>,
+	Signature: DashMap<String, Signature>,
 
 	/// A concurrent hash map storing boxed functions, keyed by action names.
 	///
@@ -13,11 +13,7 @@ pub struct Struct {
 	/// or an Error.
 	Function: DashMap<
 		String,
-		Box<
-			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
-				+ Send
-				+ Sync,
-		>,
+		Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>,
 	>,
 }
 
@@ -27,7 +23,9 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` instance.
-	pub fn New() -> Self { Self { Signature:DashMap::new(), Function:DashMap::new() } }
+	pub fn New() -> Self {
+		Self { Signature: DashMap::new(), Function: DashMap::new() }
+	}
 
 	/// Adds a signature to the Signature DashMap.
 	///
@@ -38,7 +36,7 @@ impl Struct {
 	/// # Returns
 	///
 	/// A mutable reference to self for method chaining.
-	pub fn Sign(&mut self, Signature:Signature) -> &mut Self {
+	pub fn Sign(&mut self, Signature: Signature) -> &mut Self {
 		self.Signature.insert(Signature.Name.clone(), Signature);
 
 		self
@@ -59,10 +57,11 @@ impl Struct {
 	/// # Errors
 	///
 	/// Returns an error if no signature is found for the given function name.
-	pub fn Add<F, Fut>(&mut self, Name:&str, Function:F) -> Result<&mut Self, String>
+	pub fn Add<F, Fut>(&mut self, Name: &str, Function: F) -> Result<&mut Self, String>
 	where
 		F: Fn(Vec<Value>) -> Fut + Send + Sync + 'static,
-		Fut: Future<Output = Result<Value, Error>> + Send + 'static, {
+		Fut: Future<Output = Result<Value, Error>> + Send + 'static,
+	{
 		if !self.Signature.contains_key(Name) {
 			return Err(format!("No signature found for function: {}", Name));
 		}
@@ -70,9 +69,9 @@ impl Struct {
 		self.Function.insert(
 			Name.to_string(),
 			Box::new(
-				move |Argument:Vec<Value>| -> Pin<
-					Box<dyn Future<Output = Result<Value, Error>> + Send>,
-				> { Box::pin(Function(Argument)) },
+				move |Argument: Vec<Value>| -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> {
+					Box::pin(Function(Argument))
+				},
 			),
 		);
 
@@ -90,20 +89,14 @@ impl Struct {
 	/// An Option containing a reference to the removed function, if it exists.
 	pub fn Remove(
 		&self,
-		Name:&str,
-	) -> Option<
-		Box<
-			dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>>
-				+ Send
-				+ Sync,
-		>,
-	> {
+		Name: &str,
+	) -> Option<Box<dyn Fn(Vec<Value>) -> Pin<Box<dyn Future<Output = Result<Value, Error>> + Send>> + Send + Sync>> {
 		self.Function.remove(Name).map(|(_, v)| v)
 	}
 }
 
 impl Debug for Struct {
-	fn fmt(&self, f:&mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("Formality")
 			.field("Signature", &self.Signature)
 			.finish_non_exhaustive()
@@ -116,7 +109,4 @@ use dashmap::DashMap;
 use futures::Future;
 use serde_json::Value;
 
-use crate::{
-	Enum::Sequence::Action::Error::Enum as Error,
-	Struct::Sequence::Action::Signature::Struct as Signature,
-};
+use crate::{Enum::Sequence::Action::Error::Enum as Error, Struct::Sequence::Action::Signature::Struct as Signature};

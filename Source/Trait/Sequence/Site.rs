@@ -29,7 +29,7 @@ pub trait Trait: Send + Sync {
 	/// `crate::Enum::Sequence::Action::Error::Enum` enum.
 	async fn Receive(
 		&self,
-		Action:Box<dyn super::Action::Trait>,
-		Context:&crate::Struct::Sequence::Life::Struct,
+		Action: Box<dyn super::Action::Trait>,
+		Context: &crate::Struct::Sequence::Life::Struct,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum>;
 }

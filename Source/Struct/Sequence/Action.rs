@@ -2,30 +2,32 @@
 ///
 /// This struct is generic over `T`, which must implement `Send` and `Sync`.
 #[derive(Clone, Debug)]
-pub struct Struct<T:Send + Sync> {
-	pub Metadata:Vector,
-	pub Content:T,
-	pub License:Signal<bool>,
-	pub Plan:Arc<Formality>,
+pub struct Struct<T: Send + Sync> {
+	pub Metadata: Vector,
+	pub Content: T,
+	pub License: Signal<bool>,
+	pub Plan: Arc<Formality>,
 }
 
-impl<T:Send + Sync + Serialize> Serialize for Struct<T> {
-	fn serialize<S>(&self, _serializer:S) -> Result<S::Ok, S::Error>
+impl<T: Send + Sync + Serialize> Serialize for Struct<T> {
+	fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer, {
+		S: Serializer,
+	{
 		unimplemented!()
 	}
 }
 
-impl<'de, T:Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
-	fn deserialize<D>(_deserializer:D) -> Result<Self, D::Error>
+impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
+	fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>, {
+		D: Deserializer<'de>,
+	{
 		unimplemented!()
 	}
 }
 
-impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
+impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Creates a new `Struct` instance.
 	///
 	/// # Arguments
@@ -37,14 +39,14 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// # Returns
 	///
 	/// A new `Struct` instance.
-	pub fn New(Action:&str, Content:T, Plan:Arc<Formality>) -> Self {
+	pub fn New(Action: &str, Content: T, Plan: Arc<Formality>) -> Self {
 		let mut Metadata = Vector::New();
 
 		Metadata.Insert("Action".to_string(), serde_json::json!(Action));
 
 		Metadata.Insert("License".to_string(), serde_json::json!("valid"));
 
-		Struct { Metadata, Content, License:Signal::New(true), Plan }
+		Struct { Metadata, Content, License: Signal::New(true), Plan }
 	}
 
 	/// Adds metadata to the action.
@@ -57,7 +59,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// # Returns
 	///
 	/// The modified `Struct` instance.
-	pub fn WithMetadata(mut self, Key:&str, Value:serde_json::Value) -> Self {
+	pub fn WithMetadata(mut self, Key: &str, Value: serde_json::Value) -> Self {
 		self.Metadata.Insert(Key.to_string(), Value);
 
 		self
@@ -72,7 +74,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// # Returns
 	///
 	/// A `Result` indicating success or failure.
-	pub async fn Execute(&self, Context:&Life) -> Result<(), Error> {
+	pub async fn Execute(&self, Context: &Life) -> Result<(), Error> {
 		let Action = self
 			.Metadata
 			.Get("Action")
@@ -116,7 +118,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	}
 
 	/// Executes any hooks specified in the metadata.
-	async fn Hooks(&self, Context:&Life) -> Result<(), Error> {
+	async fn Hooks(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(Hooks) = self.Metadata.Get("Hooks").await {
 			for Hook in Hooks.as_array().unwrap_or(&Vec::new()) {
 				if let Some(HookFn) = Context.Span.get(Hook.as_str().unwrap_or("")) {
@@ -129,7 +131,7 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	}
 
 	/// Executes the function associated with the action.
-	async fn Function(&self, Action:&str) -> Result<(), Error> {
+	async fn Function(&self, Action: &str) -> Result<(), Error> {
 		if let Some(Function) = self.Plan.Remove(Action) {
 			self.Result(Function.call((self.Argument().await?,)).await?).await?;
 		} else {
@@ -140,11 +142,10 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	}
 
 	/// Executes the next action, if specified.
-	async fn Next(&self, Context:&Life) -> Result<(), Error> {
+	async fn Next(&self, Context: &Life) -> Result<(), Error> {
 		if let Some(Next) = self.Metadata.Get("NextAction").await {
-			let Next:Struct<T> = serde_json::from_value(Next.clone()).map_err(|_Error| {
-				Error::Execution(format!("Failed to parse NextAction: {}", _Error))
-			})?;
+			let Next: Struct<T> = serde_json::from_value(Next.clone())
+				.map_err(|_Error| Error::Execution(format!("Failed to parse NextAction: {}", _Error)))?;
 
 			Next.Execute(Context).await?;
 		}
@@ -153,10 +154,14 @@ impl<T:Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	}
 
 	/// Retrieves the arguments for the action.
-	async fn Argument(&self) -> Result<Vec<serde_json::Value>, Error> { Ok(vec![]) }
+	async fn Argument(&self) -> Result<Vec<serde_json::Value>, Error> {
+		Ok(vec![])
+	}
 
 	/// Processes the result of the action.
-	async fn Result(&self, _Result:serde_json::Value) -> Result<(), Error> { Ok(()) }
+	async fn Result(&self, _Result: serde_json::Value) -> Result<(), Error> {
+		Ok(())
+	}
 }
 
 use std::{fmt::Debug, sync::Arc};
@@ -167,10 +172,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use crate::{
 	Enum::Sequence::Action::Error::Enum as Error,
 	Struct::Sequence::{
-		Life::Struct as Life,
-		Plan::Formality::Struct as Formality,
-		Signal::Struct as Signal,
-		Vector::Struct as Vector,
+		Life::Struct as Life, Plan::Formality::Struct as Formality, Signal::Struct as Signal, Vector::Struct as Vector,
 	},
 };
 

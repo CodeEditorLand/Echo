@@ -16,7 +16,7 @@ pub trait Trait: Send + Sync {
 	///
 	/// Returns a `Result` which is `Ok(())` if the action executed
 	/// successfully, or an `Error` if the execution failed.
-	async fn Execute(&self, Context:&Life) -> Result<(), Error>;
+	async fn Execute(&self, Context: &Life) -> Result<(), Error>;
 
 	/// Creates a clone of the action as a trait object.
 	///
@@ -35,8 +35,8 @@ pub trait Trait: Send + Sync {
 /// This implementation allows any `Struct<T>` that satisfies the bounds
 /// to be used as a `Trait` object.
 #[async_trait]
-impl<T:Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action::Struct<T> {
-	async fn Execute(&self, Context:&Life) -> Result<(), Error> {
+impl<T: Send + Sync + Clone + 'static> Trait for crate::Struct::Sequence::Action::Struct<T> {
+	async fn Execute(&self, Context: &Life) -> Result<(), Error> {
 		// Delegates to the struct's own `Execute` method
 		self.Execute(Context).await
 	}

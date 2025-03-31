@@ -2,16 +2,16 @@
 #[derive(Clone)]
 pub struct Struct {
 	/// The site responsible for processing actions.
-	pub Site:Arc<dyn Site>,
+	pub Site: Arc<dyn Site>,
 
 	/// The production line containing actions to be executed.
-	pub Production:Arc<Production::Struct>,
+	pub Production: Arc<Production::Struct>,
 
 	/// The context for the sequence execution.
-	pub Life:Life::Struct,
+	pub Life: Life::Struct,
 
 	/// A signal indicating whether the sequence should continue running.
-	pub Time:Signal::Struct<bool>,
+	pub Time: Signal::Struct<bool>,
 }
 
 impl Struct {
@@ -26,8 +26,8 @@ impl Struct {
 	/// # Returns
 	///
 	/// A new `Struct` instance with the `Time` signal initialized to `false`.
-	pub fn New(Site:Arc<dyn Site>, Production:Arc<Production::Struct>, Life:Life::Struct) -> Self {
-		Struct { Site, Production, Life, Time:Signal::Struct::New(false) }
+	pub fn New(Site: Arc<dyn Site>, Production: Arc<Production::Struct>, Life: Life::Struct) -> Self {
+		Struct { Site, Production, Life, Time: Signal::Struct::New(false) }
 	}
 
 	/// Runs the sequence, processing actions until the `Time` signal is set to
@@ -66,7 +66,7 @@ impl Struct {
 	/// jitter.
 	async fn Again(
 		&self,
-		Action:Box<dyn crate::Trait::Sequence::Action::Trait>,
+		Action: Box<dyn crate::Trait::Sequence::Action::Trait>,
 	) -> Result<(), crate::Enum::Sequence::Action::Error::Enum> {
 		let End = self.Life.Fate.get_int("End").unwrap_or(3) as u32;
 
@@ -82,9 +82,7 @@ impl Struct {
 						return Err(e);
 					}
 
-					let Again = Duration::from_secs(
-						2u64.pow(Attempt) + rand::rng().random_range(0..1000),
-					);
+					let Again = Duration::from_secs(2u64.pow(Attempt) + rand::rng().random_range(0..1000));
 
 					warn!("Action failed, retrying in {:?}. Attempt {} of {}", Again, Attempt, End);
 
@@ -97,7 +95,9 @@ impl Struct {
 	}
 
 	/// Signals the sequence to shut down by setting the `Time` signal to true.
-	pub async fn Shutdown(&self) { self.Time.Set(true).await; }
+	pub async fn Shutdown(&self) {
+		self.Time.Set(true).await;
+	}
 }
 
 pub use std::sync::Arc;
