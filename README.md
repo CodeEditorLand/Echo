@@ -43,7 +43,7 @@ To get started with `Echo`, follow these steps:
 
 ```toml
 [dependencies]
-Echo = { git = "HTTPS://GitHub.Com/CodeEditorLand/Echo.git" }
+Echo = { git = "https://GitHub.Com/CodeEditorLand/Echo.git" }
 ```
 
 2. **Build the Project**:
@@ -368,7 +368,7 @@ guidelines and feel free to submit a Pull Request.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
 
-[Echo]: HTTPS://GitHub.Com/CodeEditorLand/Echo
+[Echo]: https://GitHub.Com/CodeEditorLand/Echo
 
 ## Funding
 
