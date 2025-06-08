@@ -29,7 +29,7 @@ impl Struct {
 
 	/// Adds a signature to the Signature DashMap.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Signature` - The signature to be added.
 	///
@@ -44,7 +44,7 @@ impl Struct {
 
 	/// Adds a function to the Function DashMap.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Name` - The name of the function.
 	/// * `Function` - The function to be added.
@@ -80,7 +80,7 @@ impl Struct {
 
 	/// Removes and returns a function from the Function DashMap.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Name` - The name of the function to remove.
 	///

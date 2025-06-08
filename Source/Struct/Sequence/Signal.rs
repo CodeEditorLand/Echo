@@ -9,7 +9,7 @@ pub struct Struct<T>(Arc<Mutex<T>>);
 impl<T> Struct<T> {
 	/// Creates a new `Struct` instance with the given value.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Value` - The initial value to be stored in the `Struct`.
 	///
@@ -44,7 +44,7 @@ impl<T> Struct<T> {
 	/// This method acquires the mutex lock and replaces the stored value with
 	/// the provided one.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `To` - The new value to be stored.
 	pub async fn Set(&self, To: T) {

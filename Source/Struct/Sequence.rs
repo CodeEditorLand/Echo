@@ -17,7 +17,7 @@ pub struct Struct {
 impl Struct {
 	/// Creates a new `Struct` instance.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Site` - The worker responsible for processing actions.
 	/// * `Production` - The production line containing actions to be executed.
@@ -53,7 +53,7 @@ impl Struct {
 
 	/// Attempts to execute an action with retry logic.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Action` - The action to be executed.
 	///

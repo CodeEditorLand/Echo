@@ -22,7 +22,7 @@ impl Struct {
 	///
 	/// If the key already exists, the value is updated.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Key` - The key as a `String`.
 	/// * `Value` - The value as a `serde_json::Value`.
@@ -32,7 +32,7 @@ impl Struct {
 
 	/// Retrieves a value from the store by its key.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Key` - The key to look up.
 	///

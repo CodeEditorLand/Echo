@@ -36,7 +36,7 @@ impl Struct {
 	///
 	/// This method is asynchronous and will await the lock on the queue.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Action` - The action to be added to the queue.
 	pub async fn Assign(&self, Action: Box<dyn Action>) {

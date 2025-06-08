@@ -3,7 +3,7 @@
 pub enum Enum {
 	/// Indicates an error related to an invalid license.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `String` - A description of the specific license error.
 	#[error("Invalid License: {0}")]
@@ -11,7 +11,7 @@ pub enum Enum {
 
 	/// Represents an error that occurred during execution of an action.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `String` - A description of the specific execution error.
 	#[error("Execution Error: {0}")]
@@ -19,7 +19,7 @@ pub enum Enum {
 
 	/// Signifies an error that occurred during routing.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `String` - A description of the specific routing error.
 	#[error("Routing error: {0}")]
@@ -27,7 +27,7 @@ pub enum Enum {
 
 	/// Indicates an error related to cancellation of an action.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `String` - A description of the specific cancellation error.
 	#[error("Cancellation error: {0}")]

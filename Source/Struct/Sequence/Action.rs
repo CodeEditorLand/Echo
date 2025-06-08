@@ -30,7 +30,7 @@ impl<'de, T: Send + Sync + Deserialize<'de>> Deserialize<'de> for Struct<T> {
 impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 	/// Creates a new `Struct` instance.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Action` - The name of the action.
 	/// * `Content` - The content of the action.
@@ -51,7 +51,7 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 
 	/// Adds metadata to the action.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Key` - The key for the metadata.
 	/// * `Value` - The value for the metadata.
@@ -67,7 +67,7 @@ impl<T: Send + Sync + Serialize + for<'de> Deserialize<'de>> Struct<T> {
 
 	/// Executes the action.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Context` - The context in which to execute the action.
 	///

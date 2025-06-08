@@ -10,7 +10,7 @@ pub trait Trait: Send + Sync {
 	/// This method is responsible for receiving an action, processing it
 	/// within the given context, and returning the result of the operation.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Action` - A boxed trait object representing the action to be
 	///   processed. It must implement the `super::Action::Trait`.

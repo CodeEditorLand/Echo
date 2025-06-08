@@ -7,7 +7,7 @@
 pub trait Trait: Send + Sync {
 	/// Executes the action asynchronously.
 	///
-	/// # Arguments
+	/// # Argument
 	///
 	/// * `Context` - A reference to the `Life` context in which the action is
 	///   executed.

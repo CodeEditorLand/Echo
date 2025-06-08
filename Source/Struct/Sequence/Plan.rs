@@ -17,7 +17,7 @@ impl Struct {
 
 	/// Adds a signature to the plan.
 	///
-	/// # Arguments
+	/// # Argument
 	/// * `Signature` - The action signature to add to the plan.
 	///
 	/// # Returns
@@ -30,7 +30,7 @@ impl Struct {
 
 	/// Adds a function to the plan.
 	///
-	/// # Arguments
+	/// # Argument
 	/// * `Name` - The name of the function.
 	/// * `Function` - The function to add.
 	///
