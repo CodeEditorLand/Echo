@@ -11,7 +11,7 @@
 
 # **Echo** 📣 A Resilient, High-Performance Task Scheduler for Rust
 
-[![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/blob/Current/LICENSE)
+[![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/echo-scheduler.svg)](https://crates.io/crates/echo-scheduler)
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-v0.8-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
