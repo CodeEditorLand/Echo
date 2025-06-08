@@ -1,401 +1,238 @@
-# [Echo] 📣 Asynchronous Action Processing System
-
-`Echo` is a Rust library designed for managing and executing asynchronous
-actions efficiently. It leverages a worker-stealer pattern and asynchronous
-queues to handle complex workflows with features like metadata management,
-function planning, and robust error handling.
-
----
-
-## Table of Contents
-
-- [`Introduction`](#Introduction)
-- [`Features`](#Features)
-- [`Installation`](#Installation)
-- [`Usage`](#Usage)
-- [`Architecture`](#Architecture)
-- [`Contributing`](CONTRIBUTING.md)
+<table><tr>
+<td colspan="1"> <h3 align="center"> <picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://PlayForm.Cloud/Dark/Image/GitHub/Land.svg">
+<source media="(prefers-color-scheme: light)" srcset="https://PlayForm.Cloud/Image/GitHub/Land.svg">
+<img width="28" alt="Land Logo" src="https://PlayForm.Cloud/Image/GitHub/Land.svg">
+</picture> </h3> </td> <td colspan="3" valign="top"> <h3 align="center"> Echo 📣
+</h3> </td>
+</tr></table>
 
 ---
 
-## Introduction
+# **Echo** 📣 A Resilient, High-Performance Task Scheduler for Rust
 
-`Echo` provides a robust framework for defining, queuing, and executing actions
-asynchronously. It's designed to handle complex workflows with features like
-metadata management, function planning, and error handling.
+[![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/blob/Current/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/echo-scheduler.svg)](https://crates.io/crates/echo-scheduler)
+[![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
+[![Crossbeam Version](https://img.shields.io/badge/Crossbeam-v0.8-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
+
+Welcome to **Echo**! This crate provides a powerful, structured concurrency
+runtime for Rust applications, built on a high-performance **work-stealing
+scheduler**. It is designed to be the core execution engine for the `Mountain`
+backend, integrating seamlessly with the declarative `ActionEffect` system
+defined in the `Common` crate. **Echo** moves beyond simple task spawning
+(`tokio::spawn`) to provide a robust framework for managing, prioritizing, and
+executing complex asynchronous workflows with resilience and efficiency.
+
+**Echo** is engineered to:
+
+1.  **Provide High-Performance Concurrency:** Utilizes a lock-free,
+    work-stealing queue (`crossbeam-deque`) to ensure all worker threads remain
+    busy, maximizing CPU utilization and application throughput.
+2.  **Enable Structured Task Management:** Offers a clean API for submitting
+    tasks with different priorities, allowing critical, UI-blocking operations
+    to pre-empt background work.
+3.  **Integrate Natively with Effect Systems:** Designed from the ground up to
+    be the execution backend for systems like the `ActionEffect` pattern,
+    providing a bridge between declarative task definitions and their concrete
+    execution.
 
 ---
 
-## Feature
+## Key Features 🔐
 
-- **Asynchronous Operations:** Built with Rust's async/await syntax for
-  non-blocking execution.
-- **Action Planning:** Define and execute actions with custom logic using a
-  flexible Plan system.
-- **Metadata Management:** Attach metadata to actions for additional Life and
-  control.
-- **Error Handling:** Comprehensive error management with custom `Error` types.
-- **Retry Mechanism:** Built-in retry logic for failed actions with exponential
-  backoff.
-- **Hooks:** Supports pre and post-execution hooks for added flexibility.
-- **Serialization:** Actions can be serialized and deserialized for persistence
-  or network transfer (in progress).
+- **Work-Stealing Scheduler:** Implements a modern work-stealing algorithm to
+  efficiently distribute tasks across a pool of worker threads, preventing
+  bottlenecks and maximizing parallelism.
+- **Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
+  `Low` priority, ensuring that latency-sensitive operations are handled
+  immediately.
+- **Fluent Builder API:** A clean `SchedulerBuilder` allows for easy
+  configuration of the worker pool and other scheduler parameters.
+- **Graceful Shutdown:** Provides a `Shutdown()` method to ensure all worker
+  threads complete their current tasks and exit cleanly, preventing orphaned
+  threads.
+- **Built for `ActionEffect`:** Serves as the ideal backend for effect systems,
+  providing the runtime engine that executes declarative, asynchronous workflows
+  defined in other parts of the application.
 
 ---
 
-## Installation 🚀
+## Core Architecture Principles 🏗️
 
-To get started with `Echo`, follow these steps:
+| Principle                  | Description                                                                                                                                             | Key Components Involved                     |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------ |
+| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a work-stealing algorithm to achieve maximum throughput and low-latency task execution.           | `queue::StealingQueue`, `scheduler::Worker` |
+| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`. | `scheduler::Scheduler`, `SchedulerBuilder`  |
+| **Decoupling**             | Separate the _submission_ of a task from its _execution_. The `AppRuntime` submits work, and the `Scheduler` handles how, when, and where it runs.      | `Scheduler::Submit`, `task::Task`           |
+| **Resilience**             | The scheduler's design is inherently resilient, as the failure of one task (if it panics) does not bring down the entire worker pool.                   | `scheduler::Worker` (execution loop)        |
+| **Composability**          | Provide a simple, generic `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.             | `task::Task`, `Scheduler::Submit`           |
 
-1. **Add to your Cargo.toml**:
+---
 
-```toml
+## Deep Dive & Component Breakdown 🔬
+
+To understand how `Echo`'s internal components interact to provide these
+services, please refer to the detailed technical breakdown in
+[`docs/Deep Dive.md`](docs/Deep%20Dive.md). This document explains the roles of
+the `Task`, `StealingQueue`, `Worker`, and `Scheduler` in detail.
+
+---
+
+## `Echo` in the Land Ecosystem 📣 + 🏞️
+
+This diagram illustrates `Echo`'s role as the core execution engine within the
+`Mountain` backend.
+
+```mermaid
+graph LR
+    classDef common fill:#9cf,stroke:#333,stroke-width:2px;
+    classDef mountain fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef echo fill:#ffc,stroke:#333,stroke-width:2px;
+    classDef rust fill:#f9d,stroke:#333,stroke-width:1px;
+
+
+	subgraph "Common (Abstract Core)"
+		ActionEffect["ActionEffect (Task Definition)"]:::common
+	end
+
+	subgraph "Mountain (Application Logic)"
+        AppRuntime["Mountain AppRuntime"]:::mountain
+        MountainEnv["MountainEnvironment (Service Impls)"]:::mountain
+        Track["Track (Request Dispatcher)"]:::mountain
+	end
+
+	subgraph "Echo (Execution Engine)"
+		Scheduler["Echo Scheduler"]:::echo
+		WorkStealingQueue["Work-Stealing Queue"]:::echo
+        WorkerPool["Worker Pool (Tokio Threads)"]:::rust
+
+        Scheduler -- Manages --> WorkStealingQueue;
+        Scheduler -- Spawns --> WorkerPool;
+        WorkerPool -- Pull tasks from --> WorkStealingQueue;
+	end
+
+    Track -- Dispatches --> ActionEffect;
+    ActionEffect -- Is run by --> AppRuntime;
+    AppRuntime -- Submits Future to --> Scheduler;
+    WorkerPool -- Executes Future using --> MountainEnv;
+```
+
+---
+
+## Project Structure Overview 🗺️
+
+The `Echo` repository is organized into a few core modules:
+
+```
+Echo/
+└── Source/
+    ├── lib.rs                   # Crate root, declares public modules.
+    ├── scheduler/               # The main public API: Scheduler and SchedulerBuilder.
+    ├── queue/                   # The internal, high-performance work-stealing queue.
+    └── task/                    # The internal definition of a Task and its Priority.
+```
+
+---
+
+## Getting Started 🚀
+
+### Installation
+
+```sh
+# In your Cargo.toml
 [dependencies]
-Echo = { git = "https://GitHub.Com/CodeEditorLand/Echo.git" }
+echo-scheduler = "0.1.0" # Or use a path dependency for local development
 ```
 
-2. **Build the Project**:
+**Key Dependencies:**
 
-```bash
-cargo build
-```
+- `tokio`: `^1.0` (with `full` features)
+- `crossbeam-deque`: `^0.8`
+- `rand`: `^0.8`
+- `log`: `^0.4`
+
+### Usage
+
+`Echo` is designed to be integrated into an application's main entry point and
+used via a shared `AppRuntime`.
+
+1.  **Initialize the Scheduler:** Create and start the scheduler when your
+    application starts.
+
+    ```rust
+    // In your application's main.rs
+    use Echo::scheduler::{Scheduler, SchedulerBuilder};
+    use std::sync::Arc;
+
+    let scheduler = Arc::new(SchedulerBuilder::New().WithWorkerCount(8).Build());
+    ```
+
+2.  **Create a Runtime:** Construct a runtime object that holds the scheduler
+    and any other necessary context (like your application's `Environment`).
+
+    ```rust
+    use Common::effect::AppRuntime as AppRuntimeTrait;
+
+    struct MyAppRuntime {
+        scheduler: Arc<Scheduler>,
+        // ... other context
+    }
+
+    // This runtime will submit tasks to the scheduler.
+    // (See the full implementation from our synthesis session for details).
+    ```
+
+3.  **Submit Tasks:** Use your runtime to submit asynchronous work to the
+    scheduler.
+
+    ```rust
+    use Echo::task::Priority;
+
+    // An example async block to be run by the scheduler
+    let my_task = async {
+        println!("This is running on a worker thread!");
+        // ... perform some work ...
+    };
+
+    // The runtime's `Run` method would internally call this:
+    runtime.scheduler.Submit(my_task, Priority::Normal);
+    ```
 
 ---
 
-## 🛠️ Usage
+## License ⚖️
 
-Here's a basic example demonstrating how to define and execute an Action:
-
-```rust
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	// Define the Action's logic
-	let Read = |_Argument: Vec<serde_json::Value>| async move {
-		// Access the provided path (replace with actual logic)
-		let Path = "path/to/file.txt";
-
-		// Simulate reading from the path
-		let Content = format!("Content read from: {}", Path);
-
-		Ok(json!(Content))
-	};
-
-	// Create an Action Plan
-	let Plan = Plan::New()
-		.WithSignature(Echo::Struct::Sequence::Action::Signature::Struct {
-			Name: "Read".to_string(),
-		})
-		.WithFunction("Read", Read)?
-		.Build();
-
-	// Create a work queue
-	let Production = Arc::new(Production::New());
-
-	// Create a lifecycle Life (replace with your actual configuration)
-	let Life = Life {
-		Span: Arc::new(dashmap::DashMap::new()),
-		Fate: Arc::new(config::Config::default()),
-		Cache: Arc::new(Mutex::new(dashmap::DashMap::new())),
-		Karma: Arc::new(dashmap::DashMap::new()),
-	};
-
-	// Define a Site to execute actions
-	struct SimpleSite;
-
-	#[async_trait::async_trait]
-	impl Site for SimpleSite {
-		async fn Receive(
-			&self,
-			Action: Box<dyn ActionTrait>,
-			Life: &Life,
-		) -> Result<(), Error> {
-			Action.Execute(Life).await
-		}
-	}
-	let Site = Arc::new(SimpleSite);
-
-	// Create an Action Sequence
-	let Sequence = Arc::new(Sequence::New(Site, Production.clone(), Life));
-
-	// Create an Action and add it to the queue
-	let Action = Action::New(
-		"Read",
-		json!("SomeData"),
-		Arc::clone(&Plan),
-	);
-
-	Production.Assign(Box::new(Action)).await;
-
-	// Run the Sequence
-	Sequence.Run().await;
-
-	Ok(())
-}
-
-use serde_json::json;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-
-use Echo::Sequence::{
-	Action::{Error::Enum as Error, Struct as Action, Trait as ActionTrait},
-	Life::Struct as Life,
-	Plan::{Formality::Struct as Formality, Struct as Plan},
-	Production::Struct as Production,
-	Site::Trait as Site,
-	Struct as Sequence,
-};
-```
+This project is released into the public domain under the **Creative Commons CC0
+Universal** license. You are free to use, modify, distribute, and build upon
+this work for any purpose, without any restrictions. For the full legal text,
+see the [`LICENSE`](LICENSE) file.
 
 ---
 
-## 🏛️ Architecture
+## Changelog 📜
 
-### Core Components
-
-- **Action:** Represents a unit of Production with associated metadata, content,
-  and execution logic.
-- **Plan:** Defines the structure and functions for different Action types.
-- **Production:** A thread-safe queue for managing pending actions.
-- **Site:** Implements the logic for receiving and executing actions from the
-  queue.
-- **Sequence:** Orchestrates the execution of actions using workers and the work
-  queue.
-- **Life:** Provides a shared Life and configuration for actions during
-  execution.
-
-### Diagrams
-
-#### State Diagram
-
-```mermaid
-stateDiagram-v2
-    [*] --> Library
-    Library --> Enum
-    Library --> Struct
-    Library --> Trait
-    Library --> Type
-    Enum --> Sequence
-    Sequence --> Action
-    Action --> Error
-    Struct --> Sequence
-    Sequence --> Action
-    Action --> Signature
-    Sequence --> Life
-    Sequence --> Plan
-    Plan --> Formality
-    Sequence --> Production
-    Sequence --> Signal
-    Sequence --> Vector
-    Trait --> Sequence
-    Sequence --> Action
-    Sequence --> Site
-    Type --> Sequence
-    Sequence --> Action
-    Action --> Cycle
-```
-
-#### Class Diagram
-
-```mermaid
-classDiagram
-    class `Enum::Sequence::Action::Error` {
-        -License
-        -Execution
-        -Routing
-        -Cancellation
-    }
-    class `Struct::Sequence::Action::Signature` {
-        -Name
-    }
-    class `Struct::Sequence::Action` {
-        -Metadata
-        -Content
-        -License
-        -Plan
-        +New
-        +WithMetadata
-        +Execute
-    }
-    class `Struct::Sequence::Life` {
-        -Span
-        -Fate
-        -Cache
-        -Karma
-    }
-    class `Struct::Sequence::Plan::Formality` {
-        -Signature
-        -Function
-        +New
-        +Sign
-        +Add
-        +Remove
-    }
-    class `Struct::Sequence::Plan` {
-        -Formality
-        +New
-        +WithSignature
-        +WithFunction
-        +Build
-    }
-    class `Struct::Sequence::Production` {
-        -Line
-        +New
-        +Do
-        +Assign
-    }
-    class `Struct::Sequence::Signal` {
-        +New
-        +Get
-        +Set
-    }
-    class `Struct::Sequence::Vector` {
-        -Entry
-        +New
-        +Insert
-        +Get
-    }
-    class `Struct::Sequence` {
-        -Site
-        -Production
-        -Life
-        -Time
-        +New
-        +Run
-        +Shutdown
-    }
-    class `Trait::Sequence::Action` {
-        +Execute
-        +Clone
-    }
-    class `Trait::Sequence::Site` {
-        +Receive
-    }
-    `Enum::Sequence::Action::Error` --|> `thiserror::Error`
-    `Struct::Sequence::Action` --|> `serde::Serialize`
-    `Struct::Sequence::Action` --|> `serde::Deserialize`
-    `Struct::Sequence::Action` --|> `Trait::Sequence::Action`
-    `Struct::Sequence::Plan::Formality` --|> `std::fmt::Debug`
-    `Struct::Sequence::Plan` *-- `Struct::Sequence::Plan::Formality`
-    `Struct::Sequence` *-- `Trait::Sequence::Site`
-    `Struct::Sequence` *-- `Struct::Sequence::Production`
-    `Struct::Sequence` *-- `Struct::Sequence::Life`
-    `Trait::Sequence::Action` <.. `Struct::Sequence::Life`
-    `Trait::Sequence::Action` <.. `Enum::Sequence::Action::Error`
-    `Trait::Sequence::Site` --|> `async_trait::async_trait`
-    `Trait::Sequence::Site` <.. `Trait::Sequence::Action`
-    `Trait::Sequence::Site` <.. `Struct::Sequence::Life`
-    `Trait::Sequence::Site` <.. `Enum::Sequence::Action::Error`
-```
-
-#### Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Action
-    participant Metadata
-    participant License
-    participant Context
-    participant Plan
-    participant Hooks
-    participant Function
-
-    activate Client
-    Client->>Action: Execute(Context)
-    activate Action
-    Note right of Action: The client initiates the execution of an action represented by the 'Action' object
-
-    Action->>Metadata: Get("Action")
-    alt "Action" not found
-        Action->>Action: Return Error
-        Note right of Action: Returns an error if "Action" is not found in the metadata
-    else "Action" found
-        Metadata-->>Action: Return Action
-        Action->>License: Get()
-        alt License Invalid
-            Action->>Action: Return Error
-            Note right of Action: Return an error if the action is not properly licensed
-        else License Valid
-            Action->>Metadata: Get("Delay")
-            alt Delay exists
-                Metadata-->>Action: Return Delay
-                Action->>Action: sleep(Delay)
-                Note right of Action: If a delay is specified, wait for the given duration
-            end
-            Action->>Metadata: Get("Hooks")
-            alt Hooks exist
-                Metadata-->>Action: Return Hooks
-                loop Hook in Hooks
-                    Action->>Context: Span.get(Hook)
-                    alt Hook Function found
-                        Context-->>Action: Return HookFn
-                        Action->>HookFn: call()
-                        alt HookFn Error
-                            Action->>Action: Return Error
-                            Note right of Action: If a hook function returns an error, stop execution and return the error
-                        end
-                    end
-                end
-            end
-            Action->>Plan: Remove(Action)
-            alt Function not found
-                Action->>Action: Return Error
-                Note right of Action: Return an error if no function is found for the given action
-            else Function found
-                Plan-->>Action: Return Function
-                Action->>Action: Argument()
-                Action->>Function: call(Argument)
-                activate Function
-                Function-->>Action: Return Result
-                deactivate Function
-                alt Function Error
-                    Action->>Action: Return Error
-                    Note right of Action: If the function execution returns an error, propagate the error
-                else Function Success
-                    Action->>Action: Result(Result)
-                    Action->>Metadata: Get("NextAction")
-                    alt NextAction exists
-                        Metadata-->>Action: Return NextAction
-                        Action->>Action: Execute(NextAction, Context)
-                        alt NextAction Error
-                            Action->>Action: Return Error
-                            Note right of Action: If the execution of the next action results in an error, return the error
-                        end
-                    end
-                end
-            end
-        end
-    end
-    deactivate Action
-    Client->>Client: Return Result
-    Note right of Client: Returns the result of the action execution, which can be a success or an error
-```
+Stay updated with our progress! See [`CHANGELOG.md`](CHANGELOG.md) for a history
+of changes specific to **Echo**.
 
 ---
 
-## Contributing 🤝
+## Funding & Acknowledgements 🙏🏻
 
-Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
-guidelines and feel free to submit a Pull Request.
-
----
-
-## Changelog
-
-See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
-
-[Echo]: https://GitHub.Com/CodeEditorLand/Echo
-
----
-
-## Funding
-
-This project is funded through
-[NGI0 Commons Fund](https://nlnet.nl/commonsfund), a fund established by
+**Echo** is a core element of the **Land** ecosystem. This project is funded
+through [NGI0 Commons Fund](https://nlnet.nl/commonsfund), a fund established by
 [NLnet](https://nlnet.nl) with financial support from the European Commission's
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://nlnet.nl/project/Land).
 
-| Land                                                                                                                                                   | PlayForm                                                                                                                                                    | NLnet                                                                                         | NGI0 Commons Fund                                                                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [<img src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" height="80px" alt="Land"  />](https://editor.land) | [<img src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" height="80px" alt="PlayForm"  />](https://playform.cloud) | [<img width="240px" src="https://nlnet.nl/logo/banner.svg" alt="NLnet"  />](https://nlnet.nl) | [<img width="240px" src="https://nlnet.nl/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund"  />](https://nlnet.nl/commonsfund) |
+| **Land**                                                                                                                                            | PlayForm                                                                                                                                                 | NLnet                                                                                      | NGI0 Commons Fund                                                                                                                                 |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [<img src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" height="80px" alt="Land">](https://editor.land) | [<img src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" height="80px" alt="PlayForm">](https://playform.cloud) | [<img width="240px" src="https://nlnet.nl/logo/banner.svg" alt="NLnet">](https://nlnet.nl) | [<img width="240px" src="https://nlnet.nl/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund">](https://nlnet.nl/commonsfund) |
+
+---
+
+**Project Maintainers**: Source Open
+([Source/Open@Editor.Land](mailto:Source/Open@Editor.Land)) |
+[GitHub Repository](https://github.com/CodeEditorLand/Echo) |
+[Report an Issue](https://github.com/CodeEditorLand/Echo/issues) |
+[Security Policy](https://github.com/CodeEditorLand/Echo/security/policy)
