@@ -28,8 +28,8 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
-		"@playform/build": "0.2.4",
 		"@cloudflare/workers-types": "4.20250607.0",
+		"@playform/build": "0.2.4",
 		"@types/dotenv": "8.2.3",
 		"miniflare": "4.20250525.1",
 		"wrangler": "4.19.1"
