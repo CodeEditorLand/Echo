@@ -5,6 +5,8 @@ actions efficiently. It leverages a worker-stealer pattern and asynchronous
 queues to handle complex workflows with features like metadata management,
 function planning, and robust error handling.
 
+---
+
 ## Table of Contents
 
 - [`Introduction`](#Introduction)
@@ -14,11 +16,15 @@ function planning, and robust error handling.
 - [`Architecture`](#Architecture)
 - [`Contributing`](CONTRIBUTING.md)
 
+---
+
 ## Introduction
 
 `Echo` provides a robust framework for defining, queuing, and executing actions
 asynchronously. It's designed to handle complex workflows with features like
 metadata management, function planning, and error handling.
+
+---
 
 ## Feature
 
@@ -34,6 +40,8 @@ metadata management, function planning, and error handling.
 - **Hooks:** Supports pre and post-execution hooks for added flexibility.
 - **Serialization:** Actions can be serialized and deserialized for persistence
   or network transfer (in progress).
+
+---
 
 ## Installation 🚀
 
@@ -51,6 +59,8 @@ Echo = { git = "https://GitHub.Com/CodeEditorLand/Echo.git" }
 ```bash
 cargo build
 ```
+
+---
 
 ## 🛠️ Usage
 
@@ -135,6 +145,8 @@ use Echo::Sequence::{
 	Struct as Sequence,
 };
 ```
+
+---
 
 ## 🏛️ Architecture
 
@@ -359,16 +371,22 @@ sequenceDiagram
     Note right of Client: Returns the result of the action execution, which can be a success or an error
 ```
 
+---
+
 ## Contributing 🤝
 
 Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
 guidelines and feel free to submit a Pull Request.
+
+---
 
 ## Changelog
 
 See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
 
 [Echo]: https://GitHub.Com/CodeEditorLand/Echo
+
+---
 
 ## Funding
 
