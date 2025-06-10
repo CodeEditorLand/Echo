@@ -14,7 +14,7 @@
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
-[![Crossbeam Version](https://img.shields.io/badge/Crossbeam-v0.8-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
+[![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
 
 Welcome to **Echo**! This crate provides a powerful, structured concurrency
 runtime for Rust applications, built on a high-performance **work-stealing
@@ -146,11 +146,11 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 
 **Key Dependencies:**
 
-- `tokio = { version = "1", features = ["full"] }`
-- `crossbeam-deque = "0.8"`
-- `rand = "0.8"`
-- `log = "0.4"`
-- `num_cpus = "1.0"`
+- `tokio = { version = "*", features = ["full"] }`
+- `crossbeam-deque = "*"`
+- `rand = "*"`
+- `log = "*"`
+- `num_cpus = "*"`
 
 ### Usage
 
