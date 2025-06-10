@@ -4,7 +4,7 @@
 use crossbeam_deque::{Injector, Stealer, Worker};
 use rand::seq::SliceRandom;
 
-use crate::Task::{Priority, Task};
+use crate::Task::{Priority::Priority, Task::Task};
 
 /// A container for a set of queues for a single priority level.
 struct PriorityQueueSet {
@@ -84,7 +84,7 @@ impl StealingQueue {
 		// Try stealing from peers for this priority set. We shuffle the indices
 		// to ensure fairness and avoid contention hotspots.
 		let mut ShuffledIndex:Vec<usize> = (0..Set.Stealer.len()).collect();
-		ShuffledIndex.shuffle(&mut rand::thread_rng());
+		ShuffledIndex.shuffle(&mut rand::rng());
 
 		for Index in ShuffledIndex {
 			if Index == WorkerId {

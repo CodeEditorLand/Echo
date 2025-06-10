@@ -4,7 +4,7 @@ toml = { workspace = true }
 
 
 [dependencies]
-async_trait = { workspace = true }
+async-trait = { workspace = true }
 config = { workspace = true }
 dashmap = { workspace = true }
 env_logger = { workspace = true }
@@ -16,10 +16,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
-tokio_console = { workspace = true, optional = true }
-tokio_tungstenite = { workspace = true }
+tokio-console = { workspace = true, optional = true }
+tokio-tungstenite = { workspace = true }
 unbug = { workspace = true }
-crossbeam_deque = { workspace = true }
+crossbeam-deque = { workspace = true }
+num_cpus = { workspace = true }
 
 [[example]]
 name = "Sequence"

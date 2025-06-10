@@ -10,7 +10,7 @@ use tokio::time::{Duration, sleep};
 /// @description Defines the `Worker` struct, which represents a single
 /// execution thread in the scheduler's pool. This is an internal component of
 /// the scheduler.
-use crate::Queue::StealingQueue;
+use crate::Queue::StealingQueue::StealingQueue;
 
 /// Represents a single worker thread that continuously polls the work-stealing
 /// queue for tasks to execute.
