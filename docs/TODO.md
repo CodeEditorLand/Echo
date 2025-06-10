@@ -1,4 +1,4 @@
-### **Help Us Boost Performance: A Call for Contributions!** 🚀
+### **Help Us Boost Performance: A Call for Contributions!** 🫱🏻‍🫲🏿
 
 `Echo` is built on a high-performance foundation, but there's always room to
 push the boundaries of speed and efficiency. We invite the community to help us
@@ -114,6 +114,8 @@ systems-level performance, benchmarking, and hardware affinity.
 - **Difficulty:** High
 - **Skills:** Deep understanding of OS schedulers, CPU architecture (NUMA), and
   the `tokio` runtime's threading model.
+
+---
 
 ### **Level 4: Advanced Scheduling Logic & Fairness** 🧠
 

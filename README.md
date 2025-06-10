@@ -208,6 +208,27 @@ used throughout the application, often via a shared context or runtime.
 
 ---
 
+## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
+
+`Echo` is built on a high-performance foundation, but there's always room to
+push the boundaries of speed and efficiency. We maintain a detailed roadmap of
+features and performance optimizations, with tasks suitable for all skill
+levels.
+
+| Contribution Level | Example Tasks                                               |
+| :----------------- | :---------------------------------------------------------- |
+| **Quick Wins**     | Implement faster random number generation for stealing.     |
+| **Architectural**  | Add a true sleep/notification system for idle workers.      |
+| **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
+| **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
+
+**Interested in tackling one of these challenges?** 👉
+
+- **[Check out our full TODO](docs/TODO.md)** for challenges!
+- **[Follow our Contribution Guide](CONTRIBUTING.md)** to get started!
+
+---
+
 ## License ⚖️
 
 This project is released into the public domain under the **Creative Commons CC0
