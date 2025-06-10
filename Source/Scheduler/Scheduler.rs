@@ -25,8 +25,10 @@ use crate::{
 pub struct Scheduler {
 	/// The underlying work-stealing queue system used for task submission.
 	Queue:StealingQueue<Task>,
+
 	/// Handles to the spawned worker threads, used for graceful shutdown.
 	Handle:Vec<JoinHandle<()>>,
+
 	/// An atomic flag to signal all workers to shut down.
 	Running:Arc<AtomicBool>,
 }
@@ -38,15 +40,18 @@ impl Scheduler {
 	/// `SchedulerBuilder`'s `Build` method.
 	pub fn Create(Count:usize, _Configuration:HashMap<String, Concurrency>) -> Self {
 		info!("[Scheduler] Create with {} workers.", Count);
+
 		let Running = Arc::new(AtomicBool::new(true));
 
 		// Create the entire queue system and retrieve the contexts for each worker.
 		let (Queue, Contexts) = StealingQueue::<Task>::Create(Count);
 
 		let mut Handle = Vec::with_capacity(Count);
+
 		// Spawn an asynchronous task for each worker.
 		for Context in Contexts.into_iter() {
 			let Running = Running.clone();
+
 			Handle.push(tokio::spawn(async move {
 				// Each task creates and runs a worker, consuming its context.
 				Worker::Create(Context, Running).Run().await;
@@ -73,15 +78,18 @@ impl Scheduler {
 	pub async fn Stop(&mut self) {
 		if !self.Running.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] Stop already initiated.");
+
 			return;
 		}
 
 		info!("[Scheduler] Stopping worker threads...");
+
 		for Handle in self.Handle.drain(..) {
 			if let Err(Error) = Handle.await {
 				error!("[Scheduler] Error joining worker: {}", Error);
 			}
 		}
+
 		info!("[Scheduler] All workers stopped.");
 	}
 }
@@ -94,6 +102,7 @@ impl Drop for Scheduler {
 	fn drop(&mut self) {
 		if self.Running.load(Ordering::Relaxed) {
 			warn!("[Scheduler] Dropped without explicit stop. Signaling workers.");
+
 			self.Running.store(false, Ordering::Relaxed);
 		}
 	}

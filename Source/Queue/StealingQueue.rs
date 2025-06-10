@@ -8,13 +8,14 @@
 
 use std::sync::Arc;
 
-use crossbeam_deque::{Injector, Stealer, Worker};
-use rand::seq::SliceRandom;
+use crossbeam_deque::{Injector, Steal, Stealer, Worker};
+use rand::Rng;
 
 /// Defines a contract for types that can be prioritized by the queue.
 pub trait Prioritized {
 	/// The type of the priority value used by the implementor.
 	type Kind: PartialEq + Eq + Copy;
+
 	/// A method to retrieve the priority of the item.
 	fn Rank(&self) -> Self::Kind;
 }
@@ -23,7 +24,9 @@ pub trait Prioritized {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Priority {
 	High,
+
 	Normal,
+
 	Low,
 }
 
@@ -34,6 +37,7 @@ pub enum Priority {
 pub struct Share<T> {
 	/// Global, multi-producer queues for each priority.
 	pub Injector:(Injector<T>, Injector<T>, Injector<T>),
+
 	/// Share handles for stealing tasks from each worker's queue.
 	pub Stealer:(Vec<Stealer<T>>, Vec<Stealer<T>>, Vec<Stealer<T>>),
 }
@@ -54,8 +58,10 @@ pub struct StealingQueue<T:Prioritized<Kind = Priority>> {
 pub struct Context<T> {
 	/// A unique identifier for the worker, used to avoid self-stealing.
 	pub Identifier:usize,
+
 	/// Thread-local work queues for each priority level.
 	pub Local:(Worker<T>, Worker<T>, Worker<T>),
+
 	/// A reference to the shared components of the entire queue system.
 	pub Share:Arc<Share<T>>,
 }
@@ -71,7 +77,9 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 	/// 2. A `Vec` of `Context` objects, one for each worker thread to own.
 	pub fn Create(Count:usize) -> (Self, Vec<Context<T>>) {
 		let mut High:Vec<Worker<T>> = Vec::with_capacity(Count);
+
 		let mut Normal:Vec<Worker<T>> = Vec::with_capacity(Count);
+
 		let mut Low:Vec<Worker<T>> = Vec::with_capacity(Count);
 
 		// For each priority level, create a thread-local worker queue and its
@@ -79,8 +87,11 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 		let StealerHigh:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				High.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -88,8 +99,11 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 		let StealerNormal:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				Normal.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -97,8 +111,11 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 		let StealerLow:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				Low.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -106,22 +123,27 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 		// Bundle all shared components into an Arc for safe sharing.
 		let Share = Arc::new(Share {
 			Injector:(Injector::new(), Injector::new(), Injector::new()),
+
 			Stealer:(StealerHigh, StealerNormal, StealerLow),
 		});
 
 		// Create a unique context for each worker, giving it ownership of its
 		// local queues and a reference to the shared components.
-		let mut Contexts = Vec::with_capacity(Count);
+		let mut Context = Vec::with_capacity(Count);
+
 		for Identifier in 0..Count {
-			Contexts.push(Context {
+			Context.push(Context {
 				Identifier,
+
 				Local:(High.remove(0), Normal.remove(0), Low.remove(0)),
+
 				Share:Share.clone(),
 			});
 		}
 
 		let Queue = Self { Share };
-		(Queue, Contexts)
+
+		(Queue, Context)
 	}
 
 	/// Submits a new task to the appropriate global queue based on its
@@ -130,7 +152,9 @@ impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
 	pub fn Submit(&self, Task:T) {
 		match Task.Rank() {
 			Priority::High => self.Share.Injector.0.push(Task),
+
 			Priority::Normal => self.Share.Injector.1.push(Task),
+
 			Priority::Low => self.Share.Injector.2.push(Task),
 		}
 	}
@@ -157,22 +181,38 @@ impl<T> Context<T> {
 	/// It first tries to steal a batch from the global injector queue. If that
 	/// fails, it attempts to steal from a randomly chosen peer worker to ensure
 	/// fair distribution and avoid contention hotspots.
-	pub fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealers:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
-		if Injector.steal_batch_and_pop(Local).is_success() {
-			return Local.pop();
+	pub fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealer:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
+		// First, try to steal a batch from the global injector.
+		// `steal_batch_and_pop` is efficient: it moves a batch into our local
+		// queue and returns one task immediately if successful.
+		if let Steal::Success(Task) = Injector.steal_batch_and_pop(Local) {
+			return Some(Task);
 		}
 
-		let mut Indices:Vec<usize> = (0..Stealers.len()).collect();
-		Indices.shuffle(&mut rand::rng());
+		// If the global queue is empty, try stealing from peers.
+		let Count = Stealer.len();
 
-		for Index in Indices {
+		if Count <= 1 {
+			return None;
+		}
+
+		// Allocation-free random iteration: pick a random starting point.
+		let Start = rand::rng().random_range(0..Count);
+
+		// Iterate through all peers starting from the random offset.
+		for i in 0..Count {
+			let Index = (Start + i) % Count;
+
+			// Don't steal from ourselves.
 			if Index == self.Identifier {
 				continue;
 			}
-			if Stealers[Index].steal_batch_and_pop(Local).is_success() {
-				return Local.pop();
+
+			if let Steal::Success(Task) = Stealer[Index].steal_batch_and_pop(Local) {
+				return Some(Task);
 			}
 		}
+
 		None
 	}
 }

@@ -23,10 +23,10 @@ Land Code Editor.
 
 | Principle                  | Description                                                                                                                                                     | Key Components Involved                                               |
 | :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a work-stealing algorithm to achieve maximum throughput and low-latency task execution.                   | `Queue::StealingQueue`, `Scheduler::Worker`                           |
+| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a high-performance work-stealing algorithm to achieve maximum throughput and low-latency task execution.  | `Queue::StealingQueue`, `Scheduler::Worker`                           |
 | **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`                 |
 | **Decoupling**             | Separate the generic **Queueing Logic** from the application-specific **Scheduler Implementation**. The scheduler uses the queue to run its tasks.              | `Queue::StealingQueue<T>`, `Scheduler::Scheduler`, `Task::Task::Task` |
-| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run` (execution loop)                             |
+| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run`                                              |
 | **Composability**          | Provide a simple `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                              | `Task::Task::Task`, `Scheduler::Scheduler::Submit`                    |
 | **Prioritization**         | Allow tasks to be submitted with different priorities to ensure that latency-sensitive work is executed before background work.                                 | `Task::Priority::Priority`, `Queue::StealingQueue::Priority`          |
 
@@ -72,19 +72,6 @@ The architecture of `Echo` is cleanly separated into three distinct modules:
       **ownership** of the thread-local `crossbeam_deque::Worker` queues, which
       are **not safe to share**. This ownership design is what makes the entire
       system thread-safe.
-    - **Work-Stealing Logic (`Context::Next`):** The core algorithm lives here.
-      When a worker calls `Next()`, it follows a specific order to maximize
-      efficiency:
-        1.  **LIFO from Local Queues:** It first tries to `pop` from its own
-            local queues, starting with `High` priority down to `Low`. This is a
-            Last-In, First-Out strategy, which is beneficial for cache locality.
-        2.  **Steal from System:** If its local queues are empty, it attempts to
-            steal work from the wider system, again checking `High` priority
-            queues before `Normal` or `Low`. For each priority level, it: a.
-            Tries to steal a batch from the global `Injector` queue. b. If that
-            fails, it randomly selects a peer `Worker` and steals from the
-            opposite end of their queue. This ensures that larger,
-            longer-running tasks are stolen first, keeping all workers busy.
 
 ### 3. The `Scheduler` Module (`Source/Scheduler/`)
 
@@ -96,9 +83,14 @@ The architecture of `Echo` is cleanly separated into three distinct modules:
       allows setting the number of worker threads.
     - **`Worker.rs`:** A thin, private wrapper that holds a
       `Queue::Context<Task>`. Its `Run(self)` method consumes the worker and its
-      context, containing the main loop that repeatedly calls `Context.Next()`
-      and `await`s the `Task.Operation` of any task it finds. The `Run(self)`
-      signature (consuming `self`) is essential for thread safety.
+      context, containing the high-performance work-finding loop. The
+      `Run(self)` signature (consuming `self`) is essential for thread safety.
+      The loop is optimized to:
+        1.  First, attempt to `PopLocal()` from its own deques as quickly as
+            possible.
+        2.  Only if the local queues are empty, it will attempt to
+            `StealFromSystem()` to get a new batch of work.
+        3.  If no work is found anywhere, it sleeps briefly to yield the CPU.
     - **`Scheduler.rs`:**
         - **`Create()`:** This method, called by the builder, instantiates the
           generic queue for the specific `Task` type:
@@ -131,9 +123,10 @@ This demonstrates how `Mountain`'s `ApplicationRunTime` uses `Echo` to run a
     with the new `Future` and a priority. a. `Scheduler.Submit` creates a
     `Task::Task` struct. b. It calls `Queue.Submit()`, which pushes the `Task`
     onto the appropriate global `Injector` queue based on its priority.
-4.  **Worker (`Echo`):** An idle `Worker` in its `Run` loop calls
-    `Context.Next()`. a. The `Context` steals the new `Task` from the global
-    `Injector`. b. The `Worker` receives the `Task`.
+4.  **Worker (`Echo`):** An idle `Worker` in its `Run` loop finds the new task.
+    a. The `Worker` first checks its local queues. Finding them empty, it calls
+    `StealFromSystem()`. b. The underlying `Context` steals the new `Task` from
+    the global `Injector`. c. The `Worker` receives the `Task`.
 5.  **Execution:** The worker `await`s the `Task.Operation`. This executes the
     logic from step 2b, which in turn `await`s the original `ActionEffect`.
 6.  **Result Propagation:** The `ActionEffect` completes. Its `Result` is sent

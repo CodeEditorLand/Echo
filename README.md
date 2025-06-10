@@ -41,31 +41,30 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ## Key Features 🔐
 
-- **Work-Stealing Scheduler:** Implements a modern work-stealing algorithm to
-  efficiently distribute tasks across a pool of worker threads, preventing
-  bottlenecks and maximizing parallelism.
+- **Work-Stealing Scheduler:** Implements a modern, priority-aware work-stealing
+  algorithm to efficiently distribute tasks across a pool of worker threads.
 - **Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
   `Low` priority, ensuring that latency-sensitive operations are handled
   immediately.
-- **Fluent Builder API:** A clean `Builder` allows for easy configuration of the
-  worker pool and other scheduler parameters.
+- **Fluent Builder API:** A clean `SchedulerBuilder` allows for easy
+  configuration of the worker pool size.
 - **Graceful Shutdown:** Provides a `Stop()` method to ensure all worker threads
   complete their current tasks and exit cleanly, preventing orphaned threads.
-- **Built for `ActionEffect`:** Serves as the ideal backend for effect systems,
-  providing the runtime engine that executes declarative, asynchronous workflows
-  defined in other parts of the application.
+- **Decoupled Architecture:** A generic `Queue` module provides the core
+  work-stealing logic, which is consumed by the application-specific
+  `Scheduler`.
 
 ---
 
 ## Core Architecture Principles 🏗️
 
-| Principle                  | Description                                                                                                                                             | Key Components Involved                               |
-| :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------- |
-| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a work-stealing algorithm to achieve maximum throughput and low-latency task execution.           | `Queue::StealingQueue`, `Scheduler::Worker`           |
-| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`. | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder` |
-| **Decoupling**             | Separate the _submission_ of a task from its _execution_. The application submits work, and the `Scheduler` handles how, when, and where it runs.       | `Scheduler::Scheduler::Submit`, `Task::Task::Task`    |
-| **Resilience**             | The scheduler's design is inherently resilient, as the failure of one task (if it panics) does not bring down the entire worker pool.                   | `Scheduler::Worker::Run` (execution loop)             |
-| **Composability**          | Provide a simple, generic `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.             | `Task::Task::Task`, `Scheduler::Scheduler::Submit`    |
+| Principle                  | Description                                                                                                                                                     | Key Components Involved                                               |
+| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a high-performance work-stealing algorithm to achieve maximum throughput and low-latency task execution.  | `Queue::StealingQueue`, `Scheduler::Worker`                           |
+| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`                 |
+| **Decoupling**             | Separate the generic **Queueing Logic** from the application-specific **Scheduler Implementation**. The scheduler uses the queue to run its tasks.              | `Queue::StealingQueue<T>`, `Scheduler::Scheduler`, `Task::Task::Task` |
+| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run`                                              |
+| **Composability**          | Provide a simple `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                              | `Task::Task::Task`, `Scheduler::Scheduler::Submit`                    |
 
 ---
 
@@ -120,14 +119,15 @@ graph LR
 
 ## Project Structure Overview 🗺️
 
-The `Echo` repository is organized into a few core modules:
+The `Echo` repository is organized into a few core modules with a clear
+separation of concerns:
 
 ```
 Echo/
 └── Source/
     ├── Library.rs               # Crate root, declares all modules.
-    ├── Scheduler/               # The main public API: Scheduler and Builder.
-    ├── Queue/                   # The generic, high-performance work-stealing queue.
+    ├── Scheduler/               # The main public API: Scheduler and Builder. Consumes the Queue.
+    ├── Queue/                   # The generic, high-performance work-stealing queue library.
     └── Task/                    # The application-specific definition of a Task and its Priority.
 ```
 
@@ -162,7 +162,8 @@ used throughout the application, often via a shared context or runtime.
 
     ```rust
     // In your application's lib.rs
-    pub use Echo::Scheduler::{Scheduler, SchedulerBuilder as Builder, Priority};
+    pub use Echo::Scheduler::{Scheduler, SchedulerBuilder};
+    pub use Echo::Task::Priority::Priority;
     ```
 
 2.  **Initialize the Scheduler:** Create and start the scheduler when your
@@ -174,7 +175,7 @@ used throughout the application, often via a shared context or runtime.
     use std::sync::Arc;
 
     // Use the fluent builder to configure and build the scheduler
-    let Scheduler = Arc::new(Builder::Create().Count(8).Build());
+    let Scheduler = Arc::new(SchedulerBuilder::Create().Count(8).Build());
     ```
 
 3.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
@@ -199,6 +200,7 @@ used throughout the application, often via a shared context or runtime.
 
     ```rust
     // In your application's shutdown sequence
+    // Note: Arc::get_mut requires the Arc to have only one strong reference.
     if let Some(mut Scheduler) = Arc::get_mut(&mut Scheduler) {
         Scheduler.Stop().await;
     }

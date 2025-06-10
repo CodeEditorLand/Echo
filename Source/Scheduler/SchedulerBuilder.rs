@@ -13,6 +13,7 @@ use crate::Scheduler::Scheduler::Scheduler;
 pub enum Concurrency {
 	/// Specifies a maximum number of concurrent tasks for a queue.
 	Limit(usize),
+
 	/// Allows an unlimited number of concurrent tasks for a queue.
 	Unlimited,
 }
@@ -25,6 +26,7 @@ pub enum Concurrency {
 pub struct SchedulerBuilder {
 	/// The number of worker threads to be spawned in the scheduler's pool.
 	Count:usize,
+
 	/// Configuration for named queues with concurrency limits. (For future use)
 	Configuration:HashMap<String, Concurrency>,
 }
@@ -36,6 +38,7 @@ impl SchedulerBuilder {
 	/// system, with a minimum of two workers to ensure work-stealing is viable.
 	pub fn Create() -> Self {
 		let Default = num_cpus::get().max(2);
+
 		Self { Count:Default, Configuration:HashMap::new() }
 	}
 
@@ -45,10 +48,12 @@ impl SchedulerBuilder {
 	pub fn Count(mut self, Count:usize) -> Self {
 		if Count == 0 {
 			warn!("[Builder] Worker count of 0 is invalid. Defaulting to logical CPUs.");
+
 			self.Count = num_cpus::get().max(2);
 		} else {
 			self.Count = Count;
 		}
+
 		self
 	}
 
@@ -56,6 +61,7 @@ impl SchedulerBuilder {
 	/// use)
 	pub fn Queue(mut self, Name:&str, Limit:Concurrency) -> Self {
 		self.Configuration.insert(Name.to_string(), Limit);
+
 		self
 	}
 

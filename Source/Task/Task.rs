@@ -15,11 +15,14 @@ pub type Operation = Pin<Box<dyn Future<Output = ()> + Send>>;
 /// Represents a single, schedulable unit of work.
 ///
 /// This struct encapsulates an asynchronous operation along with metadata,
+///
+///
 /// such as its `Priority`, that the scheduler uses to determine execution
 /// order.
 pub struct Task {
 	/// The asynchronous operation to be executed by a worker.
 	pub Operation:Operation,
+
 	/// The priority level of this task.
 	pub Priority:Priority,
 }
@@ -46,7 +49,9 @@ impl Prioritized for Task {
 	fn Rank(&self) -> Self::Kind {
 		match self.Priority {
 			Priority::High => QueuePriority::High,
+
 			Priority::Normal => QueuePriority::Normal,
+
 			Priority::Low => QueuePriority::Low,
 		}
 	}

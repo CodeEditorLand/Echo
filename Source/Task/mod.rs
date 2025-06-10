@@ -6,5 +6,6 @@
 
 /// Defines the execution priority level of a task.
 pub mod Priority;
+
 /// Defines the structure of a task to be executed.
 pub mod Task;
