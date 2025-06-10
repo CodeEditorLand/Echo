@@ -35,12 +35,12 @@ impl Scheduler {
 		let IsRunning = Arc::new(AtomicBool::new(true));
 
 		// 1. Create the queue system. This is now a single, clean line.
-		let (Queue, WorkerContexts) = StealingQueue::New(number_of_workers);
+		let (Queue, Context) = StealingQueue::New(number_of_workers);
 
 		let mut WorkerHandles = Vec::with_capacity(number_of_workers);
 
 		// 2. Iterate over the contexts, giving one to each new thread.
-		for Context in WorkerContexts.into_iter() {
+		for Context in Context.into_iter() {
 			let CloneIsRunning = IsRunning.clone();
 
 			let WorkerHandle = tokio::spawn(async move {

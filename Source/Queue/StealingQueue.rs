@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use crossbeam_deque::{Injector, Stealer, Worker as WorkerDeque};
+use crossbeam_deque::{Injector, Stealer, Worker};
 use rand::seq::SliceRandom;
 
 // The task must have a way to specify its priority. We define a trait for this.
@@ -44,11 +44,11 @@ pub struct StealingQueue<T:Prioritized<P = Priority>> {
 
 /// A context object that contains everything a single worker thread needs to
 /// operate. This includes its own private, thread-local deques.
-pub struct WorkerContext<T> {
+pub struct Context<T> {
 	Id:usize,
 
 	// High, Normal, Low
-	Local:(WorkerDeque<T>, WorkerDeque<T>, WorkerDeque<T>),
+	Local:(Worker<T>, Worker<T>, Worker<T>),
 
 	Shared:Arc<Shared<T>>,
 }
@@ -59,18 +59,18 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 	/// Returns a tuple containing:
 	/// 1. The `StealingQueue` for submitting tasks.
 	/// 2. A `Vec` of `WorkerContext`s, one for each worker to be spawned.
-	pub fn New(Count:usize) -> (Self, Vec<WorkerContext<T>>) {
-		let mut High:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+	pub fn New(Count:usize) -> (Self, Vec<Context<T>>) {
+		let mut High:Vec<Worker<T>> = Vec::with_capacity(Count);
 
-		let mut Normal:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+		let mut Normal:Vec<Worker<T>> = Vec::with_capacity(Count);
 
-		let mut Low:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+		let mut Low:Vec<Worker<T>> = Vec::with_capacity(Count);
 
 		// --- FIX: Use the documented API for creating Worker/Stealer pairs ---
 		let StealerHigh:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
 				// 1. Create the Worker.
-				let Worker = WorkerDeque::new_fifo();
+				let Worker = Worker::new_fifo();
 
 				// 2. Get its Stealer.
 				let Stealer = Worker.stealer();
@@ -85,7 +85,7 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 
 		let StealerNormal:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
-				let Worker = WorkerDeque::new_fifo();
+				let Worker = Worker::new_fifo();
 
 				let Stealer = Worker.stealer();
 
@@ -97,7 +97,7 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 
 		let StealerLow:Vec<Stealer<T>> = (0..Count)
 			.map(|_| {
-				let Worker = WorkerDeque::new_fifo();
+				let Worker = Worker::new_fifo();
 
 				let Stealer = Worker.stealer();
 
@@ -117,7 +117,7 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 
 		for Id in 0..Count {
 			// We use remove(0) because we built the Vecs in order and need to consume them.
-			Context.push(WorkerContext {
+			Context.push(Context {
 				Id,
 
 				Local:(High.remove(0), Normal.remove(0), Low.remove(0)),
@@ -144,7 +144,7 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 	}
 }
 
-impl<T> WorkerContext<T> {
+impl<T> Context<T> {
 	/// Finds the next available task for this worker.
 	/// Implements the full priority-aware, work-stealing logic.
 	pub fn NextTask(&self) -> Option<T> {
@@ -162,7 +162,7 @@ impl<T> WorkerContext<T> {
 			.or_else(|| self.Steal(&self.Shared.Injector.2, &self.Shared.Stealer.2, &self.Local.2))
 	}
 
-	fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealer:&'a [Stealer<T>], Local:&'a WorkerDeque<T>) -> Option<T> {
+	fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealer:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
 		if Injector.steal_batch_and_pop(Local).is_success() {
 			return Local.pop();
 		}
