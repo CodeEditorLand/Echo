@@ -5,94 +5,82 @@ use std::{
 		Arc,
 		atomic::{AtomicBool, Ordering},
 	},
-	time::Duration,
 };
 
-use log::{error, info, trace, warn};
+use log::{error, info, warn};
 use tokio::task::JoinHandle;
 
-// CHANGED: Use the new reusable library.
-use crate::Queue::StealingQueue::StealingQueue;
+use super::Worker::Worker;
 use crate::{
-	Scheduler::SchedulerBuilder::Concurrency,
-	Task::{Priority::Enum, Task::Struct},
+	Queue::StealingQueue::StealingQueue as StealingQueueStruct,
+	Scheduler::SchedulerBuilder::Concurrency as ConcurrencyEnum,
+	Task::{Priority::Enum as PriorityEnum, Task::Struct as TaskStruct},
 };
 
 /// Manages a pool of worker threads and a work-stealing queue to execute tasks
 /// efficiently. This struct is the public-facing API of the Echo scheduler.
 pub struct Scheduler {
-	// CHANGED: The Scheduler now holds an instance of our generic queue.
-	Queue:StealingQueue<Struct>,
-	/// Handles to the spawned worker threads, allowing for graceful shutdown.
-	WorkerHandles:Vec<JoinHandle<()>>,
-	/// An atomic flag to signal workers to shut down.
-	IsRunning:Arc<AtomicBool>,
+	Queue:StealingQueueStruct<TaskStruct>,
+
+	Handle:Vec<JoinHandle<()>>,
+
+	Running:Arc<AtomicBool>,
 }
 
 impl Scheduler {
-	pub(crate) fn Start(number_of_workers:usize, _queue_configs:HashMap<String, Concurrency>) -> Self {
+	pub fn Start(number_of_workers:usize, _queue_configs:HashMap<String, ConcurrencyEnum>) -> Self {
 		info!("[Scheduler] Starting scheduler with {} worker threads.", number_of_workers);
-		let IsRunning = Arc::new(AtomicBool::new(true));
 
-		// 1. Create the queue system. This is now a single, clean line.
-		let (Queue, Context) = StealingQueue::New(number_of_workers);
+		let Running = Arc::new(AtomicBool::new(true));
 
-		let mut WorkerHandles = Vec::with_capacity(number_of_workers);
+		let (Queue, WorkerContexts) = StealingQueueStruct::<TaskStruct>::New(number_of_workers);
 
-		// 2. Iterate over the contexts, giving one to each new thread.
-		for Context in Context.into_iter() {
-			let CloneIsRunning = IsRunning.clone();
+		let mut Handle = Vec::with_capacity(number_of_workers);
 
-			let WorkerHandle = tokio::spawn(async move {
-				// The worker logic is now simple and lives directly inside the spawned task.
-				trace!("[Worker] Starting execution loop.");
-				while CloneIsRunning.load(Ordering::Relaxed) {
-					// Use the context to find the next task.
-					if let Some(Task) = Context.NextTask() {
-						trace!("[Worker] Found task with priority {:?}. Executing.", Task.Priority);
-						Task.Future.await
-					} else {
-						tokio::time::sleep(Duration::from_millis(1)).await;
-					}
-				}
-				trace!("[Worker] Execution loop finished.");
-			});
+		for Context in WorkerContexts.into_iter() {
+			let Running = Running.clone();
 
-			WorkerHandles.push(WorkerHandle);
+			Handle.push(tokio::spawn(async move {
+				let WorkerInstance = Worker::New(Context, Running);
+
+				WorkerInstance.Run().await;
+			}));
 		}
 
-		Self { Queue, WorkerHandles, IsRunning }
+		Self { Queue, Handle, Running }
 	}
 
-	pub fn submit<F>(&self, future_instance:F, task_priority:Enum)
+	pub fn Submit<F>(&self, future_instance:F, task_priority:PriorityEnum)
 	where
 		F: Future<Output = ()> + Send + 'static, {
-		let new_task = Struct::New(future_instance, task_priority);
-		// 3. Use the generic queue's submit method.
-		self.Queue.Submit(new_task);
+		self.Queue.Submit(TaskStruct::New(future_instance, task_priority));
 	}
 
 	pub async fn ShutDown(&mut self) {
-		if !self.IsRunning.swap(false, Ordering::Relaxed) {
+		if !self.Running.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] ShutDown already initiated.");
+
 			return;
 		}
 
 		info!("[Scheduler] Shutting down worker threads...");
-		for handle in self.WorkerHandles.drain(..) {
+
+		for handle in self.Handle.drain(..) {
 			if let Err(e) = handle.await {
 				error!("[Scheduler] Error joining worker task during shutdown: {}", e);
 			}
 		}
+
 		info!("[Scheduler] All workers shut down successfully.");
 	}
 }
 
 impl Drop for Scheduler {
 	fn drop(&mut self) {
-		if self.IsRunning.load(Ordering::Relaxed) {
+		if self.Running.load(Ordering::Relaxed) {
 			warn!("[Scheduler] Scheduler dropped without explicit shutdown. Signaling workers to stop.");
-			self.IsRunning.store(false, Ordering::Relaxed);
+
+			self.Running.store(false, Ordering::Relaxed);
 		}
 	}
 }

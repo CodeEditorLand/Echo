@@ -3,7 +3,6 @@
 /// system.
 
 /// Represents the priority of a task to be executed by the scheduler.
-///
 /// This enum implements `Ord`, allowing tasks to be sorted by priority.
 /// Schedulers and workers can use this to ensure that high-priority,
 /// user-facing tasks are executed before long-running background tasks.

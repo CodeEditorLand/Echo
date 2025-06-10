@@ -12,4 +12,4 @@ pub mod StealingQueue;
 // private from external consumers.
 // @see StealingQueue
 //
-// pub(crate) use self::StealingQueue::StealingQueue;
+// pub use self::StealingQueue::StealingQueue;

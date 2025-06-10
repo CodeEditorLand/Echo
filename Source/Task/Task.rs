@@ -4,8 +4,7 @@ use std::{future::Future, pin::Pin};
 /// @description Defines the `Task` struct, which is the internal unit of work
 /// for the Echo scheduler.
 use super::Priority::Enum;
-// NEW: Import traits and types from our new reusable library.
-use crate::Queue::StealingQueue::{Prioritized, Priority as ReusablePriority};
+use crate::Queue::StealingQueue::{Prioritized, Priority};
 
 /// A type alias for a boxed, send-able, pinned future that returns no value.
 /// This is the standard way to handle dynamic, async operations in Rust.
@@ -14,11 +13,13 @@ type BoxedFuture = Pin<Box<dyn Future<Output = ()> + Send>>;
 /// Represents a single, schedulable unit of work.
 ///
 /// It encapsulates an asynchronous operation (`Future`) along with metadata,
+///
 /// such as its `Priority`, that the scheduler can use to determine execution
 /// order.
 pub struct Struct {
 	/// The asynchronous operation to be executed by a worker.
 	pub Future:BoxedFuture,
+
 	/// The priority level of this task, used by the scheduler's queue.
 	pub Priority:Enum,
 }
@@ -36,16 +37,16 @@ impl Struct {
 	}
 }
 
-// NEW: Implement the `Prioritized` trait to make our `Task` compatible
-// with the generic `ReusableQueue`.
 impl Prioritized for Struct {
-	type P = ReusablePriority;
+	type P = Priority;
 
 	fn GetPriority(&self) -> Self::P {
 		match self.Priority {
-			Enum::High => ReusablePriority::High,
-			Enum::Normal => ReusablePriority::Normal,
-			Enum::Low => ReusablePriority::Low,
+			Enum::High => Priority::High,
+
+			Enum::Normal => Priority::Normal,
+
+			Enum::Low => Priority::Low,
 		}
 	}
 }

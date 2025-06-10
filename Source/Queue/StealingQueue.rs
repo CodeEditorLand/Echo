@@ -28,7 +28,7 @@ pub enum Priority {
 }
 
 // The parts of the queue that can be safely shared across all threads.
-struct Shared<T> {
+struct Share<T> {
 	// High, Normal, Low
 	Injector:(Injector<T>, Injector<T>, Injector<T>),
 
@@ -39,18 +39,18 @@ struct Shared<T> {
 /// The public-facing work-stealing queue. It is generic over the task type `T`.
 /// This object is held by the task submitter.
 pub struct StealingQueue<T:Prioritized<P = Priority>> {
-	Shared:Arc<Shared<T>>,
+	Share:Arc<Share<T>>,
 }
 
 /// A context object that contains everything a single worker thread needs to
 /// operate. This includes its own private, thread-local deques.
 pub struct Context<T> {
-	Id:usize,
+	pub Identifier:usize,
 
 	// High, Normal, Low
 	Local:(Worker<T>, Worker<T>, Worker<T>),
 
-	Shared:Arc<Shared<T>>,
+	Share:Arc<Share<T>>,
 }
 
 impl<T:Prioritized<P = Priority>> StealingQueue<T> {
@@ -107,7 +107,7 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 			})
 			.collect();
 
-		let Shared = Arc::new(Shared {
+		let Shared = Arc::new(Share {
 			Injector:(Injector::new(), Injector::new(), Injector::new()),
 
 			Stealer:(StealerHigh, StealerNormal, StealerLow),
@@ -118,15 +118,15 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 		for Id in 0..Count {
 			// We use remove(0) because we built the Vecs in order and need to consume them.
 			Context.push(Context {
-				Id,
+				Identifier:Id,
 
 				Local:(High.remove(0), Normal.remove(0), Low.remove(0)),
 
-				Shared:Shared.clone(),
+				Share:Shared.clone(),
 			});
 		}
 
-		let Queue = Self { Shared };
+		let Queue = Self { Share:Shared };
 
 		(Queue, Context)
 	}
@@ -135,11 +135,11 @@ impl<T:Prioritized<P = Priority>> StealingQueue<T> {
 	/// This is thread-safe and can be called from anywhere.
 	pub fn Submit(&self, Task:T) {
 		match Task.GetPriority() {
-			Priority::High => self.Shared.Injector.0.push(Task),
+			Priority::High => self.Share.Injector.0.push(Task),
 
-			Priority::Normal => self.Shared.Injector.1.push(Task),
+			Priority::Normal => self.Share.Injector.1.push(Task),
 
-			Priority::Low => self.Shared.Injector.2.push(Task),
+			Priority::Low => self.Share.Injector.2.push(Task),
 		}
 	}
 }
@@ -150,16 +150,16 @@ impl<T> Context<T> {
 	pub fn NextTask(&self) -> Option<T> {
 		// Pop from local High
 		self.Local.0.pop()
-			 // Pop from local Normal
+			// Pop from local Normal
 			.or_else(|| self.Local.1.pop())
-			 // Pop from local Low
+			// Pop from local Low
 			.or_else(|| self.Local.2.pop())
-			 // Steal High
-			.or_else(|| self.Steal(&self.Shared.Injector.0, &self.Shared.Stealer.0, &self.Local.0))
-			 // Steal Normal
-			.or_else(|| self.Steal(&self.Shared.Injector.1, &self.Shared.Stealer.1, &self.Local.1))
-			 // Steal Low
-			.or_else(|| self.Steal(&self.Shared.Injector.2, &self.Shared.Stealer.2, &self.Local.2))
+			// Steal High
+			.or_else(|| self.Steal(&self.Share.Injector.0, &self.Share.Stealer.0, &self.Local.0))
+			// Steal Normal
+			.or_else(|| self.Steal(&self.Share.Injector.1, &self.Share.Stealer.1, &self.Local.1))
+			// Steal Low
+			.or_else(|| self.Steal(&self.Share.Injector.2, &self.Share.Stealer.2, &self.Local.2))
 	}
 
 	fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealer:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
@@ -172,7 +172,7 @@ impl<T> Context<T> {
 		Index.shuffle(&mut rand::rng());
 
 		for i in Index {
-			if i == self.Id {
+			if i == self.Identifier {
 				continue;
 			}
 

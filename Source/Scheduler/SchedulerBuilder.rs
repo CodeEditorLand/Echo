@@ -12,6 +12,7 @@ use super::Scheduler::Scheduler;
 pub enum Concurrency {
 	/// Specifies a maximum number of concurrent tasks for a queue.
 	Limit(usize),
+
 	/// Allows an unlimited number of concurrent tasks for a queue.
 	Unlimited,
 }
@@ -23,6 +24,7 @@ pub enum Concurrency {
 /// constructed.
 pub struct SchedulerBuilder {
 	WorkerCount:usize,
+
 	/// Stores the configuration for named queues.
 	QueueConfiguration:HashMap<String, Concurrency>,
 }
@@ -34,6 +36,7 @@ impl SchedulerBuilder {
 	/// system, with a minimum of 2.
 	pub fn New() -> Self {
 		let DefaultWorkerCount = num_cpus::get().max(2);
+
 		Self { WorkerCount:DefaultWorkerCount, QueueConfiguration:HashMap::new() }
 	}
 
@@ -45,10 +48,12 @@ impl SchedulerBuilder {
 	pub fn WithWorkerCount(mut self, WorkerCount:usize) -> Self {
 		if WorkerCount == 0 {
 			warn!("[SchedulerBuilder] Worker count of 0 is invalid. Defaulting to number of logical CPUs.");
+
 			self.WorkerCount = num_cpus::get().max(2);
 		} else {
 			self.WorkerCount = WorkerCount;
 		}
+
 		self
 	}
 
@@ -60,6 +65,7 @@ impl SchedulerBuilder {
 	/// * `ConcurrencyLimit` - The concurrency configuration for this queue.
 	pub fn WithQueue(mut self, QueueName:&str, ConcurrencyLimit:Concurrency) -> Self {
 		self.QueueConfiguration.insert(QueueName.to_string(), ConcurrencyLimit);
+
 		self
 	}
 
