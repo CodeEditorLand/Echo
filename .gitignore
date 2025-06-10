@@ -10,41 +10,8 @@
 /Target/release/*
 /Target/x86_64-pc-windows-msvc/*
 
-!/Target/debug/bundle
-!/Target/debug/bundle/nsis
-!/Target/debug/bundle/msi
-!/Target/debug/bundle/appimage
-
-!/Target/debug/bundle/nsis/*.exe
-!/Target/debug/bundle/nsis/libEcho.rlib
-!/Target/debug/bundle/msi/*.msi
-!/Target/debug/bundle/appimage/*.AppImage
-
-!/Target/debug/*.exe
 !/Target/debug/libEcho.rlib
 
-!/Target/release/bundle
-!/Target/release/bundle/nsis
-!/Target/release/bundle/msi
-!/Target/release/bundle/appimage
-
-!/Target/release/bundle/nsis/*.exe
-!/Target/release/bundle/nsis/libEcho.rlib
-!/Target/release/bundle/msi/*.msi
-!/Target/release/bundle/appimage/*.AppImage
-
-!/Target/release/*.exe
 !/Target/release/libEcho.rlib
 
-!/Target/x86_64-pc-windows-msvc/bundle
-!/Target/x86_64-pc-windows-msvc/bundle/nsis
-!/Target/x86_64-pc-windows-msvc/bundle/msi
-!/Target/x86_64-pc-windows-msvc/bundle/appimage
-
-!/Target/x86_64-pc-windows-msvc/bundle/nsis/*.exe
-!/Target/x86_64-pc-windows-msvc/bundle/nsis/libEcho.rlib
-!/Target/x86_64-pc-windows-msvc/bundle/msi/*.msi
-!/Target/x86_64-pc-windows-msvc/bundle/appimage/*.AppImage
-
-!/Target/x86_64-pc-windows-msvc/*.exe
 !/Target/x86_64-pc-windows-msvc/libEcho.rlib
