@@ -1,0 +1,2 @@
+Target/debug/libEcho.rlib filter=lfs diff=lfs merge=lfs -text
+Target/release/libEcho.rlib filter=lfs diff=lfs merge=lfs -text
