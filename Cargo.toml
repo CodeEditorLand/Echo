@@ -2,7 +2,6 @@
 serde = { workspace = true }
 toml = { workspace = true }
 
-
 [dependencies]
 async-trait = { workspace = true }
 config = { workspace = true }
