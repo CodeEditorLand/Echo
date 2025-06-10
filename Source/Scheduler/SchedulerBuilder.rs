@@ -1,5 +1,5 @@
-//! Defines the fluent builder for creating and configuring a `Scheduler`
-//! instance.
+// Defines the fluent builder for creating and configuring a `Scheduler`
+// instance.
 
 use std::collections::HashMap;
 

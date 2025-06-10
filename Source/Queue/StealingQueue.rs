@@ -1,5 +1,5 @@
-//! Defines a high-performance, priority-aware, work-stealing deque for
-//! distributing tasks among scheduler workers.
+// Defines a high-performance, priority-aware, work-stealing deque for
+// distributing tasks among scheduler workers.
 
 use crossbeam_deque::{Injector, Stealer, Worker};
 use rand::seq::SliceRandom;
