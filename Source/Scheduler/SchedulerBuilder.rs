@@ -1,50 +1,70 @@
+//! Defines the fluent builder for creating and configuring a `Scheduler`.
+
+#![allow(non_snake_case, non_camel_case_types)]
+
 use std::collections::HashMap;
 
 use log::warn;
 
 use super::Scheduler::Scheduler;
 
+/// Defines concurrency limits for named queues. (For future use)
 #[derive(Debug, Clone, Copy)]
 pub enum Concurrency {
+	/// Specifies a maximum number of concurrent tasks for a queue.
 	Limit(usize),
-
+	/// Allows an unlimited number of concurrent tasks for a queue.
 	Unlimited,
 }
 
+/// A fluent builder for creating a `Scheduler` instance.
+///
+/// This pattern provides a clear and readable API for configuring the scheduler
+/// before it is constructed. It is the primary entry point for using the
+/// library.
 pub struct SchedulerBuilder {
-	WorkerCount:usize,
-
-	QueueConfiguration:HashMap<String, Concurrency>,
+	/// The number of worker threads to be spawned in the scheduler's pool.
+	Count:usize,
+	/// Configuration for named queues with concurrency limits. (For future use)
+	Configuration:HashMap<String, Concurrency>,
 }
 
 impl SchedulerBuilder {
-	pub fn New() -> Self {
-		let DefaultWorkerCount = num_cpus::get().max(2);
-
-		Self { WorkerCount:DefaultWorkerCount, QueueConfiguration:HashMap::new() }
+	/// Creates a new `SchedulerBuilder` with default settings.
+	///
+	/// By default, the worker count is set to the number of logical CPUs on the
+	/// system, with a minimum of two workers to ensure work-stealing is viable.
+	pub fn Create() -> Self {
+		let Default = num_cpus::get().max(2);
+		Self { Count:Default, Configuration:HashMap::new() }
 	}
 
-	pub fn WithWorkerCount(mut self, WorkerCount:usize) -> Self {
-		if WorkerCount == 0 {
-			warn!("[SchedulerBuilder] Worker count of 0 is invalid. Defaulting to number of logical CPUs.");
-
-			self.WorkerCount = num_cpus::get().max(2);
+	/// Sets the total number of worker threads for the scheduler pool.
+	///
+	/// If `Count` is `0`, it defaults to the number of logical CPUs.
+	pub fn Count(mut self, Count:usize) -> Self {
+		if Count == 0 {
+			warn!("[Builder] Worker count of 0 is invalid. Defaulting to logical CPUs.");
+			self.Count = num_cpus::get().max(2);
 		} else {
-			self.WorkerCount = WorkerCount;
+			self.Count = Count;
 		}
-
 		self
 	}
 
-	pub fn WithQueue(mut self, QueueName:&str, ConcurrencyLimit:Concurrency) -> Self {
-		self.QueueConfiguration.insert(QueueName.to_string(), ConcurrencyLimit);
-
+	/// Configures a named queue with a specific concurrency limit. (For future
+	/// use)
+	pub fn Queue(mut self, Name:&str, Limit:Concurrency) -> Self {
+		self.Configuration.insert(Name.to_string(), Limit);
 		self
 	}
 
-	pub fn Build(self) -> Scheduler { Scheduler::Start(self.WorkerCount, self.QueueConfiguration) }
+	/// Builds and starts the `Scheduler` with the specified configuration.
+	// This method consumes the builder and returns a new, running `Scheduler`.
+	pub fn Build(self) -> Scheduler { Scheduler::Create(self.Count, self.Configuration) }
 }
 
 impl Default for SchedulerBuilder {
-	fn default() -> Self { Self::New() }
+	/// Provides a default `SchedulerBuilder` instance.
+	fn default() -> Self { Self::Create() }
 }
