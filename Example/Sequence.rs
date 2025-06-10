@@ -66,8 +66,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Wait for a moment to allow actions to complete
 	tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-	// Shutdown the sequence
-	Sequence.Shutdown().await;
+	// ShutDown the sequence
+	Sequence.ShutDown().await;
 
 	println!("Sequence completed");
 

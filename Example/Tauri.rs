@@ -96,8 +96,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	}
 
-	// Shutdown the sequence
-	Sequence.Shutdown().await;
+	// ShutDown the sequence
+	Sequence.ShutDown().await;
 
 	println!("Application completed");
 

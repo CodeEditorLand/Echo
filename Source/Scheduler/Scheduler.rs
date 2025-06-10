@@ -17,7 +17,7 @@ use super::Worker::Worker;
 use crate::{
 	Queue::StealingQueue::StealingQueue,
 	Scheduler::SchedulerBuilder::Concurrency,
-	Task::{Priority::Priority, Task::Task},
+	Task::{Priority::Enum, Task::Struct},
 };
 
 /// Manages a pool of worker threads and a work-stealing queue to execute tasks
@@ -36,21 +36,25 @@ impl Scheduler {
 	/// This is a crate-private function, intended to be called only by the
 	/// `SchedulerBuilder`.
 	///
-	/// @param NumberOfWorkers - The number of worker threads to spawn.
-	/// @param QueueConfigs - Configuration for named queues with concurrency
+	/// @param number_of_workers - The number of worker threads to spawn.
+	/// @param _queue_configs - Configuration for named queues with concurrency
 	/// limits (future use).
-	pub(crate) fn Start(NumberOfWorkers:usize, _QueueConfigs:HashMap<String, Concurrency>) -> Self {
-		info!("[Scheduler] Starting scheduler with {} worker threads.", NumberOfWorkers);
+	pub(crate) fn Start(number_of_workers:usize, _queue_configs:HashMap<String, Concurrency>) -> Self {
+		info!("[Scheduler] Starting scheduler with {} worker threads.", number_of_workers);
 		let IsRunning = Arc::new(AtomicBool::new(true));
-		let Queue = Arc::new(StealingQueue::New(NumberOfWorkers));
+		let Queue = Arc::new(StealingQueue::New(number_of_workers));
 
-		let mut WorkerHandles = Vec::with_capacity(NumberOfWorkers);
+		let mut WorkerHandles = Vec::with_capacity(number_of_workers);
 
-		for WorkerId in 0..NumberOfWorkers {
-			let WorkerInstance = Worker::New(WorkerId, Queue.clone(), IsRunning.clone());
+		for WorkerIdentifier in 0..number_of_workers {
+			let CloneQueue = Queue.clone();
+			let CloneIsRunning = IsRunning.clone();
+
 			let WorkerHandle = tokio::spawn(async move {
+				let WorkerInstance = Worker::New(WorkerIdentifier, CloneQueue, CloneIsRunning);
 				WorkerInstance.Run().await;
 			});
+
 			WorkerHandles.push(WorkerHandle);
 		}
 
@@ -60,28 +64,28 @@ impl Scheduler {
 	/// Submits a new task (as a `Future`) to the scheduler's global queue.
 	/// The task will be picked up by the next available worker.
 	///
-	/// @param FutureInstance - The async block or function to execute.
-	/// @param TaskPriority - The priority of the task.
-	pub fn Submit<F>(&self, FutureInstance:F, TaskPriority:Priority)
+	/// @param future_instance - The async block or function to execute.
+	/// @param task_priority - The priority of the task.
+	pub fn submit<F>(&self, future_instance:F, task_priority:Enum)
 	where
 		F: Future<Output = ()> + Send + 'static, {
-		let NewTask = Task::New(FutureInstance, TaskPriority);
-		self.Queue.Push(NewTask);
+		let new_task = Struct::New(future_instance, task_priority);
+		self.Queue.Push(new_task);
 	}
 
 	/// Asynchronously shuts down the scheduler.
 	///
 	/// This signals all worker threads to stop their loops and then waits for
 	/// them to complete their current tasks and exit gracefully.
-	pub async fn Shutdown(&mut self) {
+	pub async fn ShutDown(&mut self) {
 		if !self.IsRunning.swap(false, Ordering::Relaxed) {
-			info!("[Scheduler] Shutdown already initiated.");
+			info!("[Scheduler] ShutDown already initiated.");
 			return;
 		}
 
 		info!("[Scheduler] Shutting down worker threads...");
-		for Handle in self.WorkerHandles.drain(..) {
-			if let Err(e) = Handle.await {
+		for handle in self.WorkerHandles.drain(..) {
+			if let Err(e) = handle.await {
 				error!("[Scheduler] Error joining worker task during shutdown: {}", e);
 			}
 		}

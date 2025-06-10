@@ -8,7 +8,7 @@
 /// Schedulers and workers can use this to ensure that high-priority,
 /// user-facing tasks are executed before long-running background tasks.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Priority {
+pub enum Enum {
 	/// For background tasks that are not time-sensitive, such as logging,
 	/// telemetry, or non-critical file indexing.
 	Low,

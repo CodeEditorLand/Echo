@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Running = Arc::new(Mutex::new(true));
 
 	// Spawn worker tasks
-	let Handles: Vec<_> = Workers
+	let Handle: Vec<_> = Workers
 		.iter()
 		.map(|Worker| {
 			let Worker = Worker.clone();
@@ -139,7 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	*Running.lock().await = false;
 
 	// Wait for all worker tasks to complete
-	for Handle in Handles {
+	for Handle in Handle {
 		Handle.await?;
 	}
 

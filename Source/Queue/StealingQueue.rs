@@ -4,19 +4,19 @@
 use crossbeam_deque::{Injector, Stealer, Worker};
 use rand::seq::SliceRandom;
 
-use crate::Task::{Priority::Priority, Task::Task};
+use crate::Task::{Priority::Enum, Task::Struct};
 
 /// A container for a set of queues for a single priority level.
 struct PriorityQueueSet {
-	GlobalInjector:Injector<Task>,
-	WorkerQueue:Vec<Worker<Task>>,
-	Stealer:Vec<Stealer<Task>>,
+	GlobalInjector:Injector<Struct>,
+	WorkerQueue:Vec<Worker<Struct>>,
+	Stealer:Vec<Stealer<Struct>>,
 }
 
 impl PriorityQueueSet {
 	/// Creates a new set of queues for a given number of workers.
 	fn New(NumberOfWorker:usize) -> Self {
-		let WorkerQueue:Vec<Worker<Task>> = (0..NumberOfWorker).map(|_| Worker::new_fifo()).collect();
+		let WorkerQueue:Vec<Worker<Struct>> = (0..NumberOfWorker).map(|_| Worker::new_fifo()).collect();
 		Self {
 			GlobalInjector:Injector::new(),
 			Stealer:WorkerQueue.iter().map(|w| w.stealer()).collect(),
@@ -49,17 +49,17 @@ impl StealingQueue {
 
 	/// Submits a task to the appropriate global injection queue based on its
 	/// priority.
-	pub fn Push(&self, Task:Task) {
+	pub fn Push(&self, Task:Struct) {
 		match Task.Priority {
-			Priority::High => self.High.GlobalInjector.push(Task),
-			Priority::Normal => self.Normal.GlobalInjector.push(Task),
-			Priority::Low => self.Low.GlobalInjector.push(Task),
+			Enum::High => self.High.GlobalInjector.push(Task),
+			Enum::Normal => self.Normal.GlobalInjector.push(Task),
+			Enum::Low => self.Low.GlobalInjector.push(Task),
 		}
 	}
 
 	/// Attempts to find a task for a given worker, always prioritizing
 	/// `High` > `Normal` > `Low`.
-	pub fn StealForWorker(&self, WorkerId:usize) -> Option<Task> {
+	pub fn StealForWorker(&self, WorkerId:usize) -> Option<Struct> {
 		self.FindTaskInSet(&self.High, WorkerId)
 			.or_else(|| self.FindTaskInSet(&self.Normal, WorkerId))
 			.or_else(|| self.FindTaskInSet(&self.Low, WorkerId))
@@ -67,7 +67,7 @@ impl StealingQueue {
 
 	/// Implements the core work-finding logic for a specific priority level.
 	/// It first checks the worker's local queue, then attempts to steal.
-	fn FindTaskInSet(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Task> {
+	fn FindTaskInSet(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Struct> {
 		Set.WorkerQueue[WorkerId]
 			.pop()
 			.or_else(|| self.StealFromSetGlobalOrPeer(Set, WorkerId))
@@ -75,7 +75,7 @@ impl StealingQueue {
 
 	/// Attempts to steal work for a specific priority level, first from the
 	/// global queue, then from peer workers.
-	fn StealFromSetGlobalOrPeer(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Task> {
+	fn StealFromSetGlobalOrPeer(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Struct> {
 		// Try stealing from the global injector for this priority set.
 		if Set.GlobalInjector.steal_batch_and_pop(&Set.WorkerQueue[WorkerId]).is_success() {
 			return Set.WorkerQueue[WorkerId].pop();
