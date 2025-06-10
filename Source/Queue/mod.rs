@@ -6,7 +6,7 @@
 
 #![allow(non_snake_case, non_camel_case_types)]
 
-mod StealingQueue;
+pub mod StealingQueue;
 
 // Re-exports the `StealingQueue` for use within the `Echo` crate, but keeps it
 // private from external consumers.

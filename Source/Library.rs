@@ -12,4 +12,4 @@ pub mod Scheduler;
 pub mod Task;
 
 // --- Internal Implementation ---
-mod Queue;
+pub mod Queue;

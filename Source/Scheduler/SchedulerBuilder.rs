@@ -33,7 +33,7 @@ impl SchedulerBuilder {
 	/// By default, the worker count is set to the number of logical CPUs on the
 	/// system, with a minimum of 2.
 	pub fn New() -> Self {
-		let DefaultWorkerCount = num_cpus::get().max(2);
+		let DefaultWorkerCount = num_cpus::get().max(2).expect("");
 		Self { WorkerCount:DefaultWorkerCount, QueueConfiguration:HashMap::new() }
 	}
 
@@ -45,7 +45,7 @@ impl SchedulerBuilder {
 	pub fn WithWorkerCount(mut self, WorkerCount:usize) -> Self {
 		if WorkerCount == 0 {
 			warn!("[SchedulerBuilder] Worker count of 0 is invalid. Defaulting to number of logical CPUs.");
-			self.WorkerCount = num_cpus::get().max(2);
+			self.WorkerCount = num_cpus::get().max(2).expect("");
 		} else {
 			self.WorkerCount = WorkerCount;
 		}
