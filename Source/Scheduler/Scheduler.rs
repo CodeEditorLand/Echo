@@ -15,9 +15,9 @@ use tokio::task::JoinHandle;
 /// queue, and task execution lifecycle.
 use super::Worker::Worker;
 use crate::{
-	queue::StealingQueue,
-	scheduler::SchedulerBuilder::Concurrency,
-	task::{Priority, Task},
+	Queue::StealingQueue,
+	Scheduler::SchedulerBuilder::Concurrency,
+	Task::{Priority, Task},
 };
 
 /// Manages a pool of worker threads and a work-stealing queue to execute tasks

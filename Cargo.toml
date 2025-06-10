@@ -1,23 +1,25 @@
 [build-dependencies]
-serde = { version = "1.0.219", features = ["derive"] }
-toml = { version = "0.8.20" }
+serde = { workspace = true }
+toml = { workspace = true }
+
 
 [dependencies]
-async-trait = "0.1.88"
-config = { version = "0.15.11" }
-dashmap = { version = "6.1.0" }
-env_logger = { version = "0.11.8" }
-futures = { version = "0.3.31" }
-log = { version = "0.4.27" }
-metrics = { version = "0.24.1" }
-rand = { version = "0.9.0" }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = { version = "1.0.140" }
-thiserror = { version = "2.0.12" }
-tokio = { version = "1.44.2", features = ["full"] }
-tokio-console = { version = "0.1.13", optional = true }
-tokio-tungstenite = "0.26.2"
-unbug = { version = "0.4.0" }
+async_trait = { workspace = true }
+config = { workspace = true }
+dashmap = { workspace = true }
+env_logger = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
+metrics = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio_console = { workspace = true, optional = true }
+tokio_tungstenite = { workspace = true }
+unbug = { workspace = true }
+crossbeam_deque = { workspace = true }
 
 [[example]]
 name = "Sequence"

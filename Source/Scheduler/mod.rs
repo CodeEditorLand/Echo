@@ -16,8 +16,8 @@ mod Worker;
 // The main scheduler struct that manages the worker pool and task execution.
 // @see Scheduler
 //
-pub use self::Scheduler::Scheduler;
+// pub use self::Scheduler::Scheduler;
 // The fluent builder for creating and configuring a `Scheduler` instance.
 // This is the primary entry point for using the Echo library.
 // @see SchedulerBuilder
-pub use self::SchedulerBuilder::SchedulerBuilder;
+// pub use self::SchedulerBuilder::SchedulerBuilder;

@@ -8,8 +8,8 @@
 #![allow(non_snake_case, non_camel_case_types)]
 
 // --- Public API ---
-pub mod scheduler;
-pub mod task;
+pub mod Scheduler;
+pub mod Task;
 
 // --- Internal Implementation ---
-mod queue;
+mod Queue;

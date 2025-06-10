@@ -4,7 +4,7 @@
 use crossbeam_deque::{Injector, Stealer, Worker};
 use rand::seq::SliceRandom;
 
-use crate::task::{Priority, Task};
+use crate::Task::{Priority, Task};
 
 /// A container for a set of queues for a single priority level.
 struct PriorityQueueSet {
