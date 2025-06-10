@@ -17,8 +17,6 @@ use crate::{
 	Task::{Priority::Enum as PriorityEnum, Task::Struct as TaskStruct},
 };
 
-/// Manages a pool of worker threads and a work-stealing queue to execute tasks
-/// efficiently. This struct is the public-facing API of the Echo scheduler.
 pub struct Scheduler {
 	Queue:StealingQueueStruct<TaskStruct>,
 

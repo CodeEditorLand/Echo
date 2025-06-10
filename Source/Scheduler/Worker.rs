@@ -17,8 +17,7 @@ pub struct Worker {
 impl Worker {
 	pub fn New(Context:Context<TaskStruct>, IsRunning:Arc<AtomicBool>) -> Self { Self { Context, Running:IsRunning } }
 
-	/// The main execution loop for the worker.
-	pub async fn Run(&self) {
+	pub async fn Run(self) {
 		trace!("[Worker {}] Starting execution loop.", self.Context.Identifier);
 
 		while self.Running.load(Ordering::Relaxed) {
