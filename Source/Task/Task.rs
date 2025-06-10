@@ -4,6 +4,8 @@ use std::{future::Future, pin::Pin};
 /// @description Defines the `Task` struct, which is the internal unit of work
 /// for the Echo scheduler.
 use super::Priority::Enum;
+// NEW: Import traits and types from our new reusable library.
+use crate::Queue::StealingQueue::{Prioritized, Priority as ReusablePriority};
 
 /// A type alias for a boxed, send-able, pinned future that returns no value.
 /// This is the standard way to handle dynamic, async operations in Rust.
@@ -31,5 +33,19 @@ impl Struct {
 	where
 		F: Future<Output = ()> + Send + 'static, {
 		Self { Future:Box::pin(FutureInstance), Priority:PriorityValue }
+	}
+}
+
+// NEW: Implement the `Prioritized` trait to make our `Task` compatible
+// with the generic `ReusableQueue`.
+impl Prioritized for Struct {
+	type P = ReusablePriority;
+
+	fn GetPriority(&self) -> Self::P {
+		match self.Priority {
+			Enum::High => ReusablePriority::High,
+			Enum::Normal => ReusablePriority::Normal,
+			Enum::Low => ReusablePriority::Low,
+		}
 	}
 }

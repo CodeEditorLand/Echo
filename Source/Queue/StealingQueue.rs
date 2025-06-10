@@ -1,97 +1,183 @@
-// Defines a high-performance, priority-aware, work-stealing deque for
-// distributing tasks among scheduler workers.
+// @module StealingQueue
+// @description A generic, priority-aware, work-stealing queue implementation.
+// This module is self-contained and can be used by any scheduler or application
+// to manage and distribute tasks of any type `T`.
 
-use crossbeam_deque::{Injector, Stealer, Worker};
+#![allow(non_snake_case, non_camel_case_types)]
+
+use std::sync::Arc;
+
+use crossbeam_deque::{Injector, Stealer, Worker as WorkerDeque};
 use rand::seq::SliceRandom;
 
-use crate::Task::{Priority::Enum, Task::Struct};
+// The task must have a way to specify its priority. We define a trait for this.
+pub trait Prioritized {
+	type P: PartialEq + Eq + Copy;
 
-/// A container for a set of queues for a single priority level.
-struct PriorityQueueSet {
-	GlobalInjector:Injector<Struct>,
-	WorkerQueue:Vec<Worker<Struct>>,
-	Stealer:Vec<Stealer<Struct>>,
+	fn GetPriority(&self) -> Self::P;
 }
 
-impl PriorityQueueSet {
-	/// Creates a new set of queues for a given number of workers.
-	fn New(NumberOfWorker:usize) -> Self {
-		let WorkerQueue:Vec<Worker<Struct>> = (0..NumberOfWorker).map(|_| Worker::new_fifo()).collect();
-		Self {
-			GlobalInjector:Injector::new(),
-			Stealer:WorkerQueue.iter().map(|w| w.stealer()).collect(),
-			WorkerQueue,
+// A simple enum for the library to use. The consumer's task must map to this.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Priority {
+	High,
+
+	Normal,
+
+	Low,
+}
+
+// The parts of the queue that can be safely shared across all threads.
+struct Shared<T> {
+	// High, Normal, Low
+	Injector:(Injector<T>, Injector<T>, Injector<T>),
+
+	// High, Normal, Low
+	Stealer:(Vec<Stealer<T>>, Vec<Stealer<T>>, Vec<Stealer<T>>),
+}
+
+/// The public-facing work-stealing queue. It is generic over the task type `T`.
+/// This object is held by the task submitter.
+pub struct StealingQueue<T:Prioritized<P = Priority>> {
+	Shared:Arc<Shared<T>>,
+}
+
+/// A context object that contains everything a single worker thread needs to
+/// operate. This includes its own private, thread-local deques.
+pub struct WorkerContext<T> {
+	Id:usize,
+
+	// High, Normal, Low
+	Local:(WorkerDeque<T>, WorkerDeque<T>, WorkerDeque<T>),
+
+	Shared:Arc<Shared<T>>,
+}
+
+impl<T:Prioritized<P = Priority>> StealingQueue<T> {
+	/// Creates a new work-stealing queue system.
+	///
+	/// Returns a tuple containing:
+	/// 1. The `StealingQueue` for submitting tasks.
+	/// 2. A `Vec` of `WorkerContext`s, one for each worker to be spawned.
+	pub fn New(Count:usize) -> (Self, Vec<WorkerContext<T>>) {
+		let mut High:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+
+		let mut Normal:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+
+		let mut Low:Vec<WorkerDeque<T>> = Vec::with_capacity(Count);
+
+		// --- FIX: Use the documented API for creating Worker/Stealer pairs ---
+		let StealerHigh:Vec<Stealer<T>> = (0..Count)
+			.map(|_| {
+				// 1. Create the Worker.
+				let Worker = WorkerDeque::new_fifo();
+
+				// 2. Get its Stealer.
+				let Stealer = Worker.stealer();
+
+				// 3. Store the Worker part.
+				High.push(Worker);
+
+				// 4. Return the Stealer part.
+				Stealer
+			})
+			.collect();
+
+		let StealerNormal:Vec<Stealer<T>> = (0..Count)
+			.map(|_| {
+				let Worker = WorkerDeque::new_fifo();
+
+				let Stealer = Worker.stealer();
+
+				Normal.push(Worker);
+
+				Stealer
+			})
+			.collect();
+
+		let StealerLow:Vec<Stealer<T>> = (0..Count)
+			.map(|_| {
+				let Worker = WorkerDeque::new_fifo();
+
+				let Stealer = Worker.stealer();
+
+				Low.push(Worker);
+
+				Stealer
+			})
+			.collect();
+
+		let Shared = Arc::new(Shared {
+			Injector:(Injector::new(), Injector::new(), Injector::new()),
+
+			Stealer:(StealerHigh, StealerNormal, StealerLow),
+		});
+
+		let mut Context = Vec::with_capacity(Count);
+
+		for Id in 0..Count {
+			// We use remove(0) because we built the Vecs in order and need to consume them.
+			Context.push(WorkerContext {
+				Id,
+
+				Local:(High.remove(0), Normal.remove(0), Low.remove(0)),
+
+				Shared:Shared.clone(),
+			});
+		}
+
+		let Queue = Self { Shared };
+
+		(Queue, Context)
+	}
+
+	/// Submits a new task to the queue.
+	/// This is thread-safe and can be called from anywhere.
+	pub fn Submit(&self, Task:T) {
+		match Task.GetPriority() {
+			Priority::High => self.Shared.Injector.0.push(Task),
+
+			Priority::Normal => self.Shared.Injector.1.push(Task),
+
+			Priority::Low => self.Shared.Injector.2.push(Task),
 		}
 	}
 }
 
-/// A collection of worker deques that supports priority-aware work-stealing.
-///
-/// This struct holds three distinct sets of queues, one for each priority level
-/// (`High`, `Normal`, `Low`). When a worker needs a task, it always checks for
-/// higher-priority work before considering lower-priority work.
-pub(crate) struct StealingQueue {
-	High:PriorityQueueSet,
-	Normal:PriorityQueueSet,
-	Low:PriorityQueueSet,
-}
-
-impl StealingQueue {
-	/// Creates a new `StealingQueue` with a dedicated set of queues for each
-	/// priority level.
-	pub fn New(NumberOfWorker:usize) -> Self {
-		Self {
-			High:PriorityQueueSet::New(NumberOfWorker),
-			Normal:PriorityQueueSet::New(NumberOfWorker),
-			Low:PriorityQueueSet::New(NumberOfWorker),
-		}
+impl<T> WorkerContext<T> {
+	/// Finds the next available task for this worker.
+	/// Implements the full priority-aware, work-stealing logic.
+	pub fn NextTask(&self) -> Option<T> {
+		// Pop from local High
+		self.Local.0.pop()
+			 // Pop from local Normal
+			.or_else(|| self.Local.1.pop())
+			 // Pop from local Low
+			.or_else(|| self.Local.2.pop())
+			 // Steal High
+			.or_else(|| self.Steal(&self.Shared.Injector.0, &self.Shared.Stealer.0, &self.Local.0))
+			 // Steal Normal
+			.or_else(|| self.Steal(&self.Shared.Injector.1, &self.Shared.Stealer.1, &self.Local.1))
+			 // Steal Low
+			.or_else(|| self.Steal(&self.Shared.Injector.2, &self.Shared.Stealer.2, &self.Local.2))
 	}
 
-	/// Submits a task to the appropriate global injection queue based on its
-	/// priority.
-	pub fn Push(&self, Task:Struct) {
-		match Task.Priority {
-			Enum::High => self.High.GlobalInjector.push(Task),
-			Enum::Normal => self.Normal.GlobalInjector.push(Task),
-			Enum::Low => self.Low.GlobalInjector.push(Task),
-		}
-	}
-
-	/// Attempts to find a task for a given worker, always prioritizing
-	/// `High` > `Normal` > `Low`.
-	pub fn StealForWorker(&self, WorkerId:usize) -> Option<Struct> {
-		self.FindTaskInSet(&self.High, WorkerId)
-			.or_else(|| self.FindTaskInSet(&self.Normal, WorkerId))
-			.or_else(|| self.FindTaskInSet(&self.Low, WorkerId))
-	}
-
-	/// Implements the core work-finding logic for a specific priority level.
-	/// It first checks the worker's local queue, then attempts to steal.
-	fn FindTaskInSet(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Struct> {
-		Set.WorkerQueue[WorkerId]
-			.pop()
-			.or_else(|| self.StealFromSetGlobalOrPeer(Set, WorkerId))
-	}
-
-	/// Attempts to steal work for a specific priority level, first from the
-	/// global queue, then from peer workers.
-	fn StealFromSetGlobalOrPeer(&self, Set:&PriorityQueueSet, WorkerId:usize) -> Option<Struct> {
-		// Try stealing from the global injector for this priority set.
-		if Set.GlobalInjector.steal_batch_and_pop(&Set.WorkerQueue[WorkerId]).is_success() {
-			return Set.WorkerQueue[WorkerId].pop();
+	fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealer:&'a [Stealer<T>], Local:&'a WorkerDeque<T>) -> Option<T> {
+		if Injector.steal_batch_and_pop(Local).is_success() {
+			return Local.pop();
 		}
 
-		// Try stealing from peers for this priority set. We shuffle the indices
-		// to ensure fairness and avoid contention hotspots.
-		let mut ShuffledIndex:Vec<usize> = (0..Set.Stealer.len()).collect();
-		ShuffledIndex.shuffle(&mut rand::rng());
+		let mut Index:Vec<usize> = (0..Stealer.len()).collect();
 
-		for Index in ShuffledIndex {
-			if Index == WorkerId {
-				continue; // Don't steal from ourselves.
+		Index.shuffle(&mut rand::rng());
+
+		for i in Index {
+			if i == self.Id {
+				continue;
 			}
-			if Set.Stealer[Index].steal_batch_and_pop(&Set.WorkerQueue[WorkerId]).is_success() {
-				return Set.WorkerQueue[WorkerId].pop();
+
+			if Stealer[i].steal_batch_and_pop(Local).is_success() {
+				return Local.pop();
 			}
 		}
 
