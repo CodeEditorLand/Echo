@@ -21,124 +21,141 @@ Land Code Editor.
 
 ## Core Architecture Principles
 
-| Principle                  | Description                                                                                                                                                     | Key Components Involved                     |
-| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------ |
-| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a work-stealing algorithm to achieve maximum throughput and low-latency task execution.                   | `queue::StealingQueue`, `scheduler::Worker` |
-| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `scheduler::Scheduler`, `SchedulerBuilder`  |
-| **Decoupling**             | Separate the _submission_ of a task from its _execution_. An `AppRuntime` submits work, and the `Scheduler` handles how, when, and where it runs.               | `Scheduler::Submit`, `task::Task`           |
-| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `scheduler::Worker` (execution loop)        |
-| **Composability**          | Provide a simple, generic `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                     | `task::Task`, `Scheduler::Submit`           |
-| **Prioritization**         | Allow tasks to be submitted with different priorities to ensure that latency-sensitive work is executed before background work.                                 | `task::Priority`                            |
+| Principle                  | Description                                                                                                                                                     | Key Components Involved                                               |
+| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a work-stealing algorithm to achieve maximum throughput and low-latency task execution.                   | `Queue::StealingQueue`, `Scheduler::Worker`                           |
+| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`                 |
+| **Decoupling**             | Separate the generic **Queueing Logic** from the application-specific **Scheduler Implementation**. The scheduler uses the queue to run its tasks.              | `Queue::StealingQueue<T>`, `Scheduler::Scheduler`, `Task::Task::Task` |
+| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run` (execution loop)                             |
+| **Composability**          | Provide a simple `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                              | `Task::Task::Task`, `Scheduler::Scheduler::Submit`                    |
+| **Prioritization**         | Allow tasks to be submitted with different priorities to ensure that latency-sensitive work is executed before background work.                                 | `Task::Priority::Priority`, `Queue::StealingQueue::Priority`          |
 
 ---
 
 ## Deep Dive into `Echo`'s Components
 
-### 1. The Task (`src/task/`)
+The architecture of `Echo` is cleanly separated into three distinct modules:
+`Task`, `Queue`, and `Scheduler`.
 
-- **Role:** The `Task` is the most fundamental unit of work in the Echo system.
-  It's a simple, self-contained struct that the scheduler knows how to execute.
-- **`Task.rs`:** Defines `pub struct Task`, which contains:
-    - `Future: Pin<Box<dyn Future<Output = ()> + Send>>`: The actual
+### 1. The `Task` Module (`Source/Task/`)
+
+- **Role:** Defines what a "task" is for the `Echo` scheduler. It's the
+  concrete, application-specific unit of work.
+- **`Task::Priority`:** Defines the `enum Priority` (`High`, `Normal`, `Low`).
+  This is the priority system used by the application logic.
+- **`Task::Task`:** Defines `pub struct Task`, which contains:
+    - `Operation: Pin<Box<dyn Future<Output = ()> + Send>>`: The actual
       asynchronous operation to be executed. By boxing the future, we can store
       different kinds of futures in the same queue (type erasure).
     - `Priority: Priority`: The priority level of the task.
-- **`Priority.rs`:** Defines the `enum Priority` (`Low`, `Normal`, `High`). This
-  allows the scheduler to make intelligent decisions about what to run next.
+- **Trait Implementation:** It implements the
+  `Queue::StealingQueue::Prioritized` trait, which acts as a bridge, allowing
+  the application-specific `Task` to be used by the generic `Queue`.
 
-### 2. The Queue (`src/queue/`)
+### 2. The `Queue` Module (`Source/Queue/`)
 
-- **Role:** The `StealingQueue` is the high-performance heart of the scheduler.
-  It's responsible for efficiently distributing `Task`s among all the worker
-  threads.
+- **Role:** This module is a **generic, reusable, priority-aware work-stealing
+  library**. It knows nothing about `Echo`'s specific `Task` type; it can
+  schedule _any_ type `T` that implements the `Prioritized` trait. It is the
+  high-performance heart of the system.
 - **`StealingQueue.rs`:**
-    - **Data Structures:** It is built on `crossbeam_deque`. It contains:
-        - An `Injector<Task>`: A lock-free, multi-producer queue where new tasks
-          are initially pushed.
-        - A `Vec<Worker<Task>>`: Each worker thread gets its own local,
-          double-ended queue. This is a crucial performance optimization, as
-          workers primarily operate on their own queue, avoiding contention.
-        - A `Vec<Stealer<Task>>`: Handles that allow workers to steal tasks from
-          each other's queues.
-    - **Work-Stealing Logic (`StealForWorker`):** This is the core algorithm.
-      When a worker requests a task, it follows a specific order to maximize
+    - **`trait Prioritized`:** A public contract that any schedulable item must
+      fulfill.
+    - **`struct StealingQueue<T>`:** The public-facing queue. Its `Create`
+      method is the key to its design. It initializes all the internal data
+      structures and returns two things:
+        1.  An instance of itself, which is used to `Submit` new tasks.
+        2.  A `Vec<Context<T>>`, containing one unique context object for each
+            worker thread.
+    - **`struct Context<T>`:** A critical data structure that bundles together
+      everything one worker needs to operate. Most importantly, it takes
+      **ownership** of the thread-local `crossbeam_deque::Worker` queues, which
+      are **not safe to share**. This ownership design is what makes the entire
+      system thread-safe.
+    - **Work-Stealing Logic (`Context::Next`):** The core algorithm lives here.
+      When a worker calls `Next()`, it follows a specific order to maximize
       efficiency:
-        1.  **LIFO from Local Queue:** It first tries to `pop` from its own
-            local queue. This is a Last-In, First-Out strategy, which is
-            beneficial for cache locality.
-        2.  **Steal from Global Queue:** If its local queue is empty, it tries
-            to steal a batch of tasks from the global `Injector` queue.
-        3.  **FIFO from Peer Queue:** If the global queue is also empty, it
-            randomly selects another worker and tries to steal from the _bottom_
-            of their queue. This is a First-In, First-Out strategy, which
-            ensures that larger, longer-running tasks are stolen first, keeping
-            all workers busy.
+        1.  **LIFO from Local Queues:** It first tries to `pop` from its own
+            local queues, starting with `High` priority down to `Low`. This is a
+            Last-In, First-Out strategy, which is beneficial for cache locality.
+        2.  **Steal from System:** If its local queues are empty, it attempts to
+            steal work from the wider system, again checking `High` priority
+            queues before `Normal` or `Low`. For each priority level, it: a.
+            Tries to steal a batch from the global `Injector` queue. b. If that
+            fails, it randomly selects a peer `Worker` and steals from the
+            opposite end of their queue. This ensures that larger,
+            longer-running tasks are stolen first, keeping all workers busy.
 
-### 3. The Scheduler and Workers (`src/scheduler/`)
+### 3. The `Scheduler` Module (`Source/Scheduler/`)
 
-- **Role:** This module provides the main public API for the `Echo` library. It
-  manages the lifecycle of the worker pool and orchestrates the entire system.
+- **Role:** This module is the **application-specific consumer** of the generic
+  `Queue` library. It ties everything together to create the final,
+  public-facing `Echo` scheduler.
 - **Component Breakdown:**
-    - **`Worker.rs`:** Defines the `struct Worker`, which represents a single
-      actor. Its `Run()` method contains an infinite loop that repeatedly calls
-      `StealingQueue::StealForWorker` and `await`s the future of any task it
-      finds.
     - **`SchedulerBuilder.rs`:** A fluent API for configuring the scheduler. It
-      allows setting the number of worker threads and will be the place to add
-      future configurations like named queues.
+      allows setting the number of worker threads.
+    - **`Worker.rs`:** A thin, private wrapper that holds a
+      `Queue::Context<Task>`. Its `Run(self)` method consumes the worker and its
+      context, containing the main loop that repeatedly calls `Context.Next()`
+      and `await`s the `Task.Operation` of any task it finds. The `Run(self)`
+      signature (consuming `self`) is essential for thread safety.
     - **`Scheduler.rs`:**
-        - **`Start()`:** This method, called by the builder, creates the
-          `StealingQueue`, spawns the configured number of `Worker`s onto
-          `tokio` threads, and stores their `JoinHandle`s.
+        - **`Create()`:** This method, called by the builder, instantiates the
+          generic queue for the specific `Task` type:
+          `StealingQueue::<Task>::Create()`. It then spawns the configured
+          number of `Worker`s onto `tokio` threads, giving each one its unique
+          `Context`.
         - **`Submit()`:** The primary public method. It takes a future and a
-          priority, wraps them in a `Task`, and pushes the task onto the global
-          `Injector` queue for the workers to pick up.
-        - **`Shutdown()`:** A graceful shutdown mechanism. It sets an
-          `AtomicBool` flag that workers check, causing their loops to
-          terminate. It then `await`s all the worker `JoinHandle`s to ensure a
-          clean exit.
+          priority, wraps them in a `Task::Task`, and calls the underlying
+          `Queue.Submit()` method.
+        - **`Stop()`:** A graceful shutdown mechanism. It sets an `AtomicBool`
+          flag that all workers check, causing their loops to terminate. It then
+          `await`s all the worker `JoinHandle`s to ensure a clean exit.
 
-### End-to-End Workflow Example: Submitting an Effect
+---
 
-This demonstrates how `Mountain`'s `AppRuntime` uses `Echo` to run a
+## End-to-End Workflow Example: Submitting an Effect
+
+This demonstrates how `Mountain`'s `ApplicationRunTime` uses `Echo` to run a
 `Common::ActionEffect`:
 
-1.  **Application Call (`Mountain`):** The `track` dispatcher creates an
+1.  **Application Call (`Mountain`):** The application logic creates an
     `ActionEffect`, for example, `FsHandler::ReadFile(...)`, and calls
     `runtime.Run(effect)`.
-2.  **Runtime (`Mountain/src/runtime/AppRuntime.rs`):** The `Run` method
-    receives the `ActionEffect`. a. It creates a `tokio::sync::oneshot` channel
-    to get the result back. b. It creates a new `Future` that will: i. Call the
-    `ActionEffect`'s `Apply` method with the required environment. ii. Take the
-    `Result<Output, Error>` from the effect. iii. Send this result through the
-    `oneshot` sender. c. It wraps this new `Future` in an `Echo::task::Task`
-    struct with a priority.
-3.  **Scheduler (`Echo/src/scheduler/Scheduler.rs`):** The `AppRuntime` calls
-    `scheduler.Submit(task)`. The `Scheduler` pushes the `Task` onto its global
-    `Injector` queue.
-4.  **Worker (`Echo/src/scheduler/Worker.rs`):** An idle worker's `Run` loop
-    successfully steals the task from the `Injector`.
-5.  **Execution:** The worker `await`s the `Task.Future`. This executes the
+2.  **Runtime (`Mountain`):** The `Run` method receives the `ActionEffect`. a.
+    It creates a `tokio::sync::oneshot` channel to get the result back. b. It
+    creates a new `Future` that will: i. Call the `ActionEffect`'s `Apply`
+    method with the required environment. ii. Take the `Result<Output, Error>`
+    from the effect. iii. Send this result through the `oneshot` sender.
+3.  **Scheduler (`Echo`):** The `ApplicationRunTime` calls `Scheduler.Submit()`
+    with the new `Future` and a priority. a. `Scheduler.Submit` creates a
+    `Task::Task` struct. b. It calls `Queue.Submit()`, which pushes the `Task`
+    onto the appropriate global `Injector` queue based on its priority.
+4.  **Worker (`Echo`):** An idle `Worker` in its `Run` loop calls
+    `Context.Next()`. a. The `Context` steals the new `Task` from the global
+    `Injector`. b. The `Worker` receives the `Task`.
+5.  **Execution:** The worker `await`s the `Task.Operation`. This executes the
     logic from step 2b, which in turn `await`s the original `ActionEffect`.
 6.  **Result Propagation:** The `ActionEffect` completes. Its `Result` is sent
     through the `oneshot` channel.
-7.  **Unwinding (`Mountain/src/runtime/AppRuntime.rs`):** The original `Run`
-    method, which was `await`ing the `oneshot` receiver, wakes up with the
-    result and returns it to the application.
+7.  **Unwinding (`Mountain`):** The original `Run` method, which was `await`ing
+    the `oneshot` receiver, wakes up with the result and returns it to the
+    application.
 
 ---
 
 ## Project Structure Overview
 
-The `Echo` repository is organized into a few core modules:
+The `Echo` repository is organized into a few core modules with a clear
+separation of concerns:
 
 ```
 Echo/
 └── Source/
-    ├── lib.rs                   # Crate root, declares public modules.
-    ├── scheduler/               # The main public API: Scheduler and SchedulerBuilder.
-    ├── queue/                   # The internal, high-performance work-stealing queue.
-    └── task/                    # The internal definition of a Task and its Priority.
+    ├── Library.rs               # Crate root, declares all modules.
+    ├── Scheduler/               # The main public API: Scheduler and Builder. Consumes the Queue.
+    ├── Queue/                   # The generic, high-performance work-stealing queue library.
+    └── Task/                    # The application-specific definition of a Task and its Priority.
 ```
 
 ---
@@ -150,24 +167,24 @@ application logic runs efficiently and concurrently.
 
 ```mermaid
 graph LR
-    classDef common fill:#9cf,stroke:#333,stroke-width:2px;
-    classDef mountain fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef echo fill:#ffc,stroke:#333,stroke-width:2px;
+    classDef Common fill:#9cf,stroke:#333,stroke-width:2px;
+    classDef Mountain fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef Echo fill:#ffc,stroke:#333,stroke-width:2px;
 
     subgraph "Common (The 'What')"
-        ActionEffect["ActionEffect (Declarative Task)"]:::common
+        ActionEffect["ActionEffect (Declarative Task)"]:::Common
     end
 
     subgraph "Mountain (The 'How' & 'When')"
-        AppRuntime["Mountain AppRuntime"]:::mountain
-        Track["Request Dispatcher"]:::mountain
+        ApplicationRunTime["Mountain ApplicationRunTime"]:::Mountain
+        Track["Request Dispatcher"]:::Mountain
 
         Track --> ActionEffect
-        ActionEffect -- Is submitted by --> AppRuntime
+        ActionEffect -- Is submitted by --> ApplicationRunTime
     end
 
     subgraph "Echo (The 'Where' & 'Why')"
-        Scheduler["Echo Scheduler"]:::echo
-        AppRuntime -- Submits tasks to --> Scheduler
+        Scheduler["Echo Scheduler"]:::Echo
+        ApplicationRunTime -- Submits tasks to --> Scheduler
     end
 ```
