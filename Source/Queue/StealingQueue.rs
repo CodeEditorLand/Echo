@@ -31,11 +31,11 @@ pub enum Priority {
 ///
 /// This includes global injectors for submitting new tasks and stealers for
 /// taking tasks from other workers, organized by priority level.
-struct Share<T> {
+pub struct Share<T> {
 	/// Global, multi-producer queues for each priority.
-	Injector:(Injector<T>, Injector<T>, Injector<T>),
+	pub Injector:(Injector<T>, Injector<T>, Injector<T>),
 	/// Share handles for stealing tasks from each worker's queue.
-	Stealer:(Vec<Stealer<T>>, Vec<Stealer<T>>, Vec<Stealer<T>>),
+	pub Stealer:(Vec<Stealer<T>>, Vec<Stealer<T>>, Vec<Stealer<T>>),
 }
 
 /// A generic, priority-aware, work-stealing queue.
@@ -55,9 +55,9 @@ pub struct Context<T> {
 	/// A unique identifier for the worker, used to avoid self-stealing.
 	pub Identifier:usize,
 	/// Thread-local work queues for each priority level.
-	Local:(Worker<T>, Worker<T>, Worker<T>),
+	pub Local:(Worker<T>, Worker<T>, Worker<T>),
 	/// A reference to the shared components of the entire queue system.
-	Share:Arc<Share<T>>,
+	pub Share:Arc<Share<T>>,
 }
 
 impl<T:Prioritized<Kind = Priority>> StealingQueue<T> {
@@ -157,7 +157,7 @@ impl<T> Context<T> {
 	/// It first tries to steal a batch from the global injector queue. If that
 	/// fails, it attempts to steal from a randomly chosen peer worker to ensure
 	/// fair distribution and avoid contention hotspots.
-	fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealers:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
+	pub fn Steal<'a>(&self, Injector:&'a Injector<T>, Stealers:&'a [Stealer<T>], Local:&'a Worker<T>) -> Option<T> {
 		if Injector.steal_batch_and_pop(Local).is_success() {
 			return Local.pop();
 		}

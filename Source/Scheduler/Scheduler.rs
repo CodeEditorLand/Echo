@@ -36,7 +36,7 @@ impl Scheduler {
 	///
 	/// This is a crate-private function, intended to be called only by the
 	/// `SchedulerBuilder`'s `Build` method.
-	pub(crate) fn Create(Count:usize, _Configuration:HashMap<String, Concurrency>) -> Self {
+	pub fn Create(Count:usize, _Configuration:HashMap<String, Concurrency>) -> Self {
 		info!("[Scheduler] Create with {} workers.", Count);
 		let Running = Arc::new(AtomicBool::new(true));
 

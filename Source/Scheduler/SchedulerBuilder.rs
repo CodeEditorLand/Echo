@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use log::warn;
 
-use super::Scheduler::Scheduler;
+use crate::Scheduler::Scheduler::Scheduler;
 
 /// Defines concurrency limits for named queues. (For future use)
 #[derive(Debug, Clone, Copy)]

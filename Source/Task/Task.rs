@@ -4,8 +4,10 @@
 
 use std::{future::Future, pin::Pin};
 
-use super::Priority::Priority;
-use crate::Queue::StealingQueue::{Prioritized, Priority as QueuePriority};
+use crate::{
+	Queue::StealingQueue::{Prioritized, Priority as QueuePriority},
+	Task::Priority::Priority,
+};
 
 /// Defines a dynamic, asynchronous operation that can be sent between threads.
 pub type Operation = Pin<Box<dyn Future<Output = ()> + Send>>;
