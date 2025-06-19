@@ -18,9 +18,9 @@
 
 Welcome to **Echo**! This crate provides a powerful, structured concurrency
 runtime for Rust applications, built on a high-performance **work-stealing
-scheduler**. It is designed to be the core execution engine for the `Mountain`
-backend, integrating seamlessly with the declarative `ActionEffect` system
-defined in the `Common` crate. **Echo** moves beyond simple task spawning
+scheduler**. It is designed to be the core execution engine for application
+backends like `Mountain`, integrating seamlessly with declarative systems like
+the `ActionEffect` pattern. **Echo** moves beyond simple task spawning
 (`tokio::spawn`) to provide a robust framework for managing, prioritizing, and
 executing complex asynchronous workflows with resilience and efficiency.
 
@@ -58,13 +58,13 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ## Core Architecture Principles 🏗️
 
-| Principle                  | Description                                                                                                                                                     | Key Components Involved                                               |
-| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a high-performance work-stealing algorithm to achieve maximum throughput and low-latency task execution.  | `Queue::StealingQueue`, `Scheduler::Worker`                           |
-| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`                 |
-| **Decoupling**             | Separate the generic **Queueing Logic** from the application-specific **Scheduler Implementation**. The scheduler uses the queue to run its tasks.              | `Queue::StealingQueue<T>`, `Scheduler::Scheduler`, `Task::Task::Task` |
-| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run`                                              |
-| **Composability**          | Provide a simple `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                              | `Task::Task::Task`, `Scheduler::Scheduler::Submit`                    |
+| Principle                  | Description                                                                                                                                                     | Key Components Involved                                             |
+| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ |
+| **Performance**            | Use lock-free data structures (`crossbeam-deque`) and a high-performance work-stealing algorithm to achieve maximum throughput and low-latency task execution.  | `Queue::StealingQueue`, `Scheduler::Worker`                         |
+| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers, providing graceful startup and shutdown, unlike fire-and-forget `tokio::spawn`.         | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`               |
+| **Decoupling**             | Separate the generic **Queueing Logic** from the application-specific **Scheduler Implementation**. The scheduler uses the queue to run its tasks.              | `Queue::StealingQueue<TTask>`, `Scheduler::Scheduler`, `Task::Task` |
+| **Resilience**             | The scheduler's design is inherently resilient; the failure of one task (if it panics) is contained within its `tokio` task and does not crash the worker pool. | `Scheduler::Worker::Run`                                            |
+| **Composability**          | Provide a simple `Submit` API that accepts any `Future<Output = ()>`, making it easy to integrate with any asynchronous Rust code.                              | `Task::Task`, `Scheduler::Scheduler::Submit`                        |
 
 ---
 
@@ -94,8 +94,8 @@ graph LR
 	end
 
 	subgraph "Mountain (Application Logic)"
-        AppRuntime["Mountain AppRuntime"]:::mountain
-        MountainEnv["MountainEnvironment (Service Impls)"]:::mountain
+        ApplicationRunTime["Mountain ApplicationRunTime"]:::mountain
+        MountainEnvironment["MountainEnvironment (Service Impls)"]:::mountain
         Track["Track (Request Dispatcher)"]:::mountain
 	end
 
@@ -109,10 +109,10 @@ graph LR
         WorkerPool -- Pull tasks from --> WorkStealingQueue;
 	end
 
-    Track -- Dispatches --> ActionEffect;
-    ActionEffect -- Is run by --> AppRuntime;
-    AppRuntime -- Submits Future to --> Scheduler;
-    WorkerPool -- Executes Future using --> MountainEnv;
+    Track -- Dispatches to --> ApplicationRunTime;
+    ApplicationRunTime -- Creates Future from --> ActionEffect;
+    ApplicationRunTime -- Submits Future to --> Scheduler;
+    WorkerPool -- Executes Future using --> MountainEnvironment;
 ```
 
 ---
@@ -126,9 +126,9 @@ separation of concerns:
 Echo/
 └── Source/
     ├── Library.rs               # Crate root, declares all modules.
-    ├── Scheduler/               # The main public API: Scheduler and Builder. Consumes the Queue.
+    ├── Scheduler/               # The main public API: Scheduler and SchedulerBuilder.
     ├── Queue/                   # The generic, high-performance work-stealing queue library.
-    └── Task/                    # The application-specific definition of a Task and its Priority.
+    └── Task/                    # The concrete definition of a Task and its Priority.
 ```
 
 ---
@@ -157,28 +157,21 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 `Echo` is designed to be integrated into an application's main entry point and
 used throughout the application, often via a shared context or runtime.
 
-1.  **Define the Public API:** In your library's root (`lib.rs` or `main.rs`),
-    re-export the primary components for easy access.
-
-    ```rust
-    // In your application's lib.rs
-    pub use Echo::Scheduler::{Scheduler, SchedulerBuilder};
-    pub use Echo::Task::Priority::Priority;
-    ```
-
-2.  **Initialize the Scheduler:** Create and start the scheduler when your
+1.  **Initialize the Scheduler:** Create and start the scheduler when your
     application starts. It is typically wrapped in an `Arc` to be shared safely
     across your application.
 
     ```rust
     // In your application's main function
     use std::sync::Arc;
+    use Echo::Scheduler::SchedulerBuilder;
+    use Echo::Task::Priority;
 
     // Use the fluent builder to configure and build the scheduler
-    let Scheduler = Arc::new(SchedulerBuilder::Create().Count(8).Build());
+    let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
     ```
 
-3.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
+2.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
     from anywhere in your application.
 
     ```rust
@@ -195,13 +188,13 @@ used throughout the application, often via a shared context or runtime.
     Scheduler.Submit(async { /* critical work */ }, Priority::High);
     ```
 
-4.  **Graceful Shutdown:** Before your application exits, ensure a clean
+3.  **Graceful Shutdown:** Before your application exits, ensure a clean
     shutdown of all worker threads.
 
     ```rust
     // In your application's shutdown sequence
-    // Note: Arc::get_mut requires the Arc to have only one strong reference.
-    if let Some(mut Scheduler) = Arc::get_mut(&mut Scheduler) {
+    // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
+    if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
         Scheduler.Stop().await;
     }
     ```

@@ -1,6 +1,8 @@
-//! Declares the constituent modules of a `Task`.
+//! # Task Module
 //!
-//! A task is composed of its concrete `Task` definition and its `Priority`.
+//! Declares the constituent modules of a `Task`. A schedulable task is composed
+//! of its concrete `Task` definition (the operation to be performed) and its
+//! `Priority` level, which guides the scheduler's execution order.
 
 #![allow(non_snake_case, non_camel_case_types)]
 
