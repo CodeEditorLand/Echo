@@ -28,8 +28,10 @@ use crate::{
 pub struct Scheduler {
 	/// The underlying work-stealing queue system used for task submission.
 	Queue:StealingQueue<Task>,
+
 	/// Handles to the spawned worker threads, used for graceful shutdown.
 	WorkerHandles:Vec<JoinHandle<()>>,
+
 	/// An atomic flag to signal all workers to shut down.
 	IsRunning:Arc<AtomicBool>,
 }
@@ -52,10 +54,12 @@ impl Scheduler {
 		// Spawn an asynchronous task for each worker.
 		for Context in Contexts.into_iter() {
 			let IsRunning = IsRunning.clone();
+
 			let WorkerHandle = tokio::spawn(async move {
 				// Each task creates and runs a worker, consuming its context.
 				Worker::Create(Context, IsRunning).Run().await;
 			});
+
 			WorkerHandles.push(WorkerHandle);
 		}
 
@@ -79,15 +83,18 @@ impl Scheduler {
 	pub async fn Stop(&mut self) {
 		if !self.IsRunning.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] Stop already initiated.");
+
 			return;
 		}
 
 		info!("[Scheduler] Stopping worker threads...");
+
 		for Handle in self.WorkerHandles.drain(..) {
 			if let Err(Error) = Handle.await {
 				error!("[Scheduler] Error joining worker handle: {}", Error);
 			}
 		}
+
 		info!("[Scheduler] All workers stopped successfully.");
 	}
 }
@@ -101,6 +108,7 @@ impl Drop for Scheduler {
 	fn drop(&mut self) {
 		if self.IsRunning.load(Ordering::Relaxed) {
 			warn!("[Scheduler] Dropped without explicit stop. Signaling workers to terminate.");
+
 			self.IsRunning.store(false, Ordering::Relaxed);
 		}
 	}

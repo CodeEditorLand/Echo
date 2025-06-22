@@ -18,6 +18,7 @@ pub type Operation = Pin<Box<dyn Future<Output = ()> + Send>>;
 /// Represents a single, schedulable unit of work for the `Echo` scheduler.
 ///
 /// This struct encapsulates an asynchronous operation along with metadata,
+
 /// such as its `Priority`, that the scheduler uses to determine execution
 /// order.
 pub struct Task {
@@ -51,7 +52,9 @@ impl Prioritized for Task {
 	fn Rank(&self) -> Self::Kind {
 		match self.Priority {
 			Priority::High => QueuePriority::High,
+
 			Priority::Normal => QueuePriority::Normal,
+
 			Priority::Low => QueuePriority::Low,
 		}
 	}

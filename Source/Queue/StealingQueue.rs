@@ -25,7 +25,9 @@ pub trait Prioritized {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Priority {
 	High,
+
 	Normal,
+
 	Low,
 }
 
@@ -54,6 +56,7 @@ pub struct StealingQueue<TTask:Prioritized<Kind = Priority>> {
 /// Contains all necessary components for a single worker thread to operate.
 ///
 /// This includes the thread-local `Worker` deques, which are not safe to share,
+
 /// making this `Context` object the sole owner of a worker's private queues.
 pub struct Context<TTask> {
 	/// A unique identifier for the worker, used to avoid self-stealing.
@@ -79,7 +82,9 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 	/// 2. A `Vec` of `Context` objects, one for each worker thread to own.
 	pub fn Create(Count:usize) -> (Self, Vec<Context<TTask>>) {
 		let mut High:Vec<Worker<TTask>> = Vec::with_capacity(Count);
+
 		let mut Normal:Vec<Worker<TTask>> = Vec::with_capacity(Count);
+
 		let mut Low:Vec<Worker<TTask>> = Vec::with_capacity(Count);
 
 		// For each priority level, create a thread-local worker queue and its
@@ -87,8 +92,11 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 		let StealerHigh:Vec<Stealer<TTask>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				High.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -96,8 +104,11 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 		let StealerNormal:Vec<Stealer<TTask>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				Normal.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -105,8 +116,11 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 		let StealerLow:Vec<Stealer<TTask>> = (0..Count)
 			.map(|_| {
 				let Worker = Worker::new_fifo();
+
 				let Stealer = Worker.stealer();
+
 				Low.push(Worker);
+
 				Stealer
 			})
 			.collect();
@@ -114,21 +128,26 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 		// Bundle all shared components into an Arc for safe sharing.
 		let Share = Arc::new(Share {
 			Injector:(Injector::new(), Injector::new(), Injector::new()),
+
 			Stealer:(StealerHigh, StealerNormal, StealerLow),
 		});
 
 		// Create a unique context for each worker, giving it ownership of its
 		// local queues and a reference to the shared components.
 		let mut Contexts = Vec::with_capacity(Count);
+
 		for Identifier in 0..Count {
 			Contexts.push(Context {
 				Identifier,
+
 				Local:(High.remove(0), Normal.remove(0), Low.remove(0)),
+
 				Share:Share.clone(),
 			});
 		}
 
 		let Queue = Self { Share };
+
 		(Queue, Contexts)
 	}
 
@@ -138,7 +157,9 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 	pub fn Submit(&self, Task:TTask) {
 		match Task.Rank() {
 			Priority::High => self.Share.Injector.0.push(Task),
+
 			Priority::Normal => self.Share.Injector.1.push(Task),
+
 			Priority::Low => self.Share.Injector.2.push(Task),
 		}
 	}
@@ -169,8 +190,11 @@ impl<TTask> Context<TTask> {
 	/// peer worker to ensure fair distribution and avoid contention hotspots.
 	pub fn Steal<'a>(
 		&self,
+
 		Injector:&'a Injector<TTask>,
+
 		Stealers:&'a [Stealer<TTask>],
+
 		Local:&'a Worker<TTask>,
 	) -> Option<TTask> {
 		// First, try to steal a batch from the global injector.
@@ -182,6 +206,7 @@ impl<TTask> Context<TTask> {
 
 		// If the global queue is empty, try stealing from peers.
 		let Count = Stealers.len();
+
 		if Count <= 1 {
 			// Cannot steal if there are no other workers.
 			return None;
@@ -189,6 +214,7 @@ impl<TTask> Context<TTask> {
 
 		// Allocation-free random iteration: pick a random starting point.
 		let mut Rng = rand::rng();
+
 		let Start = Rng.random_range(0..Count);
 
 		// Iterate through all peers starting from the random offset.

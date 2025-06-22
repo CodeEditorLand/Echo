@@ -19,6 +19,7 @@ pub struct Worker {
 	/// The worker's execution context, which contains its private deques and a
 	/// reference to the shared queue system.
 	Context:Context<Task>,
+
 	/// An atomic flag, shared by all workers, to signal a shutdown request.
 	IsRunning:Arc<AtomicBool>,
 }
@@ -46,7 +47,9 @@ impl Worker {
 					"[Worker {}] Executing local task with priority: {:?}.",
 					self.Context.Identifier, Task.Priority
 				);
+
 				Task.Operation.await;
+
 				continue;
 			}
 
@@ -58,6 +61,7 @@ impl Worker {
 					"[Worker {}] Executing stolen task with priority: {:?}.",
 					self.Context.Identifier, Task.Priority
 				);
+
 				Task.Operation.await;
 			} else {
 				// If there's truly no work anywhere, yield to the OS.

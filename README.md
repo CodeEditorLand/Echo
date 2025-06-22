@@ -162,12 +162,14 @@ used throughout the application, often via a shared context or runtime.
     across your application.
 
     ```rust
-    // In your application's main function
+// In your application's main function
+   
     use std::sync::Arc;
     use Echo::Scheduler::SchedulerBuilder;
     use Echo::Task::Priority;
 
-    // Use the fluent builder to configure and build the scheduler
+// Use the fluent builder to configure and build the scheduler
+   
     let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
     ```
 
@@ -175,16 +177,20 @@ used throughout the application, often via a shared context or runtime.
     from anywhere in your application.
 
     ```rust
-    // An example async block to be run by the scheduler
+// An example async block to be run by the scheduler
+   
     let MyTask = async {
         println!("This is running on an Echo worker thread!");
-        // ... perform some work ...
+// ... perform some work ...
+       
     };
 
-    // Submit the task with a desired priority
+// Submit the task with a desired priority
+   
     Scheduler.Submit(MyTask, Priority::Normal);
 
-    // Another example with high priority
+// Another example with high priority
+   
     Scheduler.Submit(async { /* critical work */ }, Priority::High);
     ```
 
@@ -192,8 +198,10 @@ used throughout the application, often via a shared context or runtime.
     shutdown of all worker threads.
 
     ```rust
-    // In your application's shutdown sequence
-    // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
+// In your application's shutdown sequence
+   
+// Note: Arc::try_unwrap requires the Arc to have only one strong reference.
+   
     if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
         Scheduler.Stop().await;
     }
