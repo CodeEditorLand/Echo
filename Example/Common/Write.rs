@@ -1,4 +1,4 @@
-pub async fn Fn(Argument: Vec<Value>) -> Result<Value, Error> {
+pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
 	OpenOptions::new()
 		.write(true)
 		.create(true)

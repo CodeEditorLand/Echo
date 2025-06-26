@@ -5,11 +5,7 @@ struct SimpleSite;
 
 #[async_trait::async_trait]
 impl Site for SimpleSite {
-	async fn Receive(
-		&self,
-		Action: Box<dyn Echo::Trait::Sequence::Action::Trait>,
-		Context: &Life,
-	) -> Result<(), Error> {
+	async fn Receive(&self, Action:Box<dyn Echo::Trait::Sequence::Action::Trait>, Context:&Life) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
 }
@@ -19,8 +15,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Create a plan with file reading and writing actions
 	let Plan = Arc::new(
 		Echo::Struct::Sequence::Plan::Struct::New()
-			.WithSignature(Signature { Name: "Read".to_string() })
-			.WithSignature(Signature { Name: "Write".to_string() })
+			.WithSignature(Signature { Name:"Read".to_string() })
+			.WithSignature(Signature { Name:"Write".to_string() })
 			.WithFunction("Read", Common::Read::Fn)?
 			.WithFunction("Write", Common::Write::Fn)?
 			.Build(),
@@ -31,10 +27,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	// Create a life context
 	let Life = Life {
-		Span: Arc::new(DashMap::new()),
-		Fate: Arc::new(config::Config::default()),
-		Cache: Arc::new(tokio::sync::Mutex::new(DashMap::new())),
-		Karma: Arc::new(DashMap::new()),
+		Span:Arc::new(DashMap::new()),
+		Fate:Arc::new(config::Config::default()),
+		Cache:Arc::new(tokio::sync::Mutex::new(DashMap::new())),
+		Karma:Arc::new(DashMap::new()),
 	};
 
 	// Create a site

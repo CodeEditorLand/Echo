@@ -4,7 +4,7 @@ struct SimpleSite;
 
 #[async_trait::async_trait]
 impl Site for SimpleSite {
-	async fn Receive(&self, Action: Box<dyn Sequence::Action::Trait>, Context: &Life) -> Result<(), Error> {
+	async fn Receive(&self, Action:Box<dyn Sequence::Action::Trait>, Context:&Life) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
 }
@@ -13,8 +13,8 @@ impl Site for SimpleSite {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Plan = Arc::new(
 		Echo::Struct::Sequence::Plan::Struct::New()
-			.WithSignature(Action::Signature::Struct { Name: "Read".to_string() })
-			.WithSignature(Action::Signature::Struct { Name: "Write".to_string() })
+			.WithSignature(Action::Signature::Struct { Name:"Read".to_string() })
+			.WithSignature(Action::Signature::Struct { Name:"Write".to_string() })
 			.WithFunction("Read", Common::Read::Fn)?
 			.WithFunction("Write", Common::Write::Fn)?
 			.Build(),
@@ -23,10 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let Production = Arc::new(Echo::Struct::Sequence::Production::Struct::New());
 
 	let Life = Life {
-		Span: Arc::new(dashmap::DashMap::new()),
-		Fate: Arc::new(config::Config::default()),
-		Cache: Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
-		Karma: Arc::new(dashmap::DashMap::new()),
+		Span:Arc::new(dashmap::DashMap::new()),
+		Fate:Arc::new(config::Config::default()),
+		Cache:Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
+		Karma:Arc::new(dashmap::DashMap::new()),
 	};
 
 	let Site = Arc::new(SimpleSite);

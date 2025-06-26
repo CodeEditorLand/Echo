@@ -161,47 +161,51 @@ used throughout the application, often via a shared context or runtime.
     application starts. It is typically wrapped in an `Arc` to be shared safely
     across your application.
 
-    ```rust
-// In your application's main function
-   
-    use std::sync::Arc;
-    use Echo::Scheduler::SchedulerBuilder;
-    use Echo::Task::Priority;
+        ```rust
+
+    // In your application's main function
+
+        use std::sync::Arc;
+        use Echo::Scheduler::SchedulerBuilder;
+        use Echo::Task::Priority;
 
 // Use the fluent builder to configure and build the scheduler
-   
+
     let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
     ```
 
 2.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
     from anywhere in your application.
 
-    ```rust
-// An example async block to be run by the scheduler
-   
-    let MyTask = async {
-        println!("This is running on an Echo worker thread!");
-// ... perform some work ...
-       
-    };
+        ```rust
+
+    // An example async block to be run by the scheduler
+
+        let MyTask = async {
+            println!("This is running on an Echo worker thread!");
+
+    // ... perform some work ...
+
+        };
 
 // Submit the task with a desired priority
-   
+
     Scheduler.Submit(MyTask, Priority::Normal);
 
 // Another example with high priority
-   
+
     Scheduler.Submit(async { /* critical work */ }, Priority::High);
     ```
 
 3.  **Graceful Shutdown:** Before your application exits, ensure a clean
     shutdown of all worker threads.
 
-    ```rust
-// In your application's shutdown sequence
-   
+        ```rust
+
+    // In your application's shutdown sequence
+
 // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
-   
+
     if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
         Scheduler.Stop().await;
     }
