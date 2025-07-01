@@ -29,11 +29,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20250701.0",
-<<<<<<< HEAD
 		"@playform/build": "0.2.5",
-=======
-		"@playform/build": "0.2.4",
->>>>>>> 4107731f8259655b4bb8941779ac605552c681a0
 		"@types/dotenv": "8.2.3",
 		"miniflare": "4.20250617.4",
 		"wrangler": "4.22.0"
