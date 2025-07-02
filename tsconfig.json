@@ -1,10 +1,21 @@
 {
 	"compilerOptions": {
 		"baseUrl": "./",
+
+		"composite": true,
+
+		"declarationMap": true,
+
+		"emitDeclarationOnly": true,
+
 		"lib": ["ESNext"],
+
 		"outDir": "Target",
+
 		"types": ["@cloudflare/workers-types/experimental", "@types/node"]
 	},
+
 	"extends": "@playform/build/tsconfig",
+
 	"include": ["Source"]
 }
