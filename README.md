@@ -1,12 +1,12 @@
 <table>
 	<tr>
 		<td align="left" valign="middle">
+			<h3 align="left"> Echo</h3>
+		</td>
+		<td align="left" valign="middle">
 			<h3 align="left">
 				📣
 			</h3>
-		</td>
-		<td align="left" valign="middle">
-			<h3 align="left"> Echo</h3>
 		</td>
 		<td align="left" valign="middle">
 			<h3 align="left"> + </h3>
@@ -23,7 +23,12 @@
 			</h3>
 		</td>
 		<td align="left" valign="middle">
-			<h3 align="left"> Land 🏞️</h3>
+			<h3 align="left">Land</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				🏞️
+			</h3>
 		</td>
 	</tr>
 </table>
