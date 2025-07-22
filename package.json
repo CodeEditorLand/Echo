@@ -28,11 +28,19 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@cloudflare/workers-types": "4.20250715.0",
 		"@playform/build": "0.2.5",
 		"@types/dotenv": "8.2.3",
 		"miniflare": "4.20250712.0",
 		"wrangler": "4.24.4"
+=======
+		"@cloudflare/workers-types": "4.20250718.0",
+		"@playform/build": "0.2.5",
+		"@types/dotenv": "8.2.3",
+		"miniflare": "4.20250712.0",
+		"wrangler": "4.25.0"
+>>>>>>> 2aa9b13a097d3bacd472c820ae985627b4ea4787
 	},
 	"publishConfig": {
 		"access": "public",
