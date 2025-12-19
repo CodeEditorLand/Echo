@@ -32,7 +32,7 @@
 		"@playform/build": "0.2.5",
 		"@types/dotenv": "8.2.3",
 		"miniflare": "4.20251213.0",
-		"wrangler": "4.55.0"
+		"wrangler": "4.56.0"
 	},
 	"publishConfig": {
 		"access": "public",
