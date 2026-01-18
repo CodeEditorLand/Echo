@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": false,
 	"description": "Echo 📣",
-	"homepage": "https://GitHub.Com/CodeEditorLand/Echo#readme",
+	"homepage": "https://GitHub.Com/CodeEditorLand/Echo?tab=readme-ov-file",
 	"bugs": {
 		"url": "https://GitHub.Com/CodeEditorLand/Echo/issues"
 	},
@@ -28,11 +28,11 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20260101.0",
+		"@cloudflare/workers-types": "4.20260118.0",
 		"@playform/build": "0.2.6",
 		"@types/dotenv": "8.2.3",
-		"miniflare": "4.20251217.0",
-		"wrangler": "4.56.0"
+		"miniflare": "4.20260114.0",
+		"wrangler": "4.59.2"
 	},
 	"publishConfig": {
 		"access": "public",
