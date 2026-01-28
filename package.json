@@ -1,0 +1,41 @@
+{
+	"name": "@codeeditorland/echo",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Echo 📣",
+	"homepage": "https://GitHub.Com/CodeEditorLand/Echo?tab=readme-ov-file",
+	"bugs": {
+		"url": "https://GitHub.Com/CodeEditorLand/Echo/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/CodeEditorLand/Echo.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Source 🖋️ Open 👐🏻",
+		"email": "Source/Open@Editor.Land",
+		"url": "https://Editor.Land"
+	},
+	"type": "module",
+	"main": "./Target/Variable/Worker.js",
+	"types": "./Target/Variable/Worker.d.ts",
+	"scripts": {
+		"Run": "Build 'Ts/**/*.ts' --Watch",
+		"prepublishOnly": "Build 'Ts/**/*.ts'"
+	},
+	"dependencies": {
+		"@codeeditorland/common": "0.0.6"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "4.20260128.0",
+		"@playform/build": "0.2.6",
+		"@types/dotenv": "8.2.3",
+		"miniflare": "4.20260124.0",
+		"wrangler": "4.61.0"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}
