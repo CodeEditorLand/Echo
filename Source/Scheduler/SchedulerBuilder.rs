@@ -2,8 +2,6 @@
 //!
 //! Defines the fluent builder for creating and configuring a `Scheduler`.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 use std::collections::HashMap;
 
 use log::warn;

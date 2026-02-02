@@ -5,8 +5,6 @@
 //! configuration, and the private `Worker` implementation that performs the
 //! actual task execution.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 // --- Public API ---
 pub mod Scheduler;
 

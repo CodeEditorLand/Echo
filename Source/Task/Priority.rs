@@ -3,12 +3,9 @@
 //! Defines the execution priority level of a `Task` within the `Echo`
 //! scheduler.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 /// Represents the priority of a task to be executed by the scheduler.
 ///
 /// This enumeration allows the scheduler to ensure that high-priority,
-
 /// user-facing operations (e.g., responding to UI input) are executed before
 /// lower-priority, long-running background tasks (e.g., file indexing).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

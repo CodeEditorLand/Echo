@@ -2,8 +2,6 @@
 //!
 //! Represents a single execution thread in the scheduler's thread pool.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 use std::sync::{
 	Arc,
 	atomic::{AtomicBool, Ordering},

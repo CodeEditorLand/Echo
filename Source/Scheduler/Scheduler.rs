@@ -3,8 +3,6 @@
 //! Manages the pool of workers and the task queue system, serving as the main
 //! public interface of the `Echo` library.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 use std::{
 	collections::HashMap,
 	future::Future,

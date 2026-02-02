@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 // Define a worker-stealing queue
 struct WorkerStealingQueue {
 	Queues:Vec<Arc<Mutex<Vec<Box<dyn Echo::Trait::Sequence::Action::Trait>>>>>,

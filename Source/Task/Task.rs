@@ -2,8 +2,6 @@
 //!
 //! Defines the structure of a schedulable task to be executed by a `Worker`.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 use std::{future::Future, pin::Pin};
 
 use crate::{

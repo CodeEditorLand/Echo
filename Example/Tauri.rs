@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 struct SimpleSite;
 
 #[async_trait::async_trait]

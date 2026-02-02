@@ -4,8 +4,6 @@
 //! is self-contained and can be used by any scheduler or application to manage
 //! and distribute tasks of any type that can be prioritized.
 
-#![allow(non_snake_case, non_camel_case_types)]
-
 use std::sync::Arc;
 
 use crossbeam_deque::{Injector, Steal, Stealer, Worker};
