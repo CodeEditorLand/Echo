@@ -1,5 +1,3 @@
-.dev.vars
-
 /Target/*
 
 !/Target/debug
