@@ -102,8 +102,9 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 To understand how `Echo`'s internal components interact to provide these
 services, please refer to the detailed technical breakdown in
-[`Documentation/GitHub/Deep Dive.md`](Documentation/GitHub/Deep%20Dive.md). This document explains the roles of
-the `Task`, `StealingQueue`, `Worker`, and `Scheduler` in detail.
+[`Documentation/GitHub/Deep Dive.md`](Documentation/GitHub/Deep%20Dive.md). This
+document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
+`Scheduler` in detail.
 
 ---
 
@@ -256,8 +257,7 @@ levels.
 
 **Interested in tackling one of these challenges?** 👉🏻
 
-- **[Check out our full TODO](Documentation/GitHub
-Documentation/GitHub/TODO.md)** for challenges!
+- **[Check out our full TODO](Documentation/GitHub/TODO.md)** for challenges!
 - **[Follow our Contribution Guide](CONTRIBUTING.md)** to get started!
 
 ---
