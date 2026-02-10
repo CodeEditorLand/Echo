@@ -5,9 +5,8 @@
 //! configuration, and the private `Worker` implementation that performs the
 //! actual task execution.
 
-// --- Public API ---
+// --- Public Modules ---
 pub mod Scheduler;
-
 pub mod SchedulerBuilder;
 
 // --- Internal Implementation ---
