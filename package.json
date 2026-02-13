@@ -28,7 +28,11 @@
 		"@codeeditorland/common": "0.0.6"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"@cloudflare/workers-types": "4.20260212.0",
+=======
+		"@cloudflare/workers-types": "4.20260213.0",
+>>>>>>> 2b38bc13ac7d4ccc3412e032b5197649a6a62d69
 		"@playform/build": "0.3.0",
 		"@types/dotenv": "8.2.3",
 		"miniflare": "4.20260212.0",
