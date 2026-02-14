@@ -102,7 +102,7 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 To understand how `Echo`'s internal components interact to provide these
 services, please refer to the detailed technical breakdown in
-[`Documentation/GitHub/Deep Dive.md`](Documentation/GitHub/Deep%20Dive.md). This
+[`Documentation/GitHub/DeepDive.md`](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/DeepDive.md). This
 document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 `Scheduler` in detail.
 
@@ -257,8 +257,8 @@ levels.
 
 **Interested in tackling one of these challenges?** 👉🏻
 
-- **[Check out our full TODO](Documentation/GitHub/TODO.md)** for challenges!
-- **[Follow our Contribution Guide](CONTRIBUTING.md)** to get started!
+- **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)** for challenges!
+- **[Follow our Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/)** to get started!
 
 ---
 
@@ -267,13 +267,13 @@ levels.
 This project is released into the public domain under the **Creative Commons CC0
 Universal** license. You are free to use, modify, distribute, and build upon
 this work for any purpose, without any restrictions. For the full legal text,
-see the [`LICENSE`](LICENSE) file.
+see the [`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
 
 ---
 
 ## Changelog 📜
 
-Stay updated with our progress! See [`CHANGELOG.md`](CHANGELOG.md) for a history
+Stay updated with our progress! See [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/) for a history
 of changes specific to **Echo**.
 
 ---
