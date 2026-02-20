@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use crossbeam_deque::{Injector, Steal, Stealer, Worker};
-use rand::Rng;
+use rand::RngExt;
 
 /// Defines a contract for types that can be prioritized by the queue.
 pub trait Prioritized {
