@@ -255,7 +255,7 @@ levels.
 | **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
 | **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
 
-**Interested in tackling one of these challenges?** 👉🏻
+**Interested in tackling one of these challenges?** 👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
