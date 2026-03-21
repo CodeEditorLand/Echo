@@ -166,7 +166,7 @@ Echo/
 
 ## Getting Started 🚀
 
-### Installation
+### Installation 📥
 
 To add `Echo` to your project, add the following to your `Cargo.toml`:
 
@@ -183,7 +183,7 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 - `log = "*"`
 - `num_cpus = "*"`
 
-### Usage
+### Usage 🚀
 
 `Echo` is designed to be integrated into an application's main entry point and
 used throughout the application, often via a shared context or runtime.
