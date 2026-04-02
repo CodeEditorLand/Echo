@@ -39,7 +39,7 @@
 
 ---
 
-# **Echo** 📣
+# **Echo** 📣
 
 A Resilient, High-Performance Task Scheduler for Rust
 
@@ -70,7 +70,7 @@ executing complex asynchronous workflows.
 
 ---
 
-## Key Features 🔐
+## Key Features 🔐
 
 - **Work-Stealing Scheduler:** A modern, priority-aware work-stealing algorithm
   that efficiently distributes tasks across a pool of worker threads.
@@ -97,7 +97,7 @@ executing complex asynchronous workflows.
 
 ---
 
-## Deep Dive & Component Breakdown 🔬
+## Deep Dive & Component Breakdown 🔬
 
 To understand how `Echo`'s internal components interact, please refer to the
 detailed technical breakdown in
@@ -108,7 +108,7 @@ This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 
 ---
 
-## `Echo` in the Land Ecosystem 📣 + 🏞️
+## `Echo` in the Land Ecosystem 📣 + 🏞️
 
 This diagram illustrates `Echo`'s role as the core execution engine within the
 `Mountain` backend.
@@ -148,7 +148,7 @@ graph LR
 
 ---
 
-## Project Structure Overview 🗺️
+## Project Structure Overview 🗺️
 
 The `Echo` repository is organized into a few core modules with a clear
 separation of concerns:
@@ -164,9 +164,9 @@ Echo/
 
 ---
 
-## Getting Started 🚀
+## Getting Started 🚀
 
-### Installation 📥
+### Installation 📥
 
 To add `Echo` to your project, add the following to your `Cargo.toml`:
 
@@ -183,7 +183,7 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 - `log = "*"`
 - `num_cpus = "*"`
 
-### Usage 🚀
+### Usage 🚀
 
 `Echo` is designed to be integrated into an application's main entry point and
 used throughout the application, often via a shared context or runtime.
@@ -241,7 +241,7 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ---
 
-## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
+## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
 
 `Echo` is built on a high-performance foundation, but there is always room to
 push the boundaries of speed and efficiency. We maintain a detailed roadmap of
@@ -255,7 +255,7 @@ levels.
 | **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
 | **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
 
-**Interested in tackling one of these challenges?** 👉🏻
+**Interested in tackling one of these challenges?** 👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
