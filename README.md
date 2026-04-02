@@ -39,7 +39,9 @@
 
 ---
 
-# **Echo** 📣 A Resilient, High-Performance Task Scheduler for Rust
+# **Echo** 📣
+
+A Resilient, High-Performance Task Scheduler for Rust
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
@@ -52,37 +54,34 @@ scheduler**. It is designed to be the core execution engine for application
 backends like `Mountain`, integrating seamlessly with declarative systems like
 the `ActionEffect` pattern. **Echo** moves beyond simple task spawning
 (`tokio::spawn`) to provide a robust framework for managing, prioritizing, and
-executing complex asynchronous workflows with resilience and efficiency.
+executing complex asynchronous workflows.
 
 **Echo** is engineered to:
 
-1.  **Provide High-Performance Concurrency:** Utilizes a lock-free,
-    work-stealing queue (`crossbeam-deque`) to ensure all worker threads remain
-    busy, maximizing CPU utilization and application throughput.
-2.  **Enable Structured Task Management:** Offers a clean API for submitting
-    tasks with different priorities, allowing critical, UI-blocking operations
-    to pre-empt background work.
-3.  **Integrate Natively with Effect Systems:** Designed from the ground up to
-    be the execution backend for systems like the `ActionEffect` pattern,
-    providing a bridge between declarative task definitions and their concrete
-    execution.
+1. **Provide High-Performance Concurrency:** Utilizes a lock-free, work-stealing
+   queue (`crossbeam-deque`) to ensure all worker threads remain busy,
+   maximizing CPU utilization and application throughput.
+2. **Enable Structured Task Management:** Offers a clean API for submitting
+   tasks with different priorities, allowing critical, UI-blocking operations to
+   pre-empt background work.
+3. **Integrate Natively with Effect Systems:** Designed from the ground up to be
+   the execution backend for systems like the `ActionEffect` pattern, providing
+   a bridge between declarative task definitions and their concrete execution.
 
 ---
 
-## Key Features 🔐
+## Key Features 🔐
 
-- **Work-Stealing Scheduler:** Implements a modern, priority-aware work-stealing
-  algorithm to efficiently distribute tasks across a pool of worker threads.
+- **Work-Stealing Scheduler:** A modern, priority-aware work-stealing algorithm
+  that efficiently distributes tasks across a pool of worker threads.
 - **Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
-  `Low` priority, ensuring that latency-sensitive operations are handled
-  immediately.
-- **Fluent Builder API:** A clean `SchedulerBuilder` allows for easy
-  configuration of the worker pool size.
-- **Graceful Shutdown:** Provides a `Stop()` method to ensure all worker threads
-  complete their current tasks and exit cleanly, preventing orphaned threads.
+  `Low` priority, ensuring latency-sensitive operations are handled immediately.
+- **Fluent Builder API:** A clean `SchedulerBuilder` allows easy configuration
+  of the worker pool size.
+- **Graceful Shutdown:** A `Stop()` method ensures all worker threads complete
+  their current tasks and exit cleanly, preventing orphaned threads.
 - **Decoupled Architecture:** A generic `Queue` module provides the core
-  work-stealing logic, which is consumed by the application-specific
-  `Scheduler`.
+  work-stealing logic, consumed by the application-specific `Scheduler`.
 
 ---
 
@@ -98,17 +97,18 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ---
 
-## Deep Dive & Component Breakdown 🔬
+## Deep Dive & Component Breakdown 🔬
 
-To understand how `Echo`'s internal components interact to provide these
-services, please refer to the detailed technical breakdown in
+To understand how `Echo`'s internal components interact, please refer to the
+detailed technical breakdown in
 [`Documentation/GitHub/DeepDive.md`](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/DeepDive.md).
+
 This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 `Scheduler` in detail.
 
 ---
 
-## `Echo` in the Land Ecosystem 📣 + 🏞️
+## `Echo` in the Land Ecosystem 📣 + 🏞️
 
 This diagram illustrates `Echo`'s role as the core execution engine within the
 `Mountain` backend.
@@ -148,7 +148,7 @@ graph LR
 
 ---
 
-## Project Structure Overview 🗺️
+## Project Structure Overview 🗺️
 
 The `Echo` repository is organized into a few core modules with a clear
 separation of concerns:
@@ -164,9 +164,9 @@ Echo/
 
 ---
 
-## Getting Started 🚀
+## Getting Started 🚀
 
-### Installation 📥
+### Installation 📥
 
 To add `Echo` to your project, add the following to your `Cargo.toml`:
 
@@ -183,14 +183,14 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 - `log = "*"`
 - `num_cpus = "*"`
 
-### Usage 🚀
+### Usage 🚀
 
 `Echo` is designed to be integrated into an application's main entry point and
 used throughout the application, often via a shared context or runtime.
 
-1.  **Initialize the Scheduler:** Create and start the scheduler when your
-    application starts. It is typically wrapped in an `Arc` to be shared safely
-    across your application.
+1. **Initialize the Scheduler:** Create and start the scheduler when your
+   application starts. It is typically wrapped in an `Arc` to be shared safely
+   across your application.
 
 ```rust
 // In your application's main function
@@ -204,8 +204,8 @@ use Echo::Task::Priority;
 let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
 ```
 
-2.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
-    from anywhere in your application.
+2. **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
+   from anywhere in your application.
 
 ```rust
 // An example async block to be run by the scheduler
@@ -226,8 +226,8 @@ Scheduler.Submit(MyTask, Priority::Normal);
 Scheduler.Submit(async { /* critical work */ }, Priority::High);
 ```
 
-3.  **Graceful Shutdown:** Before your application exits, ensure a clean
-    shutdown of all worker threads.
+3. **Graceful Shutdown:** Before your application exits, ensure a clean shutdown
+   of all worker threads.
 
 ```rust
 // In your application's shutdown sequence
@@ -241,9 +241,9 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ---
 
-## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
+## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
 
-`Echo` is built on a high-performance foundation, but there's always room to
+`Echo` is built on a high-performance foundation, but there is always room to
 push the boundaries of speed and efficiency. We maintain a detailed roadmap of
 features and performance optimizations, with tasks suitable for all skill
 levels.
@@ -255,7 +255,7 @@ levels.
 | **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
 | **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
 
-**Interested in tackling one of these challenges?** 👉🏻
+**Interested in tackling one of these challenges?** 👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
@@ -267,9 +267,11 @@ levels.
 ## License ⚖️
 
 This project is released into the public domain under the **Creative Commons CC0
-Universal** license. You are free to use, modify, distribute, and build upon
-this work for any purpose, without any restrictions. For the full legal text,
-see the [`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
+Universal** license.
+
+You are free to use, modify, distribute, and build upon this work for any
+purpose, without any restrictions. For the full legal text, see the
+[`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
 
 ---
 
@@ -288,6 +290,11 @@ through [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
 [NLnet](https://NLnet.NL) with financial support from the European Commission's
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://NLnet.NL/project/Land).
+
+The project is operated by PlayForm, based in Sofia, Bulgaria.
+
+PlayForm acts as the open-source steward for Code Editor Land under the NGI0
+Commons Fund grant.
 
 <table>
 	<thead>
