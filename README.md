@@ -56,32 +56,34 @@ the `ActionEffect` pattern. **Echo** moves beyond simple task spawning
 (`tokio::spawn`) to provide a robust framework for managing, prioritizing, and
 executing complex asynchronous workflows.
 
-**Echo** is engineered to:
+Echo keeps every CPU core busy. It uses a lock-free work-stealing queue so that
+idle threads automatically pick up tasks from busy ones. No central bottleneck,
+no wasted cores.
 
-1. **Provide High-Performance Concurrency:** Utilizes a lock-free, work-stealing
-   queue (`crossbeam-deque`) to ensure all worker threads remain busy,
-   maximizing CPU utilization and application throughput.
-2. **Enable Structured Task Management:** Offers a clean API for submitting
-   tasks with different priorities, allowing critical, UI-blocking operations to
-   pre-empt background work.
-3. **Integrate Natively with Effect Systems:** Designed from the ground up to be
-   the execution backend for systems like the `ActionEffect` pattern, providing
-   a bridge between declarative task definitions and their concrete execution.
+**What Echo gives you:**
+
+1. **Every core stays busy.** Work-stealing (`crossbeam-deque`) means no thread
+   sits idle while another is overloaded. CPU utilization stays near 100%.
+2. **UI never freezes.** Critical tasks (hover tooltips, completion) run at
+   `High` priority and pre-empt background work (indexing, linting).
+3. **Clean shutdown, always.** `Stop()` drains the queue and waits for workers.
+   No orphaned threads, no leaked resources.
+
+📖 **[Rust API Documentation](https://Rust.Documentation.Editor.Land/Echo/)**
 
 ---
 
 ## Key Features 🔐
 
-- **Work-Stealing Scheduler:** A modern, priority-aware work-stealing algorithm
-  that efficiently distributes tasks across a pool of worker threads.
-- **Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
-  `Low` priority, ensuring latency-sensitive operations are handled immediately.
-- **Fluent Builder API:** A clean `SchedulerBuilder` allows easy configuration
-  of the worker pool size.
-- **Graceful Shutdown:** A `Stop()` method ensures all worker threads complete
-  their current tasks and exit cleanly, preventing orphaned threads.
-- **Decoupled Architecture:** A generic `Queue` module provides the core
-  work-stealing logic, consumed by the application-specific `Scheduler`.
+- **Work-stealing scheduler.** Idle threads steal from busy threads' queues.
+  No locks, no contention, no wasted cycles.
+- **Priority levels.** `High` for UI-blocking work, `Normal` for standard ops,
+  `Low` for background indexing. Critical tasks always run first.
+- **Three-line setup.** `SchedulerBuilder::new().Workers(4).Build()` and you
+  have a production-ready worker pool.
+- **Graceful drain.** `Stop()` waits for in-flight tasks. No orphaned threads,
+  no state corruption on shutdown.
+- **Generic queue.** The `Queue` module is reusable. Bring your own task type.
 
 ---
 
@@ -282,6 +284,13 @@ Stay updated with our progress! See
 history of changes specific to **Echo**.
 
 ---
+
+
+## See Also
+
+- [Architecture Overview](https://editor.land/Doc/architecture)
+- [Mountain](https://github.com/CodeEditorLand/Mountain)
+- [Common](https://github.com/CodeEditorLand/Common)
 
 ## Funding & Acknowledgements 🙏🏻
 
