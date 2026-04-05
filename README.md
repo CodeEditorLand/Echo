@@ -39,12 +39,25 @@
 
 ---
 
-# **Echo** 📣 A Resilient, High-Performance Task Scheduler for Rust
+# **Echo**&#x2001;📣
+
+A Resilient, High-Performance Task Scheduler for Rust
+
+> **VS Code's background tasks (file indexing, symbol scanning, git blame) run
+> in a single-threaded Node.js process. Heavy indexing freezes everything on
+> that thread. The only escape is spawning more processes, adding memory and IPC
+> overhead.**
+
+_"Indexing, search, and builds run on every CPU core in parallel. The editor
+stays responsive."_
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
-[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Rust Version](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
+
+📖 **[Rust API Documentation](https://Rust.Documentation.Editor.Land/Echo/)**
 
 Welcome to **Echo**! This crate provides a powerful, structured concurrency
 runtime for Rust applications, built on a high-performance **work-stealing
@@ -69,7 +82,7 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ---
 
-## Key Features 🔐
+## Key Features&#x2001;🔐
 
 - **Work-Stealing Scheduler:** Implements a modern, priority-aware work-stealing
   algorithm to efficiently distribute tasks across a pool of worker threads.
@@ -86,7 +99,7 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ---
 
-## Core Architecture Principles 🏗️
+## Core Architecture Principles&#x2001;🏗️
 
 | Principle                  | Description                                                                                                                                                     | Key Components Involved                                             |
 | :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ |
@@ -98,7 +111,7 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ---
 
-## Deep Dive & Component Breakdown 🔬
+## Deep Dive & Component Breakdown&#x2001;🔬
 
 To understand how `Echo`'s internal components interact to provide these
 services, please refer to the detailed technical breakdown in
@@ -108,7 +121,7 @@ This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 
 ---
 
-## `Echo` in the Land Ecosystem 📣 + 🏞️
+## `Echo` in the Land Ecosystem&#x2001;📣 + 🏞️
 
 This diagram illustrates `Echo`'s role as the core execution engine within the
 `Mountain` backend.
@@ -148,7 +161,7 @@ graph LR
 
 ---
 
-## Project Structure Overview 🗺️
+## Project Structure Overview&#x2001;🗺️
 
 The `Echo` repository is organized into a few core modules with a clear
 separation of concerns:
@@ -164,9 +177,9 @@ Echo/
 
 ---
 
-## Getting Started 🚀
+## Getting Started&#x2001;🚀
 
-### Installation
+### Installation&#x2001;📥
 
 To add `Echo` to your project, add the following to your `Cargo.toml`:
 
@@ -183,23 +196,16 @@ Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" 
 - `log = "*"`
 - `num_cpus = "*"`
 
-### Usage
-
-`Echo` is designed to be integrated into an application's main entry point and
-used throughout the application, often via a shared context or runtime.
+### Usage&#x2001;🚀
 
 1.  **Initialize the Scheduler:** Create and start the scheduler when your
     application starts. It is typically wrapped in an `Arc` to be shared safely
     across your application.
 
 ```rust
-// In your application's main function
-
 use std::sync::Arc;
 use Echo::Scheduler::SchedulerBuilder;
 use Echo::Task::Priority;
-
-// Use the fluent builder to configure and build the scheduler
 
 let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
 ```
@@ -208,21 +214,15 @@ let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
     from anywhere in your application.
 
 ```rust
-// An example async block to be run by the scheduler
-
 let MyTask = async {
-	println!("This is running on an Echo worker thread!");
-
-// ... perform some work ...
-
+    println!("This is running on an Echo worker thread!");
+    // ... perform some work ...
 };
 
 // Submit the task with a desired priority
-
 Scheduler.Submit(MyTask, Priority::Normal);
 
 // Another example with high priority
-
 Scheduler.Submit(async { /* critical work */ }, Priority::High);
 ```
 
@@ -230,18 +230,15 @@ Scheduler.Submit(async { /* critical work */ }, Priority::High);
     shutdown of all worker threads.
 
 ```rust
-// In your application's shutdown sequence
-
 // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
-
 if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
-	Scheduler.Stop().await;
+    Scheduler.Stop().await;
 }
 ```
 
 ---
 
-## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
+## Help Us Boost Performance: A Call for Contributions!&#x2001;🫱🏻‍🫲🏿
 
 `Echo` is built on a high-performance foundation, but there's always room to
 push the boundaries of speed and efficiency. We maintain a detailed roadmap of
@@ -255,7 +252,7 @@ levels.
 | **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
 | **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
 
-**Interested in tackling one of these challenges?** 👉🏻
+**Interested in tackling one of these challenges?** 👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
@@ -264,7 +261,17 @@ levels.
 
 ---
 
-## License ⚖️
+## See Also
+
+- [Echo Documentation](https://editor.land/Doc/echo)
+- [Architecture Overview](https://editor.land/Doc/architecture)
+- [Why Rust](https://editor.land/Doc/why-rust)
+- [Mountain](https://github.com/CodeEditorLand/Mountain)
+- [Common](https://github.com/CodeEditorLand/Common)
+
+---
+
+## License&#x2001;⚖️
 
 This project is released into the public domain under the **Creative Commons CC0
 Universal** license. You are free to use, modify, distribute, and build upon
@@ -273,7 +280,7 @@ see the [`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
 
 ---
 
-## Changelog 📜
+## Changelog&#x2001;📜
 
 Stay updated with our progress! See
 [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/) for a
@@ -281,13 +288,18 @@ history of changes specific to **Echo**.
 
 ---
 
-## Funding & Acknowledgements 🙏🏻
+## Funding \& Acknowledgements&#x2001;🙏🏻
 
 **Echo** is a core element of the **Land** ecosystem. This project is funded
 through [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
 [NLnet](https://NLnet.NL) with financial support from the European Commission's
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://NLnet.NL/project/Land).
+
+The project is operated by PlayForm, based in Sofia, Bulgaria.
+
+PlayForm acts as the open-source steward for Code Editor Land under the NGI0
+Commons Fund grant.
 
 <table>
 	<thead>
