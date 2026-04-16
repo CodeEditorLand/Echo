@@ -1,84 +1,112 @@
 # Changelog
 
-All notable changes to the Echo element are documented in this file.
+All notable changes to Echo (Task Scheduler) are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-
-## [0.6.0] — 2026 Q2
+## [v2.0] — Q1 2026: Editor Launch Sprint
 
 ### Changed
 
-- Simplified rustdocflags configuration formatting
-- Updated Documentation/Rust submodule to latest
+- Documentation and config refinement
+- StealingQueue.rs comment/doc updates
+- Architecture mature and stable; no API changes
+
+## [v1.3] — Q4 2025: Dependency Maintenance
+
+### Changed
+
+- Dependency updates maintained; no source changes
+
+## [v1.2] — Q3 2025: Full Stack Integration
+
+### Changed
+
+- Build artifacts (libEcho.rlib) removed from version control
+- Documentation polished: README (+46/-20), Knowledge.dot graph updated
+  (+71/-51), example files reformatted
+- CODE_OF_CONDUCT email updated
+- Architecture stable; no code changes
+
+## [v1.1] — Q2 2025: Architecture Buildout
+
+**June 10, 2025: complete Sequence → Scheduler architecture flip.**
+
+### Added (via Source2/ staging, then promoted)
+
+- `Source/Queue/StealingQueue.rs` — work-stealing queue using
+  `crossbeam-deque` with random peer iteration for reduced contention
+- `Source/Queue/mod.rs`
+- `Source/Scheduler/Scheduler.rs` — scheduler orchestration with public
+  `Create` method
+- `Source/Scheduler/SchedulerBuilder.rs` — fluent builder: `WithWorkerCount()`,
+  `WithQueue()`
+- `Source/Scheduler/Worker.rs` — prioritized local polling + system stealing
+  strategies (99 insertions major enhancement)
+- `Source/Scheduler/mod.rs`
+- `Source/Task/Priority.rs` — High/Low priority enum for UI responsiveness vs
+  background indexing
+- `Source/Task/Task.rs` — task definition with priority support
+- `Source/Task/mod.rs`
+- `Source/Library.rs` — crate rustdoc + module exports
+
+### Changed (June 10-19: 3 refinement commits)
+
+- Worker polling refactored: prioritized local polling + system stealing
+  (47 insertions, 27 deletions)
+- Queue decoupled from scheduler: random peer iteration for efficient task
+  distribution (66 insertions)
+- API renamed for fluency: `Count` → `WithWorkerCount`, `Queue` →
+  `WithQueue`, `Handle` → `WorkerHandles`, `Running` → `IsRunning`
+- Code clarity pass: 264 insertions, 335 deletions (net -71 lines simplified)
+- `docs/Deep Dive.md` rewritten: 94 insertions, 51 deletions
+- README expanded: 59+42+24 insertions across 3 commits
+
+### Removed
+
+- Entire Sequence architecture: `Source/Struct/Sequence/*`, `Source/Trait/`,
+  `Source/Type/`, `Source/Enum/`
+
+## [v1.0] — Q1 2025: Integration Phase
+
+### Changed
+
+- Full PascalCase enforcement across 18 files (150 insertions, 164 deletions):
+  spacing `Argument:Vec` → `Argument: Vec`, field init `Name:"Read"` →
+  `Name: "Read"`
+- Affected: all Example/ files, Source/Struct/Sequence/ subtree,
+  Source/Trait/Sequence/, Source/Type/Sequence/, build.rs
+- Wrangler v3 → v4 migration (Cloudflare Workers)
+
+## [v0.2] — Q4 2024: Architecture Solidification
 
 ### Added
 
-- Comprehensive getting-started guide in README
-- Benefit-focused crate-level rustdoc in Library.rs
-- See Also section linking to architecture overview and related Elements
-
-## [0.5.0] — 2026 Q1
-
-### Fixed
-
-- Disabled bugged examples that caused CI failures
+- LICENSE file (109 lines)
 
 ### Changed
 
-- Updated Cloudflare development dependencies (Wrangler, Miniflare,
-  Workers Types)
-- Upgraded @playform/build from 0.2.5 to 0.3.0
-- Updated dependencies
+- PascalCase formatting prep across Example files (23 insertions, 23
+  deletions): Read.rs, Write.rs, Sequence.rs, Tauri.rs, WorkSteal.rs
+- Cargo.toml metadata reorganization
 
-## [0.4.0] — 2025 Q4
-
-### Changed
-
-- Updated dependencies (Wrangler 4.50 through 4.56, Miniflare, Workers Types)
-- Upgraded CI actions (actions/cache 5.0, actions/checkout 6.x,
-  actions/upload-artifact 6.0, actions/setup-node 6.x)
-
-## [0.3.0] — 2025 Q3
+## [v0.1] — Q3 2024: Rapid Development
 
 ### Added
 
-- TypeScript declaration generation via tsconfig update
-- Deep Dive architecture document for the scheduler
-- Performance optimization roadmap and contribution guide
+- `Target/` directory with transpiled JS: Function/Response.js,
+  Interface/{Data,Environment,Message,Response,Worker}.js,
+  Variable/Worker.js
+- Sequence-based task coordination architecture:
+  - `Source/Struct/Sequence/` — Action, Life, Plan, Production, Signal, Vector
+  - `Source/Trait/Sequence/` — Action, Site
+  - `Source/Type/Sequence/` — Action/Cycle
+- Example programs: Common/Read.rs, Common/Write.rs, Sequence.rs, Tauri.rs,
+  WorkSteal.rs
 
-### Changed
+### Removed
 
-- Decoupled queue from scheduler and optimized work-stealing algorithm
-- Exposed scheduler APIs and optimized worker task polling
-- Improved code clarity, documentation, and API consistency
-- Reorganized Cargo.toml metadata and updated build artifacts
-- Removed unused dependencies and development features
-- Updated Cloudflare Workers dependencies
+- `.github/workflows/Cloudflare.yml` (61 lines) — Workers deployment abandoned
 
-## [0.2.0] — 2025 Q2
+### Dependencies (First Release)
 
-### Changed
-
-- Optimized release build configuration and resolved dependency version
-  conflicts
-- Updated @cloudflare/workers-types dependency
-- Removed obsolete build artifacts
-- Updated .gitignore for cleaner tracking
-- Relicensed project under CC0 1.0 Universal, then migrated to Land Public
-  License v1.0
-
-## [0.1.0] — 2025 Q1
-
-### Changed
-
-- Updated dependencies
-
-## [0.0.1] — 2024 Q3
-
-### Added
-
-- Initial Rust work-stealing task scheduler implementation
-- Cloudflare Workers integration with Wrangler and Miniflare
-- TypeScript worker bindings via @playform/build
-- CI/CD workflows with GitHub Actions (cache, upload-artifact, setup-node)
-- Dependabot configuration for automated dependency updates
+- crossbeam-deque (work-stealing core), tokio, rand, num_cpus, log, serde
