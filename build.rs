@@ -1,3 +1,7 @@
+#![allow(non_snake_case)]
+
+use serde::Deserialize;
+
 #[derive(Deserialize)]
 struct Toml {
 	package:Package,
@@ -19,5 +23,3 @@ fn main() {
 			.version
 	);
 }
-
-use serde::Deserialize;
