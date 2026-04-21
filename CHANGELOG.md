@@ -3,7 +3,7 @@
 All notable changes to Echo (Task Scheduler) are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/).
 
-## [v2.0] — Q1 2026: Editor Launch Sprint
+## [v2.0] - Q1 2026: Editor Launch Sprint
 
 ### Changed
 
@@ -11,13 +11,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
 - StealingQueue.rs comment/doc updates
 - Architecture mature and stable; no API changes
 
-## [v1.3] — Q4 2025: Dependency Maintenance
+## [v1.3] - Q4 2025: Dependency Maintenance
 
 ### Changed
 
 - Dependency updates maintained; no source changes
 
-## [v1.2] — Q3 2025: Full Stack Integration
+## [v1.2] - Q3 2025: Full Stack Integration
 
 ### Changed
 
@@ -27,27 +27,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
 - CODE_OF_CONDUCT email updated
 - Architecture stable; no code changes
 
-## [v1.1] — Q2 2025: Architecture Buildout
+## [v1.1] - Q2 2025: Architecture Buildout
 
 **June 10, 2025: complete Sequence → Scheduler architecture flip.**
 
 ### Added (via Source2/ staging, then promoted)
 
-- `Source/Queue/StealingQueue.rs` — work-stealing queue using
+- `Source/Queue/StealingQueue.rs` - work-stealing queue using
   `crossbeam-deque` with random peer iteration for reduced contention
 - `Source/Queue/mod.rs`
-- `Source/Scheduler/Scheduler.rs` — scheduler orchestration with public
+- `Source/Scheduler/Scheduler.rs` - scheduler orchestration with public
   `Create` method
-- `Source/Scheduler/SchedulerBuilder.rs` — fluent builder: `WithWorkerCount()`,
+- `Source/Scheduler/SchedulerBuilder.rs` - fluent builder: `WithWorkerCount()`,
   `WithQueue()`
-- `Source/Scheduler/Worker.rs` — prioritized local polling + system stealing
+- `Source/Scheduler/Worker.rs` - prioritized local polling + system stealing
   strategies (99 insertions major enhancement)
 - `Source/Scheduler/mod.rs`
-- `Source/Task/Priority.rs` — High/Low priority enum for UI responsiveness vs
+- `Source/Task/Priority.rs` - High/Low priority enum for UI responsiveness vs
   background indexing
-- `Source/Task/Task.rs` — task definition with priority support
+- `Source/Task/Task.rs` - task definition with priority support
 - `Source/Task/mod.rs`
-- `Source/Library.rs` — crate rustdoc + module exports
+- `Source/Library.rs` - crate rustdoc + module exports
 
 ### Changed (June 10-19: 3 refinement commits)
 
@@ -66,7 +66,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
 - Entire Sequence architecture: `Source/Struct/Sequence/*`, `Source/Trait/`,
   `Source/Type/`, `Source/Enum/`
 
-## [v1.0] — Q1 2025: Integration Phase
+## [v1.0] - Q1 2025: Integration Phase
 
 ### Changed
 
@@ -77,7 +77,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
   Source/Trait/Sequence/, Source/Type/Sequence/, build.rs
 - Wrangler v3 → v4 migration (Cloudflare Workers)
 
-## [v0.2] — Q4 2024: Architecture Solidification
+## [v0.2] - Q4 2024: Architecture Solidification
 
 ### Added
 
@@ -89,7 +89,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
   deletions): Read.rs, Write.rs, Sequence.rs, Tauri.rs, WorkSteal.rs
 - Cargo.toml metadata reorganization
 
-## [v0.1] — Q3 2024: Rapid Development
+## [v0.1] - Q3 2024: Rapid Development
 
 ### Added
 
@@ -97,15 +97,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/).
   Interface/{Data,Environment,Message,Response,Worker}.js,
   Variable/Worker.js
 - Sequence-based task coordination architecture:
-  - `Source/Struct/Sequence/` — Action, Life, Plan, Production, Signal, Vector
-  - `Source/Trait/Sequence/` — Action, Site
-  - `Source/Type/Sequence/` — Action/Cycle
+  - `Source/Struct/Sequence/` - Action, Life, Plan, Production, Signal, Vector
+  - `Source/Trait/Sequence/` - Action, Site
+  - `Source/Type/Sequence/` - Action/Cycle
 - Example programs: Common/Read.rs, Common/Write.rs, Sequence.rs, Tauri.rs,
   WorkSteal.rs
 
 ### Removed
 
-- `.github/workflows/Cloudflare.yml` (61 lines) — Workers deployment abandoned
+- `.github/workflows/Cloudflare.yml` (61 lines) - Workers deployment abandoned
 
 ### Dependencies (First Release)
 
