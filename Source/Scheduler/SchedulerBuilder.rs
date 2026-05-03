@@ -70,7 +70,18 @@ impl SchedulerBuilder {
 	/// Builds and starts the `Scheduler` with the specified configuration.
 	///
 	/// This method consumes the builder and returns a new, running `Scheduler`.
-	pub fn Build(self) -> Scheduler { Scheduler::Create(self.Count, self.Configuration) }
+	pub fn Build(self) -> Scheduler {
+		// Telemetry: emit one `land:echo:scheduler:start` per built
+		// scheduler so the Boot dashboard can track worker-pool size
+		// across processes that link Echo (today: Mountain). No-op in
+		// release / when `Capture=false`.
+		let WorkerCount = format!("{}", self.Count);
+		CommonLibrary::Telemetry::CaptureEvent::Fn(
+			"land:echo:scheduler:start",
+			Some(vec![("worker_count", WorkerCount.as_str())]),
+		);
+		Scheduler::Create(self.Count, self.Configuration)
+	}
 }
 
 impl Default for SchedulerBuilder {
