@@ -76,10 +76,12 @@ impl SchedulerBuilder {
 		// across processes that link Echo (today: Mountain). No-op in
 		// release / when `Capture=false`.
 		let WorkerCount = format!("{}", self.Count);
+
 		CommonLibrary::Telemetry::CaptureEvent::Fn(
 			"land:echo:scheduler:start",
 			Some(vec![("worker_count", WorkerCount.as_str())]),
 		);
+
 		Scheduler::Create(self.Count, self.Configuration)
 	}
 }

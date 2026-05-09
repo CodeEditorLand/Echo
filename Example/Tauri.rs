@@ -22,8 +22,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let Life = Life {
 		Span:Arc::new(dashmap::DashMap::new()),
+
 		Fate:Arc::new(config::Config::default()),
+
 		Cache:Arc::new(tokio::sync::Mutex::new(dashmap::DashMap::new())),
+
 		Karma:Arc::new(dashmap::DashMap::new()),
 	};
 

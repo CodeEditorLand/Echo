@@ -41,6 +41,7 @@ impl WorkerStealingQueue {
 // Define a worker that implements the Worker trait
 struct StealingWorker {
 	Id:usize,
+
 	Queue:Arc<WorkerStealingQueue>,
 }
 

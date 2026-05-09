@@ -26,8 +26,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// Create a life context
 	let Life = Life {
 		Span:Arc::new(DashMap::new()),
+
 		Fate:Arc::new(config::Config::default()),
+
 		Cache:Arc::new(tokio::sync::Mutex::new(DashMap::new())),
+
 		Karma:Arc::new(DashMap::new()),
 	};
 
