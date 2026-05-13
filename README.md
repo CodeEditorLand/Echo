@@ -105,6 +105,20 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
+## Project Structure Overview&#x2001;🗺️
+
+```
+Echo/
+├── Source/
+│   ├── Library.rs               # Module declarations and crate-level exports.
+│   ├── Queue/                   # Work-stealing deque implementation (crossbeam-based).
+│   ├── Scheduler/               # Worker pool, scheduling logic, and builder API.
+│   └── Task/                    # Task definitions, priorities, and effect integration.
+└── ...
+```
+
+---
+
 ## Core Architecture Principles&#x2001;🏗️
 
 | Principle                  | Description                                                                                                                                                     | Key Components Involved                                             |
