@@ -9,7 +9,7 @@
 			</h3>
 		</td>
 		<td align="left" valign="middle">
-			<h3 align="left"> + </h3>
+			<h3 align="left"> + </h3>
 		</td>
 		<td align="left" valign="middle">
 			<h3 align="left">
@@ -43,13 +43,20 @@
 
 A Resilient, High-Performance Task Scheduler for Rust
 
-> **VS Code's background tasks (file indexing, symbol scanning, git blame) run
-> in a single-threaded Node.js process. Heavy indexing freezes everything on
-> that thread. The only escape is spawning more processes, adding memory and IPC
-> overhead.**
+Echo is a bounded work-stealing task scheduler designed as the core execution
+engine for application backends like Mountain. It provides structured
+concurrency with priority-based task scheduling, ensuring that latency-sensitive
+operations always take precedence over background work. The scheduler
+distributes tasks across a Tokio thread pool using lock-free work-stealing
+queues, maximizing CPU utilization without the memory and IPC overhead of
+process-based parallelism.
 
-_"Indexing, search, and builds run on every CPU core in parallel. The editor
-stays responsive."_
+The system separates generic queueing logic from application-specific scheduling
+concerns through a clean abstraction layer. Workers consume tasks from local
+FIFO deques and attempt to steal from peer workers or the global injector queue
+when local work is exhausted. This architecture delivers low-latency execution
+for foreground operations while efficiently processing batch work in the
+background.
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
 [<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
@@ -59,43 +66,42 @@ stays responsive."_
 
 📖 **[Rust API Documentation](https://Rust.Documentation.Editor.Land/Echo/)**
 
-Welcome to **Echo**! This crate provides a powerful, structured concurrency
-runtime for Rust applications, built on a high-performance **work-stealing
-scheduler**. It is designed to be the core execution engine for application
-backends like `Mountain`, integrating seamlessly with declarative systems like
-the `ActionEffect` pattern. **Echo** moves beyond simple task spawning
-(`tokio::spawn`) to provide a robust framework for managing, prioritizing, and
-executing complex asynchronous workflows with resilience and efficiency.
-
-**Echo** is engineered to:
-
-1.  **Provide High-Performance Concurrency:** Utilizes a lock-free,
-    work-stealing queue (`crossbeam-deque`) to ensure all worker threads remain
-    busy, maximizing CPU utilization and application throughput.
-2.  **Enable Structured Task Management:** Offers a clean API for submitting
-    tasks with different priorities, allowing critical, UI-blocking operations
-    to pre-empt background work.
-3.  **Integrate Natively with Effect Systems:** Designed from the ground up to
-    be the execution backend for systems like the `ActionEffect` pattern,
-    providing a bridge between declarative task definitions and their concrete
-    execution.
+Welcome to **Echo**! This crate provides a structured concurrency runtime for
+Rust applications, built on a high-performance work-stealing scheduler. It is
+designed to be the core execution engine for application backends like
+`Mountain`, integrating seamlessly with declarative systems like the
+`ActionEffect` pattern. Echo moves beyond simple task spawning to provide a
+robust framework for managing, prioritizing, and executing complex asynchronous
+workflows with resilience and efficiency.
 
 ---
 
 ## Key Features&#x2001;🔐
 
-- **Work-Stealing Scheduler:** Implements a modern, priority-aware work-stealing
-  algorithm to efficiently distribute tasks across a pool of worker threads.
-- **Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
-  `Low` priority, ensuring that latency-sensitive operations are handled
-  immediately.
-- **Fluent Builder API:** A clean `SchedulerBuilder` allows for easy
-  configuration of the worker pool size.
-- **Graceful Shutdown:** Provides a `Stop()` method to ensure all worker threads
-  complete their current tasks and exit cleanly, preventing orphaned threads.
-- **Decoupled Architecture:** A generic `Queue` module provides the core
-  work-stealing logic, which is consumed by the application-specific
-  `Scheduler`.
+**Work-Stealing Scheduler:** Implements a priority-aware work-stealing algorithm
+using `crossbeam-deque` to efficiently distribute tasks across a pool of worker
+threads. Idle workers automatically steal from busy workers, eliminating
+scheduling bottlenecks and keeping all cores productive.
+
+**Task Prioritization:** Supports submitting tasks with `High`, `Normal`, or
+`Low` priority levels. High-priority tasks are executed first from local and
+global deques, ensuring that latency-sensitive operations respond immediately
+while background work yields gracefully.
+
+**Fluent Builder API:** The `SchedulerBuilder` provides a clean, chainable
+configuration interface for the worker pool. It defaults to the number of
+logical CPU cores with a minimum of two workers, and supports explicit worker
+count overrides as well as named queue configuration for future extensibility.
+
+**Graceful Shutdown:** The `Stop()` method signals all worker threads to
+terminate and waits for each to complete its current task before joining. An
+automatic `Drop` guard ensures workers are signaled to stop even if the
+scheduler is dropped without an explicit shutdown call.
+
+**Decoupled Architecture:** The generic `Queue` module provides the core
+work-stealing logic as a standalone library, independent of any specific
+scheduler implementation. The `StealingQueue<TTask>` accepts any type
+implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
@@ -113,17 +119,17 @@ executing complex asynchronous workflows with resilience and efficiency.
 
 ## Deep Dive & Component Breakdown&#x2001;🔬
 
-To understand how `Echo`'s internal components interact to provide these
-services, please refer to the detailed technical breakdown in
+To understand how Echo's internal components interact to provide these services,
+please refer to the detailed technical breakdown in
 [`Documentation/GitHub/DeepDive.md`](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/DeepDive.md).
 This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 `Scheduler` in detail.
 
 ---
 
-## `Echo` in the Land Ecosystem&#x2001;📣 + 🏞️
+## `Echo` in the Land Ecosystem&#x2001;📣 + 🏞️
 
-This diagram illustrates `Echo`'s role as the core execution engine within the
+This diagram illustrates Echo's role as the core execution engine within the
 `Mountain` backend.
 
 ```mermaid
@@ -163,8 +169,8 @@ graph LR
 
 ## Project Structure Overview&#x2001;🗺️
 
-The `Echo` repository is organized into a few core modules with a clear
-separation of concerns:
+The Echo repository is organized into a few core modules with a clear separation
+of concerns:
 
 ```
 Echo/
@@ -181,26 +187,22 @@ Echo/
 
 ### Installation&#x2001;📥
 
-To add `Echo` to your project, add the following to your `Cargo.toml`:
+To add Echo to your project, add the following to your Cargo.toml:
 
 ```toml
 [dependencies]
 Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" }
 ```
 
-**Key Dependencies:**
-
-- `tokio = { version = "*", features = ["full"] }`
-- `crossbeam-deque = "*"`
-- `rand = "*"`
-- `log = "*"`
-- `num_cpus = "*"`
+The crate depends on `tokio`, `crossbeam-deque`, `rand`, `log`, `num_cpus`, and
+`Common` from the Land workspace. All dependencies are resolved through the
+workspace `Cargo.toml` configuration.
 
 ### Usage&#x2001;🚀
 
-1.  **Initialize the Scheduler:** Create and start the scheduler when your
-    application starts. It is typically wrapped in an `Arc` to be shared safely
-    across your application.
+First, create and start the scheduler when your application initializes. The
+builder defaults to the number of logical CPU cores, with a minimum of two
+workers to ensure work-stealing is viable:
 
 ```rust
 use std::sync::Arc;
@@ -210,8 +212,9 @@ use Echo::Task::Priority;
 let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
 ```
 
-2.  **Submit Tasks:** Use the `Scheduler` instance to submit asynchronous work
-    from anywhere in your application.
+Submit asynchronous tasks from anywhere in your application using the scheduler
+instance. Tasks are queued by priority and executed by the next available
+worker:
 
 ```rust
 let MyTask = async {
@@ -226,8 +229,8 @@ Scheduler.Submit(MyTask, Priority::Normal);
 Scheduler.Submit(async { /* critical work */ }, Priority::High);
 ```
 
-3.  **Graceful Shutdown:** Before your application exits, ensure a clean
-    shutdown of all worker threads.
+Before your application exits, ensure a clean shutdown of all worker threads.
+The `Stop()` method drains the queue and waits for in-flight tasks to complete:
 
 ```rust
 // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
@@ -240,23 +243,23 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ## Help Us Boost Performance: A Call for Contributions!&#x2001;🫱🏻‍🫲🏿
 
-`Echo` is built on a high-performance foundation, but there's always room to
-push the boundaries of speed and efficiency. We maintain a detailed roadmap of
+Echo is built on a high-performance foundation, but there is always room to push
+the boundaries of speed and efficiency. We maintain a detailed roadmap of
 features and performance optimizations, with tasks suitable for all skill
 levels.
 
-| Contribution Level | Example Tasks                                               |
-| :----------------- | :---------------------------------------------------------- |
-| **Quick Wins**     | Implement faster random number generation for stealing.     |
-| **Architectural**  | Add a true sleep/notification system for idle workers.      |
-| **Expert Tuning**  | Build a `criterion` benchmark suite; implement CPU pinning. |
-| **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.           |
+| Contribution Level | Example Tasks                                             |
+| :----------------- | :-------------------------------------------------------- |
+| **Quick Wins**     | Implement faster random number generation for stealing.   |
+| **Architectural**  | Add a notification-based wake system for idle workers.    |
+| **Expert Tuning**  | Build a criterion benchmark suite; implement CPU pinning. |
+| **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.         |
 
 **Interested in tackling one of these challenges?** 👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
-- **[Follow our Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/)**
+- **[Follow our Contribution Guide](https://github.com/CodeEditorLand/Echo/blob/Current/CONTRIBUTING.md)**
   to get started!
 
 ---
@@ -273,25 +276,25 @@ levels.
 
 ## License&#x2001;⚖️
 
-This project is released into the public domain under the **Creative Commons CC0
-Universal** license. You are free to use, modify, distribute, and build upon
-this work for any purpose, without any restrictions. For the full legal text,
-see the [`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
+This project is released into the public domain under the Creative Commons CC0
+Universal license. You are free to use, modify, distribute, and build upon this
+work for any purpose, without any restrictions. For the full legal text, see the
+[`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
 
 ---
 
 ## Changelog&#x2001;📜
 
-Stay updated with our progress! See
-[`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/) for a
-history of changes specific to **Echo**.
+Stay updated with our progress. See
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/blob/Current/CHANGELOG.md)
+for a history of changes specific to Echo.
 
 ---
 
 ## Funding \& Acknowledgements&#x2001;🙏🏻
 
-**Echo** is a core element of the **Land** ecosystem. This project is funded
-through [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
+Echo is a core element of the Land ecosystem. This project is funded through
+[NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
 [NLnet](https://NLnet.NL) with financial support from the European Commission's
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://NLnet.NL/project/Land).
