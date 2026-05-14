@@ -273,7 +273,7 @@ levels.
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
-- **[Follow our Contribution Guide](https://github.com/CodeEditorLand/Echo/blob/Current/CONTRIBUTING.md)**
+- **[Follow our Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/CONTRIBUTING.md)**
   to get started!
 
 ---
@@ -300,7 +300,7 @@ work for any purpose, without any restrictions. For the full legal text, see the
 ## Changelog&#x2001;📜
 
 Stay updated with our progress. See
-[`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/blob/Current/CHANGELOG.md)
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
 for a history of changes specific to Echo.
 
 ---
