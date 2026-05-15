@@ -19,6 +19,33 @@ providing priority-based scheduling with lock-free work-stealing deques.
 
 ---
 
+```mermaid
+graph TB
+    subgraph Echo["Echo Task Scheduler"]
+        TASK["Task Layer<br/>Priority enum<br/>Task&lt;F&gt; wrapper"]
+        QUEUE["Queue Layer<br/>StealingQueue<br/>crossbeam-deque"]
+        SCHED["Scheduler Layer<br/>SchedulerBuilder<br/>Worker pool"]
+
+        TASK --> QUEUE
+        QUEUE --> SCHED
+
+        subgraph Workers["Per-Worker"]
+            W1["Worker 1<br/>H / N / L deques"]
+            W2["Worker 2<br/>H / N / L deques"]
+            WN["Worker N<br/>H / N / L deques"]
+        end
+
+        SCHED --> W1
+        SCHED --> W2
+        SCHED --> WN
+        W1 -.->|"steal"| W2
+        W2 -.->|"steal"| WN
+        WN -.->|"steal"| W1
+    end
+
+    APP["ApplicationRunTime<br/>(Mountain)"] -->|"spawn_high / spawn / spawn_low"| TASK
+```
+
 ## Overview
 
 Echo is a lightweight, high-performance task scheduler that implements a bounded
