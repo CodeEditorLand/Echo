@@ -5,7 +5,7 @@
 		</td>
 		<td align="left" valign="middle">
 			<h3 align="left">
-				📣
+				&#x2001;📣
 			</h3>
 		</td>
 		<td align="left" valign="middle">
@@ -31,7 +31,7 @@
 		</td>
 		<td align="left" valign="middle">
 			<h3 align="left">
-				🏞️
+				&#x2001;🏞️
 			</h3>
 		</td>
 	</tr>
@@ -64,7 +64,7 @@ background.
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
 
-📖 **[Rust API Documentation](https://Rust.Documentation.Editor.Land/Echo/)**
+**[Rust API Documentation](https://Rust.Documentation.Editor.Land/Echo/)**&#x2001;📖
 
 Welcome to **Echo**! This crate provides a structured concurrency runtime for
 Rust applications, built on a high-performance work-stealing scheduler. It is
@@ -141,7 +141,7 @@ This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 
 ---
 
-## `Echo` in the Land Ecosystem&#x2001;📣 + 🏞️
+## `Echo` in the Land Ecosystem&#x2001;📣 + &#x2001;🏞️
 
 This diagram illustrates Echo's role as the core execution engine within the
 `Mountain` backend.
@@ -269,7 +269,7 @@ levels.
 | **Expert Tuning**  | Build a criterion benchmark suite; implement CPU pinning. |
 | **Advanced Logic** | Introduce an anti-starvation mechanism for tasks.         |
 
-**Interested in tackling one of these challenges?** 👉🏻
+**Interested in tackling one of these challenges?** &#x2001;👉🏻
 
 - **[Check out our full TODO](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Todo.md)**
   for challenges!
