@@ -4,7 +4,7 @@ account_id = ""
 compatibility_date = "2024-11-11"
 compatibility_flags = ["nodejs_compat"]
 keep_vars = true
-route = { pattern = "echo.editor.land", custom_domain = true, zone_name = "editor.land" }
+route = { pattern = "echo.land.playform.cloud", custom_domain = true, zone_name = "land.playform.cloud" }
 send_metrics = false
 tsconfig = "./tsconfig.json"
 workers_dev = false
