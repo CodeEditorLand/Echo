@@ -305,7 +305,7 @@ for a history of changes specific to Echo.
 
 ---
 
-## Funding \& Acknowledgements&#x2001;🙏🏻
+## Funding & Acknowledgements&#x2001;🙏🏻
 
 Echo is a core element of the Land ecosystem. This project is funded through
 [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
