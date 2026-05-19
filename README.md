@@ -148,35 +148,47 @@ This diagram illustrates Echo's role as the core execution engine within the
 
 ```mermaid
 graph LR
-    classDef common fill:#9cf,stroke:#333,stroke-width:2px;
-    classDef mountain fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef echo fill:#ffc,stroke:#333,stroke-width:2px;
-    classDef rust fill:#f9d,stroke:#333,stroke-width:1px;
+    classDef common   fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,stroke-dasharray:5 5,color:#0a3a0a;
+    classDef mountain fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef echo     fill:#fffde0,stroke:#f0b429,stroke-width:2px,color:#4a3500;
+    classDef worker   fill:#ffe0f0,stroke:#c0396a,stroke-width:1px,color:#4a0020;
 
-	subgraph "Common (Abstract Core)"
-		ActionEffect["ActionEffect (Task Definition)"]:::common
-	end
+    subgraph COMMON["Common - Abstract Core"]
+        ActionEffect["ActionEffect\n(operation as value)"]:::common
+        Prioritized["Prioritized trait\n(High / Normal / Low)"]:::common
+    end
 
-	subgraph "Mountain (Application Logic)"
-        ApplicationRunTime["Mountain ApplicationRunTime"]:::mountain
-        MountainEnvironment["MountainEnvironment (Service Impls)"]:::mountain
-        Track["Track (Request Dispatcher)"]:::mountain
-	end
+    subgraph MOUNTAIN["Mountain ⛰️ - Application Logic"]
+        Track["Track/ - Request Dispatcher"]:::mountain
+        AppRunTime["ApplicationRunTime\n(RunTime/ApplicationRunTime/)"]:::mountain
+        MountainEnv["Environment/ Providers\n(concrete service impls)"]:::mountain
+        Track --> AppRunTime
+    end
 
-	subgraph "Echo (Execution Engine)"
-		Scheduler["Echo Scheduler"]:::echo
-		WorkStealingQueue["Work-Stealing Queue"]:::echo
-        WorkerPool["Worker Pool (Tokio Threads)"]:::rust
+    subgraph ECHO["Echo 📣 - Work-Stealing Scheduler"]
+        direction TB
+        subgraph SCHEDULER["Scheduler/"]
+            SchedBuilder["SchedulerBuilder.rs\n(fluent config, defaults to num_cpus)"]:::echo
+            SchedCore["Scheduler.rs\n(Submit API + graceful Stop)"]:::echo
+            Workers["Worker.rs\n(Tokio threads, steal-on-idle)"]:::worker
+            SchedBuilder --> SchedCore
+            SchedCore --> Workers
+        end
+        subgraph QUEUE["Queue/"]
+            StealQ["StealingQueue.rs\n(crossbeam-deque, lock-free)"]:::echo
+        end
+        subgraph TASK["Task/"]
+            TaskDef["Task.rs + Priority.rs\n(Future wrapper + priority level)"]:::echo
+        end
 
-        Scheduler -- Manages --> WorkStealingQueue;
-        Scheduler -- Spawns --> WorkerPool;
-        WorkerPool -- Pull tasks from --> WorkStealingQueue;
-	end
+        Workers -- steals from --> StealQ
+        SchedCore -- enqueues --> StealQ
+        TaskDef -.implements.-> Prioritized
+    end
 
-    Track -- Dispatches to --> ApplicationRunTime;
-    ApplicationRunTime -- Creates Future from --> ActionEffect;
-    ApplicationRunTime -- Submits Future to --> Scheduler;
-    WorkerPool -- Executes Future using --> MountainEnvironment;
+    AppRunTime -- creates Future from --> ActionEffect
+    AppRunTime -- Submit Future --> SchedCore
+    Workers -- executes using --> MountainEnv
 ```
 
 ---
