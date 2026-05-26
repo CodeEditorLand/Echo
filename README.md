@@ -141,7 +141,7 @@ This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 
 ---
 
-## `Echo` in the Land Ecosystem&#x2001;📣 + &#x2001;🏞️
+## `Echo` in the Land Ecosystem&#x2001;📣 + &#x2001;🏞️
 
 This diagram illustrates Echo's role as the core execution engine within the
 `Mountain` backend.
