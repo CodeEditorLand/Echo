@@ -3,7 +3,6 @@ struct SimpleSite;
 
 #[async_trait::async_trait]
 impl Site for SimpleSite {
-
 	async fn Receive(&self, Action:Box<dyn Echo::Trait::Sequence::Action::Trait>, Context:&Life) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
@@ -11,7 +10,6 @@ impl Site for SimpleSite {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-
 	// Create a plan with file reading and writing actions
 	let Plan = Arc::new(
 		Echo::Struct::Sequence::Plan::Struct::New()
@@ -82,11 +80,8 @@ use Echo::{
 	},
 	Trait::Sequence::Site::Trait as Site,
 };
-
 use dashmap::DashMap;
-
 use serde_json::{Value, json};
-
 use tokio::{
 	fs::{File, OpenOptions},
 	io::{AsyncReadExt, AsyncWriteExt},

@@ -1,5 +1,4 @@
 pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
-
 	OpenOptions::new()
 		.write(true)
 		.create(true)
@@ -20,5 +19,4 @@ pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
 }
 
 use Echo::Enum::Sequence::Action::Error::Enum as Error;
-
 use serde_json::{Value, json};
