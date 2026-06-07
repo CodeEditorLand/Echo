@@ -1,5 +1,6 @@
 // Define actions for file reading and writing
 pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
+
 	let mut Content = String::new();
 
 	File::open(Argument[0].as_str().ok_or(Error::Execution("Invalid file path".to_string()))?)
@@ -13,4 +14,5 @@ pub async fn Fn(Argument:Vec<Value>) -> Result<Value, Error> {
 }
 
 use Echo::Enum::Sequence::Action::Error::Enum as Error;
+
 use serde_json::{Value, json};

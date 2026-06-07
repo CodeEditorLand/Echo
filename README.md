@@ -2,8 +2,7 @@
 	<tr>
 		<td align="left" valign="middle">
 			<h3 align="left">
-				Echo
-				📣
+				Echo&#x2001;📣
 			</h3>
 		</td>
 		<td align="left" valign="middle">
@@ -25,8 +24,7 @@
 		<td align="left" valign="middle">
 			<h3 align="left">
 				<a href="https://Land.PlayForm.Cloud" target="_blank">
-					Land
-					🏞️
+					Land&#x2001;🏞️
 				</a>
 			</h3>
 		</td>
@@ -137,7 +135,7 @@ This document explains the roles of the `Task`, `StealingQueue`, `Worker`, and
 
 ---
 
-## `Echo` in the Land Ecosystem&#x2001;📣 + &#x2001;🏞️
+## `Echo` in the Land Ecosystem 📣 + 🏞️
 
 This diagram illustrates Echo's role as the core execution engine within the
 `Mountain` backend.

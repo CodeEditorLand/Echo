@@ -1,9 +1,11 @@
 // Define a worker-stealing queue
 struct WorkerStealingQueue {
+
 	Queues:Vec<Arc<Mutex<Vec<Box<dyn Echo::Trait::Sequence::Action::Trait>>>>>,
 }
 
 impl WorkerStealingQueue {
+
 	fn New(Force:usize) -> Self {
 		WorkerStealingQueue { Queues:(0..Force).map(|_| Arc::new(Mutex::new(Vec::new()))).collect() }
 	}
@@ -40,6 +42,7 @@ impl WorkerStealingQueue {
 
 // Define a worker that implements the Worker trait
 struct StealingWorker {
+
 	Id:usize,
 
 	Queue:Arc<WorkerStealingQueue>,
@@ -47,6 +50,7 @@ struct StealingWorker {
 
 #[async_trait]
 impl Worker for StealingWorker {
+
 	async fn Receive(&self, Action:Box<dyn Echo::Trait::Sequence::Action::Trait>, Context:&Life) -> Result<(), Error> {
 		self.Queue.Assign(self.Id, Action).await;
 
@@ -55,6 +59,7 @@ impl Worker for StealingWorker {
 }
 
 async fn worker_loop(Worker:Arc<StealingWorker>, Life:Arc<Life>, Running:Arc<Mutex<bool>>) {
+
 	while *Running.lock().await {
 		if let Some(Action) = Worker.Queue.Do(Worker.Id).await {
 			if let Err(_Error) = Action.Execute(&Life).await {
@@ -68,6 +73,7 @@ async fn worker_loop(Worker:Arc<StealingWorker>, Life:Arc<Life>, Running:Arc<Mut
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
 	// Create a plan with file reading and writing actions
 	let Plan = Arc::new(
 		Echo::Struct::Sequence::Plan::Struct::New()
@@ -154,9 +160,13 @@ use Echo::{
 	},
 	Trait::Sequence::Site::Trait as Worker,
 };
+
 use async_trait::async_trait;
+
 use rand::seq::SliceRandom;
+
 use serde_json::{Value, json};
+
 use tokio::{
 	fs::{File, OpenOptions},
 	io::{AsyncReadExt, AsyncWriteExt},

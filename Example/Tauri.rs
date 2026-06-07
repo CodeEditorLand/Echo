@@ -2,6 +2,7 @@ struct SimpleSite;
 
 #[async_trait::async_trait]
 impl Site for SimpleSite {
+
 	async fn Receive(&self, Action:Box<dyn Sequence::Action::Trait>, Context:&Life) -> Result<(), Error> {
 		Action.Execute(Context).await
 	}
@@ -9,6 +10,7 @@ impl Site for SimpleSite {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
 	let Plan = Arc::new(
 		Echo::Struct::Sequence::Plan::Struct::New()
 			.WithSignature(Action::Signature::Struct { Name:"Read".to_string() })
@@ -112,7 +114,9 @@ use Echo::{
 	Struct::Sequence::{self, Action, Life::Struct as Life, Plan},
 	Trait::Sequence::Site,
 };
+
 use serde_json::{Value, json};
+
 use tokio::{
 	fs::{File, OpenOptions},
 	io::{AsyncReadExt, AsyncWriteExt},
