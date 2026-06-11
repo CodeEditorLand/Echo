@@ -286,9 +286,9 @@ levels.
 
 ## See Also
 
-- [Echo Documentation](https://editor.land/Doc/echo)
-- [Architecture Overview](https://editor.land/Doc/architecture)
-- [Why Rust](https://editor.land/Doc/why-rust)
+- [Echo Documentation](https://Editor.Land/Doc/echo)
+- [Architecture Overview](https://Editor.Land/Doc/architecture)
+- [Why Rust](https://Editor.Land/Doc/why-rust)
 - [Mountain](https://github.com/CodeEditorLand/Mountain)
 - [Common](https://github.com/CodeEditorLand/Common)
 
