@@ -299,7 +299,7 @@ levels.
 This project is released into the public domain under the Creative Commons CC0
 Universal license. You are free to use, modify, distribute, and build upon this
 work for any purpose, without any restrictions. For the full legal text, see the
-[`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/) file.
+[`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE) file.
 
 ---
 
