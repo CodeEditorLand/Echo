@@ -1,43 +1,39 @@
-# **Echo** 🔊
-
 <table>
 	<tr>
-		<td>
-			<a href="https://GitHub.Com/CodeEditorLand/Echo" target="_blank">
-				<picture>
-					<source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/last-commit/CodeEditorLand/Echo?label=Last-commit&color=black&labelColor=black&logoColor=white&logoWidth=0" />
-					<source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/last-commit/CodeEditorLand/Echo?label=Last-commit&color=white&labelColor=white&logoColor=black&logoWidth=0" />
-					<img src="https://img.shields.io/github/last-commit/CodeEditorLand/Echo?label=Last-commit&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Last-commit" title="Last-commit" />
-				</picture>
-			</a>
-			<br />
-			<a href="https://GitHub.Com/CodeEditorLand/Echo" target="_blank">
-				<picture>
-					<source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/issues/CodeEditorLand/Echo?label=Issues&color=black&labelColor=black&logoColor=white&logoWidth=0" />
-					<source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/issues/CodeEditorLand/Echo?label=Issues&color=white&labelColor=white&logoColor=black&logoWidth=0" />
-					<img src="https://img.shields.io/github/issues/CodeEditorLand/Echo?label=Issues&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Issues" title="Issues" />
-				</picture>
-			</a>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				Echo&#x2001;📣
+			</h3>
 		</td>
-		<td>
-			<a href="https://github.com/CodeEditorLand/Echo" target="_blank">
-				<picture>
-					<source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/CodeEditorLand/Echo?style=flat&label=Star&logo=github&color=black&labelColor=black&logoColor=white&logoWidth=0" />
-					<source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/CodeEditorLand/Echo?style=flat&label=Star&logo=github&color=white&labelColor=white&logoColor=black&logoWidth=0" />
-					<img src="https://img.shields.io/github/stars/CodeEditorLand/Echo?style=flat&label=Star&logo=github&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Star" />
-				</picture>
-			</a>
-			<br />
-			<a href="https://GitHub.Com/CodeEditorLand/Echo" target="_blank">
-				<picture>
-					<source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/CodeEditorLand/Echo?label=Downloads&color=black&labelColor=black&logoColor=white&logoWidth=0" />
-					<source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/downloads/CodeEditorLand/Echo?label=Downloads&color=white&labelColor=white&logoColor=black&logoWidth=0" />
-					<img src="https://img.shields.io/github/downloads/CodeEditorLand/Echo?label=Downloads&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Downloads" title="Downloads" />
-				</picture>
-			</a>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				+
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				<a href="https://editor.land" target="_blank">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="https://editor.land/Dark/Image/GitHub/Land.svg" />
+						<source media="(prefers-color-scheme: light)" srcset="https://editor.land/Image/GitHub/Land.svg" />
+						<img width="28" alt="Land Logo" src="https://editor.land/Image/GitHub/Land.svg" />
+					</picture>
+				</a>
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				<a href="https://editor.land" target="_blank">
+					Land&#x2001;🏞️
+				</a>
+			</h3>
 		</td>
 	</tr>
 </table>
+
+---
+
+# **Echo**&#x2001;📣
 
 A Resilient, High-Performance Task Scheduler for Rust
 
@@ -57,14 +53,12 @@ for foreground operations while efficiently processing batch work in the
 background.
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
-[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)
-[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
-[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)
-[![Rust Version](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Rust Version](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
 
-**[Rust API Documentation](https://Rust.Documentation.editor.land/Echo/)** 📖
+**[Rust API Documentation](https://Rust.Documentation.editor.land/Echo/)**&#x2001;📖
 
 Welcome to **Echo**! This crate provides a structured concurrency runtime for
 Rust applications, built on a high-performance work-stealing scheduler. It is
@@ -87,7 +81,7 @@ of worker threads. The crate moves beyond simple `tokio::spawn` to provide a
 robust framework for managing, prioritizing, and executing complex asynchronous
 workflows with resilience and efficiency.
 
-### Key Features 🔐
+### Key Features&#x2001;🔐
 
 - **Work-Stealing Scheduler:** Implements a priority-aware work-stealing
   algorithm using `crossbeam-deque` to efficiently distribute tasks across a
@@ -122,31 +116,31 @@ graph LR
     classDef worker   fill:#ffe0f0,stroke:#c0396a,stroke-width:1px,color:#4a0020;
 
     subgraph COMMON["Common - Abstract Core"]
-        ActionEffect["ActionEffect\n(operation as value)"]:::common
-        Prioritized["Prioritized trait\n(High / Normal / Low)"]:::common
+        ActionEffect["ActionEffect\\n(operation as value)"]:::common
+        Prioritized["Prioritized trait\\n(High / Normal / Low)"]:::common
     end
 
     subgraph MOUNTAIN["Mountain ⛰️ - Application Logic"]
         Track["Track/ - Request Dispatcher"]:::mountain
-        AppRunTime["ApplicationRunTime\n(RunTime/ApplicationRunTime/)"]:::mountain
-        MountainEnv["Environment/ Providers\n(concrete service impls)"]:::mountain
+        AppRunTime["ApplicationRunTime\\n(RunTime/ApplicationRunTime/)"]:::mountain
+        MountainEnv["Environment/ Providers\\n(concrete service impls)"]:::mountain
         Track --> AppRunTime
     end
 
     subgraph ECHO["Echo 📣 - Work-Stealing Scheduler"]
         direction TB
         subgraph SCHEDULER["Scheduler/"]
-            SchedBuilder["SchedulerBuilder.rs\n(fluent config, defaults to num_cpus)"]:::echo
-            SchedCore["Scheduler.rs\n(Submit API + graceful Stop)"]:::echo
-            Workers["Worker.rs\n(Tokio threads, steal-on-idle)"]:::worker
+            SchedBuilder["SchedulerBuilder.rs\\n(fluent config, defaults to num_cpus)"]:::echo
+            SchedCore["Scheduler.rs\\n(Submit API + graceful Stop)"]:::echo
+            Workers["Worker.rs\\n(Tokio threads, steal-on-idle)"]:::worker
             SchedBuilder --> SchedCore
             SchedCore --> Workers
         end
         subgraph QUEUE["Queue/"]
-            StealQ["StealingQueue.rs\n(crossbeam-deque, lock-free)"]:::echo
+            StealQ["StealingQueue.rs\\n(crossbeam-deque, lock-free)"]:::echo
         end
         subgraph TASK["Task/"]
-            TaskDef["Task.rs + Priority.rs\n(Future wrapper + priority level)"]:::echo
+            TaskDef["Task.rs + Priority.rs\\n(Future wrapper + priority level)"]:::echo
         end
 
         Workers -- steals from --> StealQ
@@ -175,7 +169,7 @@ This diagram illustrates Echo's role as the core execution engine within the
 
 ---
 
-## Core Architecture Principles 🏗️
+## Core Architecture Principles&#x2001;🏗️
 
 | Principle                  | Description                                                                                                                                                     | Key Components Involved                                             |
 | :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ |
@@ -199,9 +193,9 @@ provider implementations.
 
 ---
 
-## Getting Started 🚀
+## Getting Started&#x2001;🚀
 
-### Installation 📥
+### Installation&#x2001;📥
 
 To add Echo to your project, add the following to your `Cargo.toml`:
 
@@ -214,7 +208,7 @@ The crate depends on `tokio`, `crossbeam-deque`, `rand`, `log`, `num_cpus`, and
 `Common` from the Land workspace. All dependencies are resolved through the
 workspace `Cargo.toml` configuration.
 
-### Usage 🚀
+### Usage&#x2001;🚀
 
 First, create and start the scheduler when your application initializes. The
 builder defaults to the number of logical CPU cores, with a minimum of two
@@ -259,7 +253,7 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ## API Reference
 
-- [Rust API Documentation](https://Rust.Documentation.editor.land/Echo/) 📖
+- [Rust API Documentation](https://Rust.Documentation.editor.land/Echo/)&#x2001;📖
 
 ---
 
@@ -283,7 +277,7 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ---
 
-## Help Us Boost Performance: A Call for Contributions! 🫱🏻‍🫲🏿
+## Help Us Boost Performance: A Call for Contributions!&#x2001;🫱🏻‍🫲🏿
 
 Echo is built on a high-performance foundation, but there is always room to push
 the boundaries of speed and efficiency. We maintain a detailed roadmap of
@@ -306,12 +300,24 @@ levels.
 
 ---
 
-## Funding
+## License&#x2001;⚖️
 
-This project is funded through
-[NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
-[NLnet](https://NLnet.NL) with financial support from the European Commission's
-Next Generation Internet program, under grant agreement No 101135429.
+This project is released into the public domain under the Creative Commons CC0
+Universal license. You are free to use, modify, distribute, and build upon this
+work for any purpose, without any restrictions. For the full legal text, see the
+[`LICENSE`](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE) file.
+
+---
+
+## Changelog&#x2001;📜
+
+Stay updated with our progress. See
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
+for a history of changes specific to Echo.
+
+---
+
+## Funding & Acknowledgements&#x2001;🙏🏻
 
 Echo is a core element of the Land ecosystem. This project is funded through
 [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
@@ -319,14 +325,40 @@ Echo is a core element of the Land ecosystem. This project is funded through
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://NLnet.NL/project/Land).
 
-The project is operated by PlayForm, based in Sofia, Bulgaria. PlayForm acts as
-the open-source steward for Code Editor Land under the NGI0 Commons Fund grant.
+The project is operated by PlayForm, based in Sofia, Bulgaria.
+
+PlayForm acts as the open-source steward for Code Editor Land under the NGI0
+Commons Fund grant.
 
 <table>
+	<thead>
+		<tr>
+			<th align="left">
+				<strong>
+					Land
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					PlayForm
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					NLnet
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					NGI0 Commons Fund
+				</strong>
+			</th>
+		</tr>
+	</thead>
 	<tbody>
 		<tr>
 			<td align="left" valign="middle">
-				<a href="https://Editor.Land">
+				<a href="https://editor.land">
 					<img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land" />
 				</a>
 			</td>
@@ -348,3 +380,11 @@ the open-source steward for Code Editor Land under the NGI0 Commons Fund grant.
 		</tr>
 	</tbody>
 </table>
+
+---
+
+**Project Maintainers**: Source Open
+([Source/Open@editor.land](mailto:Source/Open@editor.land)) |
+[GitHub Repository](https://github.com/CodeEditorLand/Echo) |
+[Report an Issue](https://github.com/CodeEditorLand/Echo/issues) |
+[Security Policy](https://github.com/CodeEditorLand/Echo/security/policy)
