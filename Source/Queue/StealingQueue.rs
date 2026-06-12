@@ -175,6 +175,10 @@ impl<TTask> Context<TTask> {
 	/// 1. Checks local deques (from high to low priority).
 	/// 2. If local deques are empty, attempts to steal from the system (from
 	///    high to low priority).
+	///
+	/// ## Returns
+	///
+	/// The next available task, or `None` if no work is found anywhere.
 	pub fn Next(&self) -> Option<TTask> {
 		self.Local
 			.0
@@ -191,6 +195,16 @@ impl<TTask> Context<TTask> {
 	/// First tries to steal a batch from the global injector queue for that
 	/// priority. If that fails, attempts to steal from a randomly chosen peer
 	/// worker to ensure fair distribution and avoid contention hotspots.
+	///
+	/// ## Parameters
+	///
+	/// * `Injector` — Global injector queue for the target priority.
+	/// * `Stealers` — Shared stealer handles for peer workers.
+	/// * `Local` — This worker's local deque to populate with stolen tasks.
+	///
+	/// ## Returns
+	///
+	/// A stolen task, or `None` if no work is available in this priority set.
 	pub fn Steal<'a>(
 		&self,
 
