@@ -374,7 +374,7 @@ Echo is designed to be compatible with:
 - [Why Rust](https://Editor.Land/Doc/why-rust)
 - [Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/CONTRIBUTING.md)
 - [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
-  - History of changes specific to Echo
+    - History of changes specific to Echo
 
 ---
 
