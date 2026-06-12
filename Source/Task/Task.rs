@@ -40,7 +40,8 @@ impl Task {
 	}
 }
 
-/// Bridges the `Task` priority with the internal `StealingQueue` priority system.
+/// Bridges the `Task` priority with the internal `StealingQueue` priority
+/// system.
 ///
 /// Enables the queue system to place each task in the correct priority deque.
 impl Prioritized for Task {

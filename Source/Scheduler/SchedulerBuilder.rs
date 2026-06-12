@@ -114,6 +114,7 @@ impl SchedulerBuilder {
 }
 
 impl Default for SchedulerBuilder {
-	/// Provides a default `SchedulerBuilder` instance via `SchedulerBuilder::Create`.
+	/// Provides a default `SchedulerBuilder` instance via
+	/// `SchedulerBuilder::Create`.
 	fn default() -> Self { Self::Create() }
 }

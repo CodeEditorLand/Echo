@@ -39,9 +39,9 @@ impl Worker {
 
 	/// Main execution loop for the worker.
 	///
-	/// Continuously tries to find and execute tasks. Prioritizes the local queue
-	/// and, if empty, attempts to steal work from other workers or the global
-	/// queue. If no work is found anywhere, yields briefly to avoid
+	/// Continuously tries to find and execute tasks. Prioritizes the local
+	/// queue and, if empty, attempts to steal work from other workers or the
+	/// global queue. If no work is found anywhere, yields briefly to avoid
 	/// busy-waiting.
 	///
 	/// The loop exits when [`Worker::IsRunning`] is set to `false`, which
