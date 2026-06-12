@@ -134,7 +134,7 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
-## System Architecture
+## System Architecture&#x2001;
 
 ```mermaid
 graph LR
@@ -183,8 +183,8 @@ graph LR
 
 **Connection paths:**
 
-| Path | Mechanism | Use Case |
-|------|-----------|----------|
+| Path | Protocol | Use Case |
+|------|----------|----------|
 | `Mountain` → Echo | `Submit(Future, Priority)` | Dispatch `ActionEffect`-derived futures to the worker pool |
 | Worker → Peer Worker | `crossbeam-deque` steal | Idle workers pull tasks from busy workers' local deques |
 | Worker → Injector Queue | `crossbeam-deque` steal | Workers fall back to the global injector when local and peer deques are empty |
@@ -317,11 +317,47 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 }
 ```
 
+### Key Dependencies
+
+| Crate | Purpose |
+|-------|---------|
+| `tokio` | Async runtime powering worker threads |
+| `crossbeam-deque` | Lock-free work-stealing double-ended queue primitives |
+| `rand` | Random victim selection for work-stealing |
+| `num_cpus` | Default worker count detection |
+| `Common` | Shared traits (`Prioritized`) and `ActionEffect` pattern |
+
+---
+
+## Security&#x2001;🔒
+
+As a pure library crate, Echo provides architectural guarantees rather than
+runtime enforcement:
+
+| Layer | Mechanism |
+|-------|-----------|
+| **Safe Rust** | No unsafe code — all operations go through safe `Rust` abstractions |
+| **Structured shutdown** | The `Drop` guard ensures worker threads are signaled to stop, preventing orphaned tasks |
+| **Bounded concurrency** | Worker pool size is configurable and capped, preventing unbounded resource consumption |
+| **Decoupled design** | The `Queue` module is generic and independent; a compromised task cannot corrupt the scheduler state |
+
+---
+
+## Compatibility
+
+Echo is designed to be compatible with:
+
+| Target | Integration |
+|--------|-------------|
+| **Mountain** ⛰️ | Primary consumer — submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
+| **Common** 🧩 | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures |
+| **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application |
+
 ---
 
 ## API Reference
 
-- [Rust API Documentation](https://rust.documentation.echo.editor.land/)&#x2001;📖
+- **[Rust API Documentation](https://rust.documentation.echo.editor.land/)**&#x2001;📖
 
 ---
 
@@ -346,15 +382,13 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ## Funding & Acknowledgements&#x2001;🙏🏻
 
-Echo is a core element of the Land ecosystem. This project is funded through
+This project is funded through
 [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
-[NLnet](https://NLnet.NL) with financial support from the European
-Commission's Next Generation Internet program, under grant agreement
-No 101135429.
+[NLnet](https://NLnet.NL) with financial support from the European Commission's
+Next Generation Internet program, under grant agreement No 101135429.
 
-The project is operated by PlayForm, based in Sofia, Bulgaria. PlayForm acts
-as the open-source steward for Code Editor Land under the NGI0 Commons Fund
-grant.
+The project is operated by PlayForm, based in Sofia, Bulgaria. PlayForm acts as
+the open-source steward for Code Editor Land under the NGI0 Commons Fund grant.
 
 <table>
 	<tbody>
