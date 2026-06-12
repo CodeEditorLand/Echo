@@ -1,9 +1,8 @@
 # Echo: Work-Stealing Task Scheduler ⚡
 
-`Echo` is a bounded work-stealing task scheduler for
-`Rust`. `Echo` serves as the core execution engine for `Mountain`'s async
-workloads, providing priority-based scheduling with lock-free work-stealing
-deques.
+`Echo` is a bounded work-stealing task scheduler for `Rust`. `Echo` serves as
+the core execution engine for `Mountain`'s async workloads, providing
+priority-based scheduling with lock-free work-stealing deques.
 
 ---
 

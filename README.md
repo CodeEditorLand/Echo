@@ -39,8 +39,8 @@ A Resilient, High-Performance Task Scheduler for Rust
 
 > **`tokio::spawn` gives you fire-and-forget concurrency — no priority, no
 > backpressure, no structured shutdown. CPU-bound work blocks the executor,
-> starving latency-sensitive tasks. A task scheduler without priority
-> awareness means a background file-index can stall a keystroke.**
+> starving latency-sensitive tasks. A task scheduler without priority awareness
+> means a background file-index can stall a keystroke.**
 >
 > _"Every CPU core stays busy. High-priority tasks always pre-empt background
 > work. Shutdown drains gracefully, never drops a task in flight."_
@@ -66,38 +66,37 @@ utilization without central bottlenecks.
 `tokio::spawn` is great for I/O-bound work, but CPU-bound tasks — parsing,
 diffing, indexing — block the executor. Echo provides priority levels so
 latency-sensitive operations always take precedence, work-stealing so idle
-workers pick up tasks from busy ones, and structured shutdown so no task is
-lost when the system drains.
+workers pick up tasks from busy ones, and structured shutdown so no task is lost
+when the system drains.
 
 **Echo is engineered to:**
 
-1. **Prioritize Critical Work** — `High`-priority tasks (UI responses,
-   keystroke processing) always execute before `Normal` and `Low`-priority
-   background work, ensuring consistent perceived performance.
-2. **Maximize CPU Utilization** — Lock-free work-stealing via
-   `crossbeam-deque` eliminates scheduling bottlenecks. Idle workers
-   automatically steal from busy ones, keeping every core productive.
-3. **Provide Structured Concurrency** — Unlike fire-and-forget
-   `tokio::spawn`, the scheduler manages a supervised pool of workers with
-   graceful startup and shutdown. The `Drop` guard ensures clean teardown even
-   on panic.
+1. **Prioritize Critical Work** — `High`-priority tasks (UI responses, keystroke
+   processing) always execute before `Normal` and `Low`-priority background
+   work, ensuring consistent perceived performance.
+2. **Maximize CPU Utilization** — Lock-free work-stealing via `crossbeam-deque`
+   eliminates scheduling bottlenecks. Idle workers automatically steal from busy
+   ones, keeping every core productive.
+3. **Provide Structured Concurrency** — Unlike fire-and-forget `tokio::spawn`,
+   the scheduler manages a supervised pool of workers with graceful startup and
+   shutdown. The `Drop` guard ensures clean teardown even on panic.
 4. **Maintain a Decoupled Architecture** — The generic `Queue` module provides
-   core work-stealing logic as a standalone library. The `Scheduler` layer
-   adds priority scheduling, worker management, and a fluent builder API.
+   core work-stealing logic as a standalone library. The `Scheduler` layer adds
+   priority scheduling, worker management, and a fluent builder API.
 
 ---
 
 ## Key Features&#x2001;📣
 
 **Work-Stealing Scheduler** — Implements a priority-aware work-stealing
-algorithm using `crossbeam-deque` to efficiently distribute tasks across a
-pool of worker threads. Idle workers automatically steal from busy peers'
-local deques and the global injector queue, ensuring no core sits idle while
-work is available.
+algorithm using `crossbeam-deque` to efficiently distribute tasks across a pool
+of worker threads. Idle workers automatically steal from busy peers' local
+deques and the global injector queue, ensuring no core sits idle while work is
+available.
 
 **Task Prioritization** — Supports submitting tasks with `High`, `Normal`, or
-`Low` priority levels. High-priority tasks are always dequeued first from
-local and global deques, ensuring that latency-sensitive operations respond
+`Low` priority levels. High-priority tasks are always dequeued first from local
+and global deques, ensuring that latency-sensitive operations respond
 immediately while background work yields gracefully.
 
 **Fluent Builder API** — The `SchedulerBuilder` provides a clean, chainable
@@ -111,8 +110,8 @@ automatic `Drop` guard ensures workers are signaled to stop even if the
 scheduler is dropped without an explicit shutdown call.
 
 **Lock-Free Performance** — All queue operations use `crossbeam-deque`'s
-lock-free `Injector` and `Worker` primitives. The global injector queue
-handles remote submissions, while each worker maintains local FIFO deques for
+lock-free `Injector` and `Worker` primitives. The global injector queue handles
+remote submissions, while each worker maintains local FIFO deques for
 cache-friendly task processing.
 
 **Decoupled Queue Library** — The generic `Queue` module provides the core
@@ -124,13 +123,13 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ## Core Architecture Principles&#x2001;🏗️
 
-| Principle | Description | Key Components |
-|-----------|-------------|----------------|
-| **Work Stealing** | Use lock-free data structures (`crossbeam-deque`) with random victim selection to keep all cores productive. Idle workers pull from peer local deques and the global injector queue. | `Queue::StealingQueue`, `Scheduler::Worker` |
-| **Priority Scheduling** | Three priority tiers (`High`, `Normal`, `Low`) determine deque ordering. The `Prioritized` trait decouples priority assignment from the queue implementation. | `Task::Priority`, `Queue::StealingQueue::Prioritized` |
-| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers with explicit startup and graceful shutdown. The `Drop` guard guarantees clean teardown. | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder` |
-| **Decoupling** | Separate the generic queueing logic from the application-specific scheduler. The scheduler uses the queue to run tasks; the queue knows nothing about `Tokio` workers or `Mountain`. | `Queue::StealingQueue<TTask>`, `Task::Task`, `Scheduler::Scheduler` |
-| **Composability** | A simple `Submit` API accepts any `Future<Output = ()> + Send`, making it easy to integrate with any asynchronous `Rust` codebase. | `Task::Task`, `Scheduler::Scheduler::Submit` |
+| Principle                  | Description                                                                                                                                                                          | Key Components                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Work Stealing**          | Use lock-free data structures (`crossbeam-deque`) with random victim selection to keep all cores productive. Idle workers pull from peer local deques and the global injector queue. | `Queue::StealingQueue`, `Scheduler::Worker`                         |
+| **Priority Scheduling**    | Three priority tiers (`High`, `Normal`, `Low`) determine deque ordering. The `Prioritized` trait decouples priority assignment from the queue implementation.                        | `Task::Priority`, `Queue::StealingQueue::Prioritized`               |
+| **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers with explicit startup and graceful shutdown. The `Drop` guard guarantees clean teardown.                      | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`               |
+| **Decoupling**             | Separate the generic queueing logic from the application-specific scheduler. The scheduler uses the queue to run tasks; the queue knows nothing about `Tokio` workers or `Mountain`. | `Queue::StealingQueue<TTask>`, `Task::Task`, `Scheduler::Scheduler` |
+| **Composability**          | A simple `Submit` API accepts any `Future<Output = ()> + Send`, making it easy to integrate with any asynchronous `Rust` codebase.                                                   | `Task::Task`, `Scheduler::Scheduler::Submit`                        |
 
 ---
 
@@ -183,28 +182,28 @@ graph LR
 
 **Connection paths:**
 
-| Path | Protocol | Use Case |
-|------|----------|----------|
-| `Mountain` → Echo | `Submit(Future, Priority)` | Dispatch `ActionEffect`-derived futures to the worker pool |
-| Worker → Peer Worker | `crossbeam-deque` steal | Idle workers pull tasks from busy workers' local deques |
-| Worker → Injector Queue | `crossbeam-deque` steal | Workers fall back to the global injector when local and peer deques are empty |
-| Anything → Echo | `Submit(Future, Priority)` | Any application code can submit any `Future<Output = ()> + Send` |
+| Path                    | Protocol                   | Use Case                                                                      |
+| ----------------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| `Mountain` → Echo       | `Submit(Future, Priority)` | Dispatch `ActionEffect`-derived futures to the worker pool                    |
+| Worker → Peer Worker    | `crossbeam-deque` steal    | Idle workers pull tasks from busy workers' local deques                       |
+| Worker → Injector Queue | `crossbeam-deque` steal    | Workers fall back to the global injector when local and peer deques are empty |
+| Anything → Echo         | `Submit(Future, Priority)` | Any application code can submit any `Future<Output = ()> + Send`              |
 
 ---
 
 ## Key Components
 
-| Component | Path | Description |
-|-----------|------|-------------|
-| Library Entry | `Source/Library.rs` | Crate root, declares all modules with doc comments |
-| Scheduler | `Source/Scheduler/Scheduler.rs` | Main runtime: `Submit`, `Stop`, worker pool lifecycle |
+| Component         | Path                                   | Description                                                               |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| Library Entry     | `Source/Library.rs`                    | Crate root, declares all modules with doc comments                        |
+| Scheduler         | `Source/Scheduler/Scheduler.rs`        | Main runtime: `Submit`, `Stop`, worker pool lifecycle                     |
 | Scheduler Builder | `Source/Scheduler/SchedulerBuilder.rs` | Fluent builder: worker count, queue configuration, defaults to `num_cpus` |
-| Worker | `Source/Scheduler/Worker.rs` | Per-thread execution loop with steal-on-idle logic |
-| StealingQueue | `Source/Queue/StealingQueue.rs` | Generic lock-free work-stealing queue wrapping `crossbeam-deque` |
-| Queue Module | `Source/Queue/mod.rs` | Module declaration for the Queue subsystem |
-| Task | `Source/Task/Task.rs` | Schedulable unit: boxed `Future` + priority metadata |
-| Priority | `Source/Task/Priority.rs` | `High`, `Normal`, `Low` priority enum |
-| Task Module | `Source/Task/mod.rs` | Module declaration for the Task subsystem |
+| Worker            | `Source/Scheduler/Worker.rs`           | Per-thread execution loop with steal-on-idle logic                        |
+| StealingQueue     | `Source/Queue/StealingQueue.rs`        | Generic lock-free work-stealing queue wrapping `crossbeam-deque`          |
+| Queue Module      | `Source/Queue/mod.rs`                  | Module declaration for the Queue subsystem                                |
+| Task              | `Source/Task/Task.rs`                  | Schedulable unit: boxed `Future` + priority metadata                      |
+| Priority          | `Source/Task/Priority.rs`              | `High`, `Normal`, `Low` priority enum                                     |
+| Task Module       | `Source/Task/mod.rs`                   | Module declaration for the Task subsystem                                 |
 
 ---
 
@@ -241,17 +240,17 @@ Echo serves as the core execution engine for `Mountain`, the native
 the `ActionEffect` pattern from the `Common` crate, executing composed
 asynchronous workflows across a priority-aware worker pool.
 
-The `Mountain` runtime submits futures derived from `ActionEffect` values to
-the Echo scheduler, which distributes them across its workers alongside the
-concrete `Environment` provider implementations. High-priority UI operations
-— keystroke processing, command execution, diagnostics — always pre-empt
-background work like file indexing and syntax analysis.
+The `Mountain` runtime submits futures derived from `ActionEffect` values to the
+Echo scheduler, which distributes them across its workers alongside the concrete
+`Environment` provider implementations. High-priority UI operations — keystroke
+processing, command execution, diagnostics — always pre-empt background work
+like file indexing and syntax analysis.
 
-| Layer | Role | Integration with Echo |
-|-------|------|-----------------------|
-| **Mountain** | Application backend (`Tauri` native shell) | Submits `ActionEffect`-derived futures to Echo |
-| **Echo** | Work-stealing task scheduler | Distributes work across `Tokio` workers with priority ordering |
-| **Common** | Abstract traits and shared types | Provides `Prioritized` trait and `ActionEffect` pattern |
+| Layer        | Role                                       | Integration with Echo                                          |
+| ------------ | ------------------------------------------ | -------------------------------------------------------------- |
+| **Mountain** | Application backend (`Tauri` native shell) | Submits `ActionEffect`-derived futures to Echo                 |
+| **Echo**     | Work-stealing task scheduler               | Distributes work across `Tokio` workers with priority ordering |
+| **Common**   | Abstract traits and shared types           | Provides `Prioritized` trait and `ActionEffect` pattern        |
 
 ---
 
@@ -271,9 +270,9 @@ Add Echo to your project via the Land workspace:
 Echo = { git = "https://github.com/CodeEditorLand/Echo.git", branch = "Current" }
 ```
 
-The crate depends on `tokio`, `crossbeam-deque`, `rand`, `log`, `num_cpus`,
-and `Common` from the Land workspace. All dependencies are resolved through
-the workspace `Cargo.toml` configuration.
+The crate depends on `tokio`, `crossbeam-deque`, `rand`, `log`, `num_cpus`, and
+`Common` from the Land workspace. All dependencies are resolved through the
+workspace `Cargo.toml` configuration.
 
 ### Usage
 
@@ -289,9 +288,9 @@ use Echo::Task::Priority;
 let Scheduler = Arc::new(SchedulerBuilder::Create().WithWorkerCount(8).Build());
 ```
 
-Submit asynchronous tasks from anywhere in your application using the
-scheduler instance. Tasks are queued by priority and executed by the next
-available worker:
+Submit asynchronous tasks from anywhere in your application using the scheduler
+instance. Tasks are queued by priority and executed by the next available
+worker:
 
 ```rust
 let MyTask = async {
@@ -307,8 +306,7 @@ Scheduler.Submit(async { /* critical work */ }, Priority::High);
 ```
 
 Before your application exits, ensure a clean shutdown of all worker threads.
-The `Stop()` method drains the queue and waits for in-flight tasks to
-complete:
+The `Stop()` method drains the queue and waits for in-flight tasks to complete:
 
 ```rust
 // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
@@ -319,13 +317,13 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 
 ### Key Dependencies
 
-| Crate | Purpose |
-|-------|---------|
-| `tokio` | Async runtime powering worker threads |
-| `crossbeam-deque` | Lock-free work-stealing double-ended queue primitives |
-| `rand` | Random victim selection for work-stealing |
-| `num_cpus` | Default worker count detection |
-| `Common` | Shared traits (`Prioritized`) and `ActionEffect` pattern |
+| Crate             | Purpose                                                  |
+| ----------------- | -------------------------------------------------------- |
+| `tokio`           | Async runtime powering worker threads                    |
+| `crossbeam-deque` | Lock-free work-stealing double-ended queue primitives    |
+| `rand`            | Random victim selection for work-stealing                |
+| `num_cpus`        | Default worker count detection                           |
+| `Common`          | Shared traits (`Prioritized`) and `ActionEffect` pattern |
 
 ---
 
@@ -334,12 +332,12 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 As a pure library crate, Echo provides architectural guarantees rather than
 runtime enforcement:
 
-| Layer | Mechanism |
-|-------|-----------|
-| **Safe Rust** | No unsafe code — all operations go through safe `Rust` abstractions |
-| **Structured shutdown** | The `Drop` guard ensures worker threads are signaled to stop, preventing orphaned tasks |
-| **Bounded concurrency** | Worker pool size is configurable and capped, preventing unbounded resource consumption |
-| **Decoupled design** | The `Queue` module is generic and independent; a compromised task cannot corrupt the scheduler state |
+| Layer                   | Mechanism                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Safe Rust**           | No unsafe code — all operations go through safe `Rust` abstractions                                  |
+| **Structured shutdown** | The `Drop` guard ensures worker threads are signaled to stop, preventing orphaned tasks              |
+| **Bounded concurrency** | Worker pool size is configurable and capped, preventing unbounded resource consumption               |
+| **Decoupled design**    | The `Queue` module is generic and independent; a compromised task cannot corrupt the scheduler state |
 
 ---
 
@@ -347,11 +345,11 @@ runtime enforcement:
 
 Echo is designed to be compatible with:
 
-| Target | Integration |
-|--------|-------------|
-| **Mountain** ⛰️ | Primary consumer — submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
-| **Common** 🧩 | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures |
-| **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application |
+| Target                  | Integration                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| **Mountain** ⛰️         | Primary consumer — submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
+| **Common** 🧩           | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
+| **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application    |
 
 ---
 
@@ -365,18 +363,18 @@ Echo is designed to be compatible with:
 
 - [Architecture Overview](https://Editor.Land/Doc/architecture) — Land system
   architecture
-- [Deep Dive](Documentation/GitHub/DeepDive.md) — In-depth technical details
-  of the work-stealing algorithm
+- [Deep Dive](Documentation/GitHub/DeepDive.md) — In-depth technical details of
+  the work-stealing algorithm
 - [Land Documentation](../../Documentation/GitHub/README.md) — Complete
   documentation index
-- [`Mountain`](https://github.com/CodeEditorLand/Mountain) — Primary consumer
-  of Echo, native `Tauri` desktop shell
+- [`Mountain`](https://github.com/CodeEditorLand/Mountain) — Primary consumer of
+  Echo, native `Tauri` desktop shell
 - [`Common`](https://github.com/CodeEditorLand/Common) — Abstract traits and
   `ActionEffect` system
 - [Why Rust](https://Editor.Land/Doc/why-rust)
 - [Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/CONTRIBUTING.md)
-- [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md) —
-  History of changes specific to Echo
+- [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
+  — History of changes specific to Echo
 
 ---
 
