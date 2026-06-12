@@ -19,8 +19,8 @@
 
 # **Echo** 📣 Deep Dive & Architecture
 
-This document provides the technical foundation for implementing
-high-performance task scheduling within the Land ecosystem. **Echo** serves as
+**Echo** provides the technical foundation for implementing
+high-performance task scheduling within the Land project. **Echo** serves as
 the work-stealing scheduler that provides efficient task execution for
 Mountain's ApplicationRunTime and other components requiring asynchronous task
 management.
