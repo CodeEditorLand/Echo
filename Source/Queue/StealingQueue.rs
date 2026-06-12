@@ -22,13 +22,14 @@ pub trait Prioritized {
 /// separate deque managed by the system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Priority {
-	/// Highest-priority deque; executed before all others.
+	/// High — Highest-priority deque; executed before all others.
 	High,
 
-	/// Default priority level for most standard operations.
+	/// Normal — Default priority level for most standard operations.
 	Normal,
 
-	/// Lowest-priority deque; deferred when higher-priority work is available.
+	/// Low — Lowest-priority deque; deferred when higher-priority work is
+	/// available.
 	Low,
 }
 
@@ -38,10 +39,11 @@ pub enum Priority {
 /// stealers for taking tasks from other workers' deques, organized by priority
 /// level.
 pub struct Share<TTask> {
-	/// Global, multi-producer queues for each priority level.
+	/// Injector — Global, multi-producer queues for each priority level.
 	pub Injector:(Injector<TTask>, Injector<TTask>, Injector<TTask>),
 
-	/// Shared handles for stealing tasks from each worker's local queue.
+	/// Stealer — Shared handles for stealing tasks from each worker's local
+	/// queue.
 	pub Stealer:(Vec<Stealer<TTask>>, Vec<Stealer<TTask>>, Vec<Stealer<TTask>>),
 }
 
@@ -59,13 +61,15 @@ pub struct StealingQueue<TTask:Prioritized<Kind = Priority>> {
 /// Includes the thread-local `Worker` deques, which are not safe to share,
 /// making this `Context` the sole owner of a worker's private queues.
 pub struct Context<TTask> {
-	/// A unique identifier for the worker, used to avoid self-stealing.
+	/// Identifier — A unique identifier for the worker, used to avoid
+	/// self-stealing.
 	pub Identifier:usize,
 
-	/// Thread-local work queues for each priority level.
+	/// Local — Thread-local work queues for each priority level.
 	pub Local:(Worker<TTask>, Worker<TTask>, Worker<TTask>),
 
-	/// A reference to the shared components of the entire queue system.
+	/// Share — A reference to the shared components of the entire queue
+	/// system.
 	pub Share:Arc<Share<TTask>>,
 }
 
@@ -157,6 +161,11 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 
 	/// Submits a new task to the appropriate global queue based on its
 	/// priority. Thread-safe; can be called from any context.
+	///
+	/// ## Parameters
+	///
+	/// * `Task` — The task to enqueue. Its `Rank()` method determines which
+	///   priority-level queue receives it.
 	pub fn Submit(&self, Task:TTask) {
 		match Task.Rank() {
 			Priority::High => self.Share.Injector.0.push(Task),

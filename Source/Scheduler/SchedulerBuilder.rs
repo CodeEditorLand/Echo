@@ -11,10 +11,12 @@ use crate::Scheduler::Scheduler::Scheduler;
 /// Defines concurrency limits for named queues (for future use).
 #[derive(Debug, Clone, Copy)]
 pub enum Concurrency {
-	/// Specifies a maximum number of concurrent tasks for a queue.
+	/// Limit — Restricts execution to a maximum number of concurrent tasks for
+	/// a named queue.
 	Limit(usize),
 
-	/// Allows an unlimited number of concurrent tasks for a queue.
+	/// Unlimited — Permits an arbitrary number of concurrent tasks for a named
+	/// queue.
 	Unlimited,
 }
 
@@ -36,6 +38,11 @@ impl SchedulerBuilder {
 	///
 	/// The worker count defaults to the number of logical CPUs on the system,
 	/// with a minimum of two workers to ensure work-stealing is viable.
+	///
+	/// ## Returns
+	///
+	/// A new `SchedulerBuilder` instance configured with system-appropriate
+	/// defaults.
 	pub fn Create() -> Self {
 		let Default = num_cpus::get().max(2);
 
@@ -49,6 +56,10 @@ impl SchedulerBuilder {
 	/// ## Parameters
 	///
 	/// * `Count` — Number of worker threads to spawn.
+	///
+	/// ## Returns
+	///
+	/// The builder with the updated worker count, enabling method chaining.
 	pub fn WithWorkerCount(mut self, Count:usize) -> Self {
 		if Count == 0 {
 			warn!("[SchedulerBuilder] Worker count of 0 is invalid. Defaulting to logical CPUs.");
@@ -68,6 +79,11 @@ impl SchedulerBuilder {
 	///
 	/// * `Name` — Queue name.
 	/// * `Limit` — Concurrency limit for the queue.
+	///
+	/// ## Returns
+	///
+	/// The builder with the queue configuration appended, enabling method
+	/// chaining.
 	pub fn WithQueue(mut self, Name:&str, Limit:Concurrency) -> Self {
 		self.Configuration.insert(Name.to_string(), Limit);
 

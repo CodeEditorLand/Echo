@@ -10,15 +10,15 @@
 /// long-running background tasks (e.g., file indexing).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Priority {
-	/// For tasks that directly impact perceived performance and responsiveness.
-	/// These are always executed first.
+	/// High — Tasks that directly impact perceived performance and
+	/// responsiveness. These are always executed first.
 	High,
 
-	/// The default priority for most standard operations that are not
+	/// Normal — Default priority for standard operations that are not
 	/// time-critical but should not be unnecessarily delayed.
 	Normal,
 
-	/// For background tasks that are not time-sensitive and can be deferred
+	/// Low — Background tasks that are not time-sensitive and can be deferred
 	/// if higher-priority work is available.
 	Low,
 }

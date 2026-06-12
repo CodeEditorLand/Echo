@@ -88,6 +88,11 @@ impl Scheduler {
 	///
 	/// Signals all worker threads to stop their loops and waits for each one to
 	/// complete its current task and exit gracefully.
+	///
+	/// ## Errors
+	///
+	/// Logs an error if a worker handle produces a join error but does not
+	/// propagate the error to the caller.
 	pub async fn Stop(&mut self) {
 		if !self.IsRunning.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] Stop already initiated.");

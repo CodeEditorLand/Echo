@@ -31,6 +31,10 @@ impl Worker {
 	/// * `Context` — Execution context with local deques and shared queue
 	///   references.
 	/// * `IsRunning` — Shared atomic flag for shutdown signaling.
+	///
+	/// ## Returns
+	///
+	/// A new `Worker` instance ready to execute tasks via [`Worker::Run`].
 	pub fn Create(Context:Context<Task>, IsRunning:Arc<AtomicBool>) -> Self { Self { Context, IsRunning } }
 
 	/// Main execution loop for the worker.
@@ -39,6 +43,10 @@ impl Worker {
 	/// and, if empty, attempts to steal work from other workers or the global
 	/// queue. If no work is found anywhere, yields briefly to avoid
 	/// busy-waiting.
+	///
+	/// The loop exits when [`Worker::IsRunning`] is set to `false`, which
+	/// happens either through [`Scheduler::Stop`] or when the `Scheduler` is
+	/// dropped.
 	pub async fn Run(self) {
 		trace!("[Worker {}] Starting run loop.", self.Context.Identifier);
 

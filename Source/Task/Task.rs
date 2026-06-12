@@ -18,10 +18,11 @@ pub type Operation = Pin<Box<dyn Future<Output = ()> + Send>>;
 /// Encapsulates an asynchronous operation together with metadata — such as its
 /// `Priority` — that the scheduler uses to determine execution order.
 pub struct Task {
-	/// The asynchronous operation to be executed by a worker thread.
+	/// Operation — The asynchronous operation to be executed by a worker
+	/// thread.
 	pub Operation:Operation,
 
-	/// The priority level of this task.
+	/// Priority — The execution priority level of this task.
 	pub Priority:Priority,
 }
 
