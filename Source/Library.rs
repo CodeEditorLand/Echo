@@ -37,9 +37,9 @@
 //!
 //! ## Modules
 //!
-//! - [`Scheduler`]: Builder and runtime for the worker pool
-//! - [`Queue`]: Lock-free work-stealing deque wrapper
-//! - [`Task`]: Task definition with priority levels
+//! - [`Scheduler`] — Builder and runtime for the worker pool
+//! - [`Queue`] — Lock-free work-stealing deque wrapper
+//! - [`Task`] — Task definition with priority levels
 //!
 //! ## Links
 //!

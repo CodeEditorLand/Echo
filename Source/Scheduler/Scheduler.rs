@@ -22,7 +22,7 @@ use crate::{
 };
 
 /// Manages a pool of worker threads and a work-stealing queue to execute
-/// tasks efficiently. This is the primary public-facing struct of the library.
+/// tasks efficiently. The primary public-facing struct of the Echo library.
 pub struct Scheduler {
 	/// The underlying work-stealing queue system used for task submission.
 	Queue:StealingQueue<Task>,
@@ -37,8 +37,13 @@ pub struct Scheduler {
 impl Scheduler {
 	/// Creates and starts a new scheduler with a given configuration.
 	///
-	/// This is a crate-private function, intended to be called only by the
-	/// `SchedulerBuilder`'s `Build` method.
+	/// Called only by the `SchedulerBuilder::Build` method.
+	///
+	/// ## Parameters
+	///
+	/// * `WorkerCount` — Number of worker threads to spawn.
+	/// * `_Configuration` — Named-queue concurrency limits (reserved for future
+	///   use).
 	pub(crate) fn Create(WorkerCount:usize, _Configuration:HashMap<String, Concurrency>) -> Self {
 		info!("[Scheduler] Creating scheduler with {} workers.", WorkerCount);
 
@@ -66,8 +71,13 @@ impl Scheduler {
 
 	/// Submits a new task to the scheduler's global queue.
 	///
-	/// The task will be picked up by the next available worker according to its
+	/// The task is picked up by the next available worker according to its
 	/// priority and the work-stealing logic.
+	///
+	/// ## Parameters
+	///
+	/// * `Operation` — The future to execute.
+	/// * `Priority` — The execution priority for this task.
 	pub fn Submit<F>(&self, Operation:F, Priority:Priority)
 	where
 		F: Future<Output = ()> + Send + 'static, {
@@ -76,8 +86,8 @@ impl Scheduler {
 
 	/// Asynchronously shuts down the scheduler.
 	///
-	/// This method signals all worker threads to stop their loops and then
-	/// waits for each one to complete its current task and exit gracefully.
+	/// Signals all worker threads to stop their loops and waits for each one to
+	/// complete its current task and exit gracefully.
 	pub async fn Stop(&mut self) {
 		if !self.IsRunning.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] Stop already initiated.");
@@ -101,7 +111,7 @@ impl Drop for Scheduler {
 	/// Ensures workers are signaled to stop if the `Scheduler` is dropped
 	/// without an explicit call to `Stop`.
 	///
-	/// This prevents orphaned worker threads if the user forgets to manage the
+	/// Prevents orphaned worker threads if the user forgets to manage the
 	/// scheduler's lifecycle properly.
 	fn drop(&mut self) {
 		if self.IsRunning.load(Ordering::Relaxed) {

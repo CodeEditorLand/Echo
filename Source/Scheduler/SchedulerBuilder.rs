@@ -20,9 +20,8 @@ pub enum Concurrency {
 
 /// A fluent builder for creating a `Scheduler` instance.
 ///
-/// This pattern provides a clear and readable API for configuring the scheduler
-/// before it is constructed. It is the primary entry point for using the `Echo`
-/// library.
+/// Provides a clear, readable API for configuring the scheduler before it is
+/// constructed. This is the primary entry point for using the Echo library.
 pub struct SchedulerBuilder {
 	/// The number of worker threads to be spawned in the scheduler's pool.
 	Count:usize,
@@ -35,9 +34,8 @@ pub struct SchedulerBuilder {
 impl SchedulerBuilder {
 	/// Creates a new `SchedulerBuilder` with default settings.
 	///
-	/// By default, the worker count is set to the number of logical CPUs on the
-	/// system, with a minimum of two workers to ensure work-stealing is
-	/// viable.
+	/// The worker count defaults to the number of logical CPUs on the system,
+	/// with a minimum of two workers to ensure work-stealing is viable.
 	pub fn Create() -> Self {
 		let Default = num_cpus::get().max(2);
 
@@ -47,6 +45,10 @@ impl SchedulerBuilder {
 	/// Sets the total number of worker threads for the scheduler pool.
 	///
 	/// If `Count` is `0`, it defaults to the number of logical CPUs.
+	///
+	/// ## Parameters
+	///
+	/// * `Count` — Number of worker threads to spawn.
 	pub fn WithWorkerCount(mut self, Count:usize) -> Self {
 		if Count == 0 {
 			warn!("[SchedulerBuilder] Worker count of 0 is invalid. Defaulting to logical CPUs.");
@@ -59,8 +61,13 @@ impl SchedulerBuilder {
 		self
 	}
 
-	/// Configures a named queue with a specific concurrency limit (for future
-	/// use).
+	/// Configures a named queue with a specific concurrency limit (reserved for
+	/// future use).
+	///
+	/// ## Parameters
+	///
+	/// * `Name` — Queue name.
+	/// * `Limit` — Concurrency limit for the queue.
 	pub fn WithQueue(mut self, Name:&str, Limit:Concurrency) -> Self {
 		self.Configuration.insert(Name.to_string(), Limit);
 
@@ -69,7 +76,11 @@ impl SchedulerBuilder {
 
 	/// Builds and starts the `Scheduler` with the specified configuration.
 	///
-	/// This method consumes the builder and returns a new, running `Scheduler`.
+	/// Consumes the builder and returns a new, running `Scheduler`.
+	///
+	/// ## Returns
+	///
+	/// A running `Scheduler` instance.
 	pub fn Build(self) -> Scheduler {
 		// Telemetry: emit one `land:echo:scheduler:start` per built
 		// scheduler so the Boot dashboard can track worker-pool size
@@ -87,6 +98,6 @@ impl SchedulerBuilder {
 }
 
 impl Default for SchedulerBuilder {
-	/// Provides a default `SchedulerBuilder` instance.
+	/// Provides a default `SchedulerBuilder` instance via `SchedulerBuilder::Create`.
 	fn default() -> Self { Self::Create() }
 }

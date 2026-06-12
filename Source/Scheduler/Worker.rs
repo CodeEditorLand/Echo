@@ -1,6 +1,6 @@
 //! # Worker
 //!
-//! Represents a single execution thread in the scheduler's thread pool.
+//! Single execution thread in the scheduler's worker pool.
 
 use std::sync::{
 	Arc,
@@ -12,7 +12,7 @@ use tokio::time::{Duration, sleep};
 
 use crate::{Queue::StealingQueue::Context, Task::Task::Task};
 
-/// Represents a worker that executes tasks from its assigned `Context`.
+/// Executes tasks from its assigned `Context`.
 pub struct Worker {
 	/// The worker's execution context, which contains its private deques and a
 	/// reference to the shared queue system.
@@ -25,14 +25,20 @@ pub struct Worker {
 impl Worker {
 	/// Creates a new `Worker` with its unique execution context and a reference
 	/// to the scheduler's running state.
+	///
+	/// ## Parameters
+	///
+	/// * `Context` — Execution context with local deques and shared queue
+	///   references.
+	/// * `IsRunning` — Shared atomic flag for shutdown signaling.
 	pub fn Create(Context:Context<Task>, IsRunning:Arc<AtomicBool>) -> Self { Self { Context, IsRunning } }
 
-	/// The main execution loop for the worker.
+	/// Main execution loop for the worker.
 	///
-	/// This loop continuously tries to find and execute tasks. It prioritizes
-	/// its local queue and, if empty, attempts to steal work from other
-	/// workers or the global queue. If no work is found anywhere, it yields
-	/// briefly to avoid busy-waiting.
+	/// Continuously tries to find and execute tasks. Prioritizes the local queue
+	/// and, if empty, attempts to steal work from other workers or the global
+	/// queue. If no work is found anywhere, yields briefly to avoid
+	/// busy-waiting.
 	pub async fn Run(self) {
 		trace!("[Worker {}] Starting run loop.", self.Context.Identifier);
 
@@ -72,6 +78,11 @@ impl Worker {
 
 	/// Attempts to pop a single task from the local deques, honoring priority
 	/// from high to low.
+	///
+	/// ## Returns
+	///
+	/// The highest-priority task available, or `None` if all local deques are
+	/// empty.
 	fn PopLocal(&self) -> Option<Task> {
 		self.Context
 			.Local
@@ -83,8 +94,12 @@ impl Worker {
 
 	/// Attempts to steal a batch of work from the system.
 	///
-	/// It steals from the highest-priority queue that has work, populating its
-	/// own local queue and returning the first task immediately for execution.
+	/// Steals from the highest-priority queue that has work, populating its own
+	/// local queue and returning the first task immediately for execution.
+	///
+	/// ## Returns
+	///
+	/// A stolen task, or `None` if no work is available anywhere.
 	fn StealFromSystem(&self) -> Option<Task> {
 		self.Context
 			.Steal(

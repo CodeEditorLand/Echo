@@ -1,13 +1,13 @@
-//! # Priority Enum
+//! # Priority
 //!
-//! Defines the execution priority level of a `Task` within the `Echo`
+//! Defines the execution priority level of a `Task` within the Echo
 //! scheduler.
 
-/// Represents the priority of a task to be executed by the scheduler.
+/// Execution priority of a task in the Echo scheduler.
 ///
-/// This enumeration allows the scheduler to ensure that high-priority,
-/// user-facing operations (e.g., responding to UI input) are executed before
-/// lower-priority, long-running background tasks (e.g., file indexing).
+/// Allows the scheduler to ensure that high-priority, user-facing operations
+/// (e.g., responding to UI input) are executed before lower-priority,
+/// long-running background tasks (e.g., file indexing).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Priority {
 	/// For tasks that directly impact perceived performance and responsiveness.

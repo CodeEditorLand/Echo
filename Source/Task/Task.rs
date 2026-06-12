@@ -1,6 +1,7 @@
-//! # Task Struct
+//! # Task
 //!
-//! Defines the structure of a schedulable task to be executed by a `Worker`.
+//! Defines the structure of a schedulable task to be executed by an Echo
+//! `Worker`.
 
 use std::{future::Future, pin::Pin};
 
@@ -9,16 +10,13 @@ use crate::{
 	Task::Priority::Priority,
 };
 
-/// Defines a dynamic, asynchronous operation that can be sent between threads.
-/// This is a type alias for a boxed, pinned, send-safe future.
+/// A boxed, pinned, send-safe asynchronous operation.
 pub type Operation = Pin<Box<dyn Future<Output = ()> + Send>>;
 
-/// Represents a single, schedulable unit of work for the `Echo` scheduler.
+/// A single schedulable unit of work for the Echo scheduler.
 ///
-/// This struct encapsulates an asynchronous operation along with metadata,
-
-/// such as its `Priority`, that the scheduler uses to determine execution
-/// order.
+/// Encapsulates an asynchronous operation together with metadata — such as its
+/// `Priority` — that the scheduler uses to determine execution order.
 pub struct Task {
 	/// The asynchronous operation to be executed by a worker thread.
 	pub Operation:Operation,
@@ -29,6 +27,11 @@ pub struct Task {
 
 impl Task {
 	/// Creates a new `Task` from a given future and priority level.
+	///
+	/// ## Parameters
+	///
+	/// * `Operation` — The future to execute.
+	/// * `Priority` — The execution priority for this task.
 	pub fn Create<F>(Operation:F, Priority:Priority) -> Self
 	where
 		F: Future<Output = ()> + Send + 'static, {
@@ -36,17 +39,15 @@ impl Task {
 	}
 }
 
-/// Implements the `Prioritized` trait required by the generic `StealingQueue`.
+/// Bridges the `Task` priority with the internal `StealingQueue` priority system.
 ///
-/// This implementation provides the bridge between the application-specific
-/// `Task::Priority` and the generic `Queue::StealingQueue::Priority` used
-/// internally by the queue system.
+/// Enables the queue system to place each task in the correct priority deque.
 impl Prioritized for Task {
-	/// The kind of priority used by the queue.
+	/// The kind of priority used by the queue system.
 	type Kind = QueuePriority;
 
-	/// Translates this task's specific priority into the queue's generic
-	/// priority enum, allowing the queue to place it in the correct deque.
+	/// Translates this task's priority into the queue's generic priority enum,
+	/// placing the task into the correct priority deque.
 	fn Rank(&self) -> Self::Kind {
 		match self.Priority {
 			Priority::High => QueuePriority::High,

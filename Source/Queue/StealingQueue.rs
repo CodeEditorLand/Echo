@@ -9,29 +9,32 @@ use std::sync::Arc;
 use crossbeam_deque::{Injector, Steal, Stealer, Worker};
 use rand::RngExt;
 
-/// Defines a contract for types that can be prioritized by the queue.
+/// Contract for types that can be prioritized by the queue.
 pub trait Prioritized {
 	/// The type of the priority value used by the implementor.
 	type Kind: PartialEq + Eq + Copy;
 
-	/// A method to retrieve the priority of the item.
+	/// Returns the priority of the item.
 	fn Rank(&self) -> Self::Kind;
 }
 
-/// Defines the internal priority levels used by the generic queue. These map
-/// directly to the different deques managed by the system.
+/// Internal priority levels used by the generic queue. Each variant maps to a
+/// separate deque managed by the system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Priority {
+	/// Highest-priority deque; executed before all others.
 	High,
 
+	/// Default priority level for most standard operations.
 	Normal,
 
+	/// Lowest-priority deque; deferred when higher-priority work is available.
 	Low,
 }
 
-/// Holds the queue components that are safe to share across all threads.
+/// Queue components safe to share across all threads.
 ///
-/// This includes global injectors for submitting new tasks from any context and
+/// Includes global injectors for submitting new tasks from any context and
 /// stealers for taking tasks from other workers' deques, organized by priority
 /// level.
 pub struct Share<TTask> {
@@ -44,18 +47,17 @@ pub struct Share<TTask> {
 
 /// A generic, priority-aware, work-stealing queue.
 ///
-/// This is the public-facing entry point for submitting tasks. It is generic
-/// over any task type `TTask` that implements the `Prioritized` trait.
+/// The public-facing entry point for submitting tasks. Generic over any task
+/// type `TTask` that implements the `Prioritized` trait.
 pub struct StealingQueue<TTask:Prioritized<Kind = Priority>> {
 	/// A shared, thread-safe pointer to the queue's shared components.
 	Share:Arc<Share<TTask>>,
 }
 
-/// Contains all necessary components for a single worker thread to operate.
+/// All components necessary for a single worker thread to operate.
 ///
-/// This includes the thread-local `Worker` deques, which are not safe to share,
-
-/// making this `Context` object the sole owner of a worker's private queues.
+/// Includes the thread-local `Worker` deques, which are not safe to share,
+/// making this `Context` the sole owner of a worker's private queues.
 pub struct Context<TTask> {
 	/// A unique identifier for the worker, used to avoid self-stealing.
 	pub Identifier:usize,
@@ -70,10 +72,14 @@ pub struct Context<TTask> {
 impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 	/// Creates a complete work-stealing queue system.
 	///
-	/// This function initializes all the necessary queues, both shared and
-	/// thread-local, for a given number of workers.
+	/// Initializes all necessary queues — both shared and thread-local — for a
+	/// given number of workers.
 	///
-	/// # Returns
+	/// ## Parameters
+	///
+	/// * `Count` — Number of workers that will use the queue system.
+	///
+	/// ## Returns
 	///
 	/// A tuple containing:
 	/// 1. The public-facing `StealingQueue` for submitting new tasks.
@@ -150,8 +156,7 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 	}
 
 	/// Submits a new task to the appropriate global queue based on its
-	/// priority. This method is thread-safe and can be called from any
-	/// context.
+	/// priority. Thread-safe; can be called from any context.
 	pub fn Submit(&self, Task:TTask) {
 		match Task.Rank() {
 			Priority::High => self.Share.Injector.0.push(Task),
@@ -166,9 +171,9 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 impl<TTask> Context<TTask> {
 	/// Finds the next available task for the worker to execute.
 	///
-	/// This method implements the complete work-finding logic:
-	/// 1. Check local deques (from high to low priority).
-	/// 2. If local deques are empty, attempt to steal from the system (from
+	/// Implements the complete work-finding logic:
+	/// 1. Checks local deques (from high to low priority).
+	/// 2. If local deques are empty, attempts to steal from the system (from
 	///    high to low priority).
 	pub fn Next(&self) -> Option<TTask> {
 		self.Local
@@ -183,9 +188,9 @@ impl<TTask> Context<TTask> {
 
 	/// Attempts to steal a task from a specific priority set.
 	///
-	/// It first tries to steal a batch from the global injector queue for that
-	/// priority. If that fails, it attempts to steal from a randomly chosen
-	/// peer worker to ensure fair distribution and avoid contention hotspots.
+	/// First tries to steal a batch from the global injector queue for that
+	/// priority. If that fails, attempts to steal from a randomly chosen peer
+	/// worker to ensure fair distribution and avoid contention hotspots.
 	pub fn Steal<'a>(
 		&self,
 
