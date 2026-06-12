@@ -37,7 +37,7 @@
 
 A Resilient, High-Performance Task Scheduler for Rust
 
-> **`tokio::spawn` gives you fire-and-forget concurrency — no priority, no
+> **`tokio::spawn` gives you fire-and-forget concurrency - no priority, no
 > backpressure, no structured shutdown. CPU-bound work blocks the executor,
 > starving latency-sensitive tasks. A task scheduler without priority awareness
 > means a background file-index can stall a keystroke.**
@@ -63,24 +63,24 @@ structured concurrency with priority-based task scheduling across a `Tokio`
 thread pool, using lock-free `crossbeam-deque` queues to maximize CPU
 utilization without central bottlenecks.
 
-`tokio::spawn` is great for I/O-bound work, but CPU-bound tasks — parsing,
-diffing, indexing — block the executor. Echo provides priority levels so
+`tokio::spawn` is great for I/O-bound work, but CPU-bound tasks - parsing,
+diffing, indexing - block the executor. Echo provides priority levels so
 latency-sensitive operations always take precedence, work-stealing so idle
 workers pick up tasks from busy ones, and structured shutdown so no task is lost
 when the system drains.
 
 **Echo is engineered to:**
 
-1. **Prioritize Critical Work** — `High`-priority tasks (UI responses, keystroke
+1. **Prioritize Critical Work** - `High`-priority tasks (UI responses, keystroke
    processing) always execute before `Normal` and `Low`-priority background
    work, ensuring consistent perceived performance.
-2. **Maximize CPU Utilization** — Lock-free work-stealing via `crossbeam-deque`
+2. **Maximize CPU Utilization** - Lock-free work-stealing via `crossbeam-deque`
    eliminates scheduling bottlenecks. Idle workers automatically steal from busy
    ones, keeping every core productive.
-3. **Provide Structured Concurrency** — Unlike fire-and-forget `tokio::spawn`,
+3. **Provide Structured Concurrency** - Unlike fire-and-forget `tokio::spawn`,
    the scheduler manages a supervised pool of workers with graceful startup and
    shutdown. The `Drop` guard ensures clean teardown even on panic.
-4. **Maintain a Decoupled Architecture** — The generic `Queue` module provides
+4. **Maintain a Decoupled Architecture** - The generic `Queue` module provides
    core work-stealing logic as a standalone library. The `Scheduler` layer adds
    priority scheduling, worker management, and a fluent builder API.
 
@@ -88,33 +88,33 @@ when the system drains.
 
 ## Key Features&#x2001;📣
 
-**Work-Stealing Scheduler** — Implements a priority-aware work-stealing
+**Work-Stealing Scheduler** - Implements a priority-aware work-stealing
 algorithm using `crossbeam-deque` to efficiently distribute tasks across a pool
 of worker threads. Idle workers automatically steal from busy peers' local
 deques and the global injector queue, ensuring no core sits idle while work is
 available.
 
-**Task Prioritization** — Supports submitting tasks with `High`, `Normal`, or
+**Task Prioritization** - Supports submitting tasks with `High`, `Normal`, or
 `Low` priority levels. High-priority tasks are always dequeued first from local
 and global deques, ensuring that latency-sensitive operations respond
 immediately while background work yields gracefully.
 
-**Fluent Builder API** — The `SchedulerBuilder` provides a clean, chainable
+**Fluent Builder API** - The `SchedulerBuilder` provides a clean, chainable
 configuration interface. It defaults to the number of logical CPU cores with a
 minimum of two workers, and supports explicit worker count overrides and named
 queue configuration for future extensibility.
 
-**Graceful Shutdown** — The `Stop()` method signals all worker threads to
+**Graceful Shutdown** - The `Stop()` method signals all worker threads to
 terminate and waits for each to complete its current task before joining. An
 automatic `Drop` guard ensures workers are signaled to stop even if the
 scheduler is dropped without an explicit shutdown call.
 
-**Lock-Free Performance** — All queue operations use `crossbeam-deque`'s
+**Lock-Free Performance** - All queue operations use `crossbeam-deque`'s
 lock-free `Injector` and `Worker` primitives. The global injector queue handles
 remote submissions, while each worker maintains local FIFO deques for
 cache-friendly task processing.
 
-**Decoupled Queue Library** — The generic `Queue` module provides the core
+**Decoupled Queue Library** - The generic `Queue` module provides the core
 work-stealing logic as a standalone library, independent of any specific
 scheduler implementation. The `StealingQueue<TTask>` accepts any type
 implementing the `Prioritized` trait, making it reusable across projects.
@@ -242,8 +242,8 @@ asynchronous workflows across a priority-aware worker pool.
 
 The `Mountain` runtime submits futures derived from `ActionEffect` values to the
 Echo scheduler, which distributes them across its workers alongside the concrete
-`Environment` provider implementations. High-priority UI operations — keystroke
-processing, command execution, diagnostics — always pre-empt background work
+`Environment` provider implementations. High-priority UI operations - keystroke
+processing, command execution, diagnostics - always pre-empt background work
 like file indexing and syntax analysis.
 
 | Layer        | Role                                       | Integration with Echo                                          |
@@ -334,7 +334,7 @@ runtime enforcement:
 
 | Layer                   | Mechanism                                                                                            |
 | ----------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Safe Rust**           | No unsafe code — all operations go through safe `Rust` abstractions                                  |
+| **Safe Rust**           | No unsafe code - all operations go through safe `Rust` abstractions                                  |
 | **Structured shutdown** | The `Drop` guard ensures worker threads are signaled to stop, preventing orphaned tasks              |
 | **Bounded concurrency** | Worker pool size is configurable and capped, preventing unbounded resource consumption               |
 | **Decoupled design**    | The `Queue` module is generic and independent; a compromised task cannot corrupt the scheduler state |
@@ -347,7 +347,7 @@ Echo is designed to be compatible with:
 
 | Target                  | Integration                                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
-| **Mountain** ⛰️         | Primary consumer — submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
+| **Mountain** ⛰️         | Primary consumer - submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
 | **Common** 🧩           | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
 | **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application    |
 
@@ -361,20 +361,20 @@ Echo is designed to be compatible with:
 
 ## Related Documentation
 
-- [Architecture Overview](https://Editor.Land/Doc/architecture) — Land system
+- [Architecture Overview](https://Editor.Land/Doc/architecture) - Land system
   architecture
-- [Deep Dive](Documentation/GitHub/DeepDive.md) — In-depth technical details of
+- [Deep Dive](Documentation/GitHub/DeepDive.md) - In-depth technical details of
   the work-stealing algorithm
-- [Land Documentation](../../Documentation/GitHub/README.md) — Complete
+- [Land Documentation](../../Documentation/GitHub/README.md) - Complete
   documentation index
-- [`Mountain`](https://github.com/CodeEditorLand/Mountain) — Primary consumer of
+- [`Mountain`](https://github.com/CodeEditorLand/Mountain) - Primary consumer of
   Echo, native `Tauri` desktop shell
-- [`Common`](https://github.com/CodeEditorLand/Common) — Abstract traits and
+- [`Common`](https://github.com/CodeEditorLand/Common) - Abstract traits and
   `ActionEffect` system
 - [Why Rust](https://Editor.Land/Doc/why-rust)
 - [Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/CONTRIBUTING.md)
 - [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
-  — History of changes specific to Echo
+  - History of changes specific to Echo
 
 ---
 
