@@ -40,6 +40,11 @@
 //! - [`Scheduler`]: Builder and runtime for the worker pool
 //! - [`Queue`]: Lock-free work-stealing deque wrapper
 //! - [`Task`]: Task definition with priority levels
+//!
+//! ## Links
+//!
+//! - [Repository](https://github.com/CodeEditorLand/Echo)
+//! - [Architecture](https://github.com/CodeEditorLand/Echo/blob/main/Documentation/GitHub/Architecture.md)
 
 // --- Crate Modules ---
 // Declares the main modules that constitute the library.
