@@ -343,7 +343,7 @@ Echo is designed to be compatible with:
 | Target                  | Integration                                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
 | **Mountain** ⛰️         | Primary consumer - submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
-| **Common** 🧩           | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
+| **Common** 🧑🏻‍🏭           | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
 | **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application    |
 
 ---
