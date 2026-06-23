@@ -57,32 +57,26 @@ A Resilient, High-Performance Task Scheduler for Rust
 
 ## Overview
 
-**Echo** is a bounded work-stealing task scheduler for `Rust`, designed as the
-core execution engine for application backends like `Mountain`. It provides
-structured concurrency with priority-based task scheduling across a `Tokio`
-thread pool, using lock-free `crossbeam-deque` queues to maximize CPU
-utilization without central bottlenecks.
+**Echo** is a task scheduler for `Rust` that decides which work runs when —
+and on which CPU core. It's the execution engine that `Mountain` ⛰️ uses to
+run everything from processing keystrokes to indexing files in the background.
 
-`tokio::spawn` is great for I/O-bound work, but CPU-bound tasks - parsing,
-diffing, indexing - block the executor. Echo provides priority levels so
-latency-sensitive operations always take precedence, work-stealing so idle
-workers pick up tasks from busy ones, and structured shutdown so no task is lost
-when the system drains.
+The standard `tokio::spawn` is fine for network I/O, but CPU-heavy work —
+parsing, diffing, indexing — can block the executor and stall everything else.
+Echo solves this with three mechanisms:
 
-**Echo is engineered to:**
+- **Priorities** — Tasks like UI responses and keystroke processing run at
+  `High` priority, always jumping ahead of background work like file indexing
+  or syntax analysis.
+- **Work-stealing** — If one worker is busy and another is idle, the idle one
+  pulls tasks from the busy one's queue. No core sits idle while work is
+  waiting.
+- **Structured shutdown** — When the application shuts down, Echo drains its
+  queues gracefully. No task gets dropped mid-flight.
 
-1. **Prioritize Critical Work** - `High`-priority tasks (UI responses, keystroke
-   processing) always execute before `Normal` and `Low`-priority background
-   work, ensuring consistent perceived performance.
-2. **Maximize CPU Utilization** - Lock-free work-stealing via `crossbeam-deque`
-   eliminates scheduling bottlenecks. Idle workers automatically steal from busy
-   ones, keeping every core productive.
-3. **Provide Structured Concurrency** - Unlike fire-and-forget `tokio::spawn`,
-   the scheduler manages a supervised pool of workers with graceful startup and
-   shutdown. The `Drop` guard ensures clean teardown even on panic.
-4. **Maintain a Decoupled Architecture** - The generic `Queue` module provides
-   core work-stealing logic as a standalone library. The `Scheduler` layer adds
-   priority scheduling, worker management, and a fluent builder API.
+Echo is designed as two layers. A generic `Queue` module handles the core
+work-stealing logic (usable in any project). A `Scheduler` layer on top adds
+priority ordering, worker management, and a builder API for configuration.
 
 ---
 
@@ -109,10 +103,11 @@ terminate and waits for each to complete its current task before joining. An
 automatic `Drop` guard ensures workers are signaled to stop even if the
 scheduler is dropped without an explicit shutdown call.
 
-**Lock-Free Performance** - All queue operations use `crossbeam-deque`'s
-lock-free `Injector` and `Worker` primitives. The global injector queue handles
-remote submissions, while each worker maintains local FIFO deques for
-cache-friendly task processing.
+**Lock-Free Performance** — All queue operations use `crossbeam-deque`'s
+lock-free primitives. New tasks submitted from outside a worker go into a
+shared global queue. Each worker pulls from its own local queue (fast,
+cache-friendly), steals from peers' queues when idle, and falls back to the
+global queue as a last resort. No mutex, no contention.
 
 **Decoupled Queue Library** - The generic `Queue` module provides the core
 work-stealing logic as a standalone library, independent of any specific
