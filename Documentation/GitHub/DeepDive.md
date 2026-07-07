@@ -9,15 +9,13 @@
 				</picture>
 			</h3>
 		</td>
-		<td colspan="3" valign="top">
-			<h3 align="center"> Echo 📣</h3>
-		</td>
+		<td colspan="3" valign="top"><h3 align="center">Echo&#x2001;📣</h3></td>
 	</tr>
 </table>
 
 ---
 
-# **Echo** 📣 Deep Dive & Architecture
+# **Echo**&#x2001;📣&#x2001;Deep Dive & Architecture
 
 **Echo** provides the technical foundation for implementing high-performance
 task scheduling within the Land project. **Echo** serves as the work-stealing
