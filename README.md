@@ -32,8 +32,8 @@ A Resilient, High-Performance Task Scheduler for Rust
 > work. Shutdown drains gracefully, never drops a task in flight."_
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
-[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
-[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/)&#x2001;[![Rust Version](https://img.shields.io/badge/Rust-1.95.0+-orange.svg)](https://www.rust-lang.org/)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/) [![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
+[<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/) [![Rust Version](https://img.shields.io/badge/Rust-1.95.0+-orange.svg)](https://www.rust-lang.org/)
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
 
@@ -45,7 +45,7 @@ A Resilient, High-Performance Task Scheduler for Rust
 
 **Echo** is a task scheduler for `Rust` that decides which work runs when - and
 on which CPU core. It's the execution engine that
-`Mountain`&#x2001;⛰️&#x2001;uses to run everything from processing keystrokes to
+`Mountain`&#x2001;⛰️ uses to run everything from processing keystrokes to
 indexing files in the background.
 
 The standard `tokio::spawn` is fine for network I/O, but CPU-heavy work -
@@ -115,7 +115,7 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
-## System Architecture&#x2001;
+## System Architecture
 
 ```mermaid
 graph LR
