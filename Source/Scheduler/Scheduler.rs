@@ -49,7 +49,8 @@ impl Scheduler {
 
 		let IsRunning = Arc::new(AtomicBool::new(true));
 
-		// Create the entire queue system and retrieve the contexts for each worker.
+		// Create the entire queue system and retrieve the contexts for each
+		// worker.
 		let (Queue, Contexts) = StealingQueue::<Task>::Create(WorkerCount);
 
 		let mut WorkerHandles = Vec::with_capacity(WorkerCount);
