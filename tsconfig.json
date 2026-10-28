@@ -6,7 +6,8 @@
 		"lib": ["ESNext"],
 		"outDir": "Target",
 		"types": ["@cloudflare/workers-types/experimental", "@types/node"],
-		"rootDir": "./Source"
+		"rootDir": "./Source",
+		"composite": true
 	},
 	"extends": "@playform/build/tsconfig",
 	"include": ["Source"]
