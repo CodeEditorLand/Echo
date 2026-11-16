@@ -2,7 +2,7 @@
 	<tr>
 		<td align="left" valign="middle">
 			<h3 align="left">
-				Echo&#x2001;📣
+				Echo 📣
 			</h3>
 		</td>
 		<td align="left" valign="middle">
@@ -24,7 +24,7 @@
 		<td align="left" valign="middle">
 			<h3 align="left">
 				<a href="https://editor.land" target="_blank">
-					Land&#x2001;🏞️
+					Land 🏞️
 				</a>
 			</h3>
 		</td>
@@ -33,7 +33,7 @@
 
 ---
 
-# **Echo**&#x2001;📣
+# **Echo** 📣
 
 A Resilient, High-Performance Task Scheduler for Rust
 
@@ -51,7 +51,7 @@ A Resilient, High-Performance Task Scheduler for Rust
 [![Tokio Version](https://img.shields.io/badge/Tokio-v1-blue.svg)](https://tokio.rs/)
 [![Crossbeam Version](https://img.shields.io/badge/Crossbeam-blueviolet.svg)](https://github.com/crossbeam-rs/crossbeam)
 
-**[Rust API Documentation](https://rust.documentation.echo.editor.land/)**&#x2001;📖
+**[Rust API Documentation](https://rust.documentation.echo.editor.land/)** 📖
 
 ---
 
@@ -59,7 +59,7 @@ A Resilient, High-Performance Task Scheduler for Rust
 
 **Echo** is a task scheduler for `Rust` that decides which work runs when - and
 on which CPU core. It's the execution engine that
-`Mountain`&#x2001;⛰️ uses to run everything from processing keystrokes to
+`Mountain` ⛰️ uses to run everything from processing keystrokes to
 indexing files in the background.
 
 The standard `tokio::spawn` is fine for network I/O, but CPU-heavy work -
@@ -81,7 +81,7 @@ priority ordering, worker management, and a builder API for configuration.
 
 ---
 
-## Key Features&#x2001;📣
+## Key Features 📣
 
 **Work-Stealing Scheduler** - Implements a priority-aware work-stealing
 algorithm using `crossbeam-deque` to efficiently distribute tasks across a pool
@@ -117,14 +117,14 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
-## Core Architecture Principles&#x2001;🏗️
+## Core Architecture Principles 🏗️
 
 | Principle                  | Description                                                                                                                                                                                    | Key Components                                                      |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | **Work Stealing**          | Use lock-free data structures (`crossbeam-deque`) with random victim selection to keep all cores productive. Idle workers pull from peer local deques and the global injector queue.           | `Queue::StealingQueue`, `Scheduler::Worker`                         |
 | **Priority Scheduling**    | Three priority tiers (`High`, `Normal`, `Low`) determine deque ordering. The `Prioritized` trait decouples priority assignment from the queue implementation.                                  | `Task::Priority`, `Queue::StealingQueue::Prioritized`               |
 | **Structured Concurrency** | Manage all asynchronous operations within a supervised pool of workers with explicit startup and graceful shutdown. The `Drop` guard guarantees clean teardown.                                | `Scheduler::Scheduler`, `Scheduler::SchedulerBuilder`               |
-| **Decoupling**             | Separate the generic queueing logic from the application-specific scheduler. The scheduler uses the queue to run tasks; the queue knows nothing about `Tokio` workers or `Mountain`&#x2001;⛰️. | `Queue::StealingQueue<TTask>`, `Task::Task`, `Scheduler::Scheduler` |
+| **Decoupling**             | Separate the generic queueing logic from the application-specific scheduler. The scheduler uses the queue to run tasks; the queue knows nothing about `Tokio` workers or `Mountain` ⛰️. | `Queue::StealingQueue<TTask>`, `Task::Task`, `Scheduler::Scheduler` |
 | **Composability**          | A simple `Submit` API accepts any `Future<Output = ()> + Send`, making it easy to integrate with any asynchronous `Rust` codebase.                                                             | `Task::Task`, `Scheduler::Scheduler::Submit`                        |
 
 ---
@@ -180,7 +180,7 @@ graph LR
 
 | Path                                  | Protocol                   | Use Case                                                                      |
 | ------------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| `Mountain`&#x2001;⛰️ → Echo&#x2001;📣 | `Submit(Future, Priority)` | Dispatch `ActionEffect`-derived futures to the worker pool                    |
+| `Mountain` ⛰️ → Echo 📣 | `Submit(Future, Priority)` | Dispatch `ActionEffect`-derived futures to the worker pool                    |
 | Worker → Peer Worker                  | `crossbeam-deque` steal    | Idle workers pull tasks from busy workers' local deques                       |
 | Worker → Injector Queue               | `crossbeam-deque` steal    | Workers fall back to the global injector when local and peer deques are empty |
 | Anything → Echo                       | `Submit(Future, Priority)` | Any application code can submit any `Future<Output = ()> + Send`              |
@@ -203,7 +203,7 @@ graph LR
 
 ---
 
-## Project Structure&#x2001;🗺️
+## Project Structure 🗺️
 
 ```
 Element/Echo/
@@ -231,9 +231,9 @@ Element/Echo/
 
 ## In the Land Project
 
-Echo serves as the core execution engine for `Mountain`&#x2001;⛰️, the native
+Echo serves as the core execution engine for `Mountain` ⛰️, the native
 `Rust`/`Tauri` backend of the Land Code Editor. It integrates seamlessly with
-the `ActionEffect` pattern from the `Common`&#x2001;🧑🏻‍🏭 crate, executing composed
+the `ActionEffect` pattern from the `Common` 🧑🏻‍🏭 crate, executing composed
 asynchronous workflows across a priority-aware worker pool.
 
 The `Mountain` runtime submits futures derived from `ActionEffect` values to the
@@ -244,13 +244,13 @@ like file indexing and syntax analysis.
 
 | Layer                  | Role                                       | Integration with Echo                                          |
 | ---------------------- | ------------------------------------------ | -------------------------------------------------------------- |
-| **Mountain**&#x2001;⛰️ | Application backend (`Tauri` native shell) | Submits `ActionEffect`-derived futures to Echo                 |
-| **Echo**&#x2001;📣     | Work-stealing task scheduler               | Distributes work across `Tokio` workers with priority ordering |
-| **Common**&#x2001;🧑🏻‍🏭   | Abstract traits and shared types           | Provides `Prioritized` trait and `ActionEffect` pattern        |
+| **Mountain** ⛰️ | Application backend (`Tauri` native shell) | Submits `ActionEffect`-derived futures to Echo                 |
+| **Echo** 📣     | Work-stealing task scheduler               | Distributes work across `Tokio` workers with priority ordering |
+| **Common** 🧑🏻‍🏭   | Abstract traits and shared types           | Provides `Prioritized` trait and `ActionEffect` pattern        |
 
 ---
 
-## Getting Started&#x2001;🚀
+## Getting Started 🚀
 
 ### Prerequisites
 
@@ -320,11 +320,11 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 | `rand`             | Random victim selection for work-stealing                                                                                         |
 | `num_cpus`         | Default worker count detection                                                                                                    |
 | `log`              | Structured logging for scheduler and worker lifecycle                                                                             |
-| `Common`&#x2001;🧑🏻‍🏭 | Shared traits (`Prioritized`) and `ActionEffect` pattern; also provides the `CaptureEvent` telemetry hook used on scheduler start |
+| `Common` 🧑🏻‍🏭 | Shared traits (`Prioritized`) and `ActionEffect` pattern; also provides the `CaptureEvent` telemetry hook used on scheduler start |
 
 ---
 
-## Security&#x2001;🔒
+## Security 🔒
 
 As a pure library crate, Echo provides architectural guarantees rather than
 runtime enforcement:
@@ -344,15 +344,15 @@ Echo is designed to be compatible with:
 
 | Target                  | Integration                                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
-| **Mountain**&#x2001;⛰️  | Primary consumer - submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
-| **Common**&#x2001;🧑🏻‍🏭    | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
+| **Mountain** ⛰️  | Primary consumer - submits `ActionEffect`-derived futures via `Submit(Future, Priority)` |
+| **Common** 🧑🏻‍🏭    | Implements `Prioritized` trait and accepts `ActionEffect`-compatible futures             |
 | **Any `Tokio` runtime** | Echo uses `Tokio` internally and integrates with any `Tokio`-based `Rust` application    |
 
 ---
 
 ## API Reference
 
-- **[Rust API Documentation](https://rust.documentation.echo.editor.land/)**&#x2001;📖
+- **[Rust API Documentation](https://rust.documentation.echo.editor.land/)** 📖
 
 ---
 
@@ -364,16 +364,16 @@ Echo is designed to be compatible with:
   the work-stealing algorithm
 - [Land Documentation](../../Documentation/GitHub/README.md) - Complete
   documentation index
-- [`Mountain`](https://github.com/CodeEditorLand/Mountain)&#x2001;⛰️ - Primary
+- [`Mountain`](https://github.com/CodeEditorLand/Mountain) ⛰️ - Primary
   consumer of Echo, native `Tauri` desktop shell
-- [`Common`](https://github.com/CodeEditorLand/Common)&#x2001;🧑🏻‍🏭 - Abstract
+- [`Common`](https://github.com/CodeEditorLand/Common) 🧑🏻‍🏭 - Abstract
   traits and `ActionEffect` system
 - [Why Rust](https://Editor.Land/Doc/why-rust)
 - [Contribution Guide](https://github.com/CodeEditorLand/Echo/tree/Current/CONTRIBUTING.md)
 
 ---
 
-## License&#x2001;⚖️
+## License ⚖️
 
 This project is released into the public domain under the **Creative Commons CC0
 Universal** license. You are free to use, modify, distribute, and build upon
@@ -383,7 +383,7 @@ file.
 
 ---
 
-## Changelog&#x2001;📜
+## Changelog 📜
 
 Stay updated with our progress! See
 [`CHANGELOG.md`](https://github.com/CodeEditorLand/Echo/tree/Current/CHANGELOG.md)
@@ -391,9 +391,9 @@ for a history of changes.
 
 ---
 
-## Funding & Acknowledgements&#x2001;🙏🏻
+## Funding & Acknowledgements 🙏🏻
 
-**Land**&#x2001;🏞️ is proud to be an open-source endeavor. Our journey is
+**Land** 🏞️ is proud to be an open-source endeavor. Our journey is
 significantly supported by the organizations and projects that believe in the
 future of open-source software.
 

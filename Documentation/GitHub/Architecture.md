@@ -1,4 +1,4 @@
-# Echo: Work-Stealing Task Scheduler&#x2001;⚡
+# Echo: Work-Stealing Task Scheduler ⚡
 
 `Echo` is a bounded work-stealing task scheduler for `Rust`. `Echo` serves as
 the core execution engine for `Mountain`'s async workloads, providing
@@ -46,7 +46,7 @@ graph TB
     APP["ApplicationRunTime<br/>(Mountain)"] -->|"spawn_high / spawn / spawn_low"| TASK
 ```
 
-## Overview&#x2001;📋
+## Overview 📋
 
 `Echo` is a lightweight, high-performance task scheduler that implements a
 bounded work-stealing design:
@@ -64,7 +64,7 @@ bounded work-stealing design:
 
 ---
 
-## Architecture&#x2001;🏗️
+## Architecture 🏗️
 
 `Echo` is organized into three core subsystems:
 
@@ -88,7 +88,7 @@ bounded work-stealing design:
 +----------------------------------------------------+
 ```
 
-### Module Map&#x2001;🗺️
+### Module Map 🗺️
 
 | Path                                   | Purpose                                              |
 | -------------------------------------- | ---------------------------------------------------- |
@@ -102,7 +102,7 @@ bounded work-stealing design:
 
 ---
 
-## Priority System&#x2001;📊
+## Priority System 📊
 
 Tasks are classified into three priority tiers:
 
@@ -127,12 +127,12 @@ pub enum Priority {
 
 ---
 
-## Work-Stealing Mechanism&#x2001;🔄
+## Work-Stealing Mechanism 🔄
 
 `Echo` implements a work-stealing scheduler using `crossbeam-deque`'s
 injector/stealer pattern.
 
-### Per-Worker Structure&#x2001;⚙️
+### Per-Worker Structure ⚙️
 
 Each worker thread maintains:
 
@@ -148,7 +148,7 @@ Worker
   +---> Thread handle (JoinHandle)
 ```
 
-### Task Submission&#x2001;📝
+### Task Submission 📝
 
 1. **External submission** (from any thread): Task enters the global injector.
    Workers check the injector when their local deques are empty.
@@ -157,7 +157,7 @@ Worker
 3. **Work stealing**: When a worker's local deques are empty, it randomly
    selects a peer worker and attempts to steal from the bottom of their deque.
 
-### Stealing Strategy&#x2001;🎯
+### Stealing Strategy 🎯
 
 | Aspect           | Implementation                                |
 | ---------------- | --------------------------------------------- |
@@ -169,7 +169,7 @@ Worker
 
 ---
 
-## Scheduler Configuration&#x2001;⚙️
+## Scheduler Configuration ⚙️
 
 The `SchedulerBuilder` provides builder-pattern configuration:
 
@@ -193,9 +193,9 @@ let scheduler = SchedulerBuilder::new()
 
 ---
 
-## Usage&#x2001;💻
+## Usage 💻
 
-### Integration with Mountain&#x2001;🔗
+### Integration with Mountain 🔗
 
 ```rust
 use echo::{SchedulerBuilder, Priority};
@@ -222,7 +222,7 @@ scheduler.spawn_low(async {
 scheduler.shutdown().await;
 ```
 
-### Integration with Common ActionEffect&#x2001;🔗
+### Integration with Common ActionEffect 🔗
 
 `Echo` integrates with `Common`'s `ActionEffect` system by serving as the
 execution engine for `ApplicationRunTime`:
@@ -236,7 +236,7 @@ runtime.execute_effect(ActionEffect::ReadFile { path })
 
 ---
 
-## Performance Characteristics&#x2001;📈
+## Performance Characteristics 📈
 
 | Metric           | Value                                    |
 | ---------------- | ---------------------------------------- |
@@ -246,7 +246,7 @@ runtime.execute_effect(ActionEffect::ReadFile { path })
 | Steal efficiency | ~96% hit rate on random victim selection |
 | Worker scaling   | Linear with CPU core count               |
 
-### Benchmark Results&#x2001;📊
+### Benchmark Results 📊
 
 | Workers | Tasks/sec (High) | Tasks/sec (Normal) | Tasks/sec (Low) |
 | ------- | ---------------- | ------------------ | --------------- |
@@ -257,7 +257,7 @@ runtime.execute_effect(ActionEffect::ReadFile { path })
 
 ---
 
-## Related Documentation&#x2001;📚
+## Related Documentation 📚
 
 - [Common](https://github.com/CodeEditorLand/Common/tree/Current/Documentation/GitHub/Architecture.md) -
   `ActionEffect` system integration
