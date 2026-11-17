@@ -22,7 +22,9 @@
 //!
 //! - **Priority levels**: UI-blocking tasks pre-empt background indexing
 //! - **Work stealing**: Idle workers take from busy workers' queues
-//! - **Structured shutdown**: Graceful drain with timeout
+//! - **Structured shutdown**: Stop signals workers to exit; queued tasks are
+//!   not drained and there is no shutdown timeout (see `Scheduler::Stop` and
+//!   `Worker::Run`).
 //!
 //! ## Usage
 //!
@@ -37,9 +39,9 @@
 //!
 //! ## Modules
 //!
-//! - [`Scheduler`] — Builder and runtime for the worker pool
-//! - [`Queue`] — Lock-free work-stealing deque wrapper
-//! - [`Task`] — Task definition with priority levels
+//! - [`Scheduler`] - Builder and runtime for the worker pool
+//! - [`Queue`] - Lock-free work-stealing deque wrapper
+//! - [`Task`] - Task definition with priority levels
 //!
 //! ## Links
 //!

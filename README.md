@@ -43,7 +43,8 @@ A Resilient, High-Performance Task Scheduler for Rust
 > means a background file-index can stall a keystroke.**
 >
 > _"Every CPU core stays busy. High-priority tasks always pre-empt background
-> work. Shutdown drains gracefully, never drops a task in flight."_
+> work. Workers finish the task in flight; queued tasks are not drained and
+> there is no shutdown timeout."_
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Echo/tree/Current/LICENSE)
 [<img src="https://editor.land/Image/Rust.svg" width="14" alt="Rust" />](https://www.rust-lang.org/) [![Crates.io](https://img.shields.io/crates/v/Echo.svg)](https://crates.io/crates/Echo)
@@ -72,8 +73,10 @@ Echo solves this with three mechanisms:
 - **Work-stealing** - If one worker is busy and another is idle, the idle one
   pulls tasks from the busy one's queue. No core sits idle while work is
   waiting.
-- **Structured shutdown** - When the application shuts down, Echo drains its
-  queues gracefully. No task gets dropped mid-flight.
+- **Structured shutdown** - When the application shuts down, Echo signals its
+  workers to stop. A worker finishes the task it is currently running, but
+  Echo does not drain queued tasks and there is no shutdown timeout (see
+  `Scheduler::Stop` and `Worker::Run` in `Source/Scheduler/`).
 
 Echo is designed as two layers. A generic `Queue` module handles the core
 work-stealing logic (usable in any project). A `Scheduler` layer on top adds
@@ -302,7 +305,9 @@ Scheduler.Submit(async { /* critical work */ }, Priority::High);
 ```
 
 Before your application exits, ensure a clean shutdown of all worker threads.
-The `Stop()` method drains the queue and waits for in-flight tasks to complete:
+The `Stop()` method signals workers to stop and waits for in-flight tasks to
+complete; it does not drain queued tasks and there is no shutdown timeout (see
+`Scheduler::Stop` and `Worker::Run` in `Source/Scheduler/`):
 
 ```rust
 // Note: Arc::try_unwrap requires the Arc to have only one strong reference.
