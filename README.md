@@ -205,7 +205,7 @@ graph LR
 
 ## Project Structure 🗺️
 
-```
+```text
 Element/Echo/
 ├── Source/
 │   ├── Library.rs              # Crate root (rlib), module declarations

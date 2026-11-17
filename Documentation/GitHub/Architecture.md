@@ -68,7 +68,7 @@ bounded work-stealing design:
 
 `Echo` is organized into three core subsystems:
 
-```
+```text
 +----------------------------------------------------+
 |                    Echo Scheduler                   |
 |                                                     |
@@ -154,7 +154,7 @@ injector/stealer pattern.
 
 Each worker thread maintains:
 
-```
+```text
 Worker
   +---> Injector (push from any thread: submit_task)
   +---> Stealer (pull from other workers: steal_tasks)
