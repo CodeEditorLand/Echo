@@ -22,17 +22,17 @@ crossbeam-deque = { workspace = true }
 num_cpus = { workspace = true }
 Common = { workspace = true }
 
-# [[example]]
-# name = "Sequence"
-# path = "Example/Sequence.rs"
+[[example]]
+name = "Sequence"
+path = "Example/Sequence.rs"
 
-# [[example]]
-# name = "WorkSteal"
-# path = "Example/WorkSteal.rs"
+[[example]]
+name = "WorkSteal"
+path = "Example/WorkSteal.rs"
 
-# [[example]]
-# name = "Tauri"
-# path = "Example/Tauri.rs"
+[[example]]
+name = "Tauri"
+path = "Example/Tauri.rs"
 
 [features]
 #Development = ["tokio-console"]
