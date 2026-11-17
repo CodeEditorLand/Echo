@@ -1,4 +1,4 @@
-# Echo: Work-Stealing Task Scheduler ⚡
+# Echo: Work-Stealing Task Scheduler
 
 `Echo` is a bounded work-stealing task scheduler for `Rust`. `Echo` serves as
 the core execution engine for `Mountain`'s async workloads, providing
@@ -6,7 +6,7 @@ priority-based scheduling with lock-free work-stealing deques.
 
 ---
 
-## Table of Contents
+## Table of Contents 📖
 
 1. [Overview](#overview)
 2. [Architecture](#architecture)
@@ -128,6 +128,24 @@ pub enum Priority {
 ---
 
 ## Work-Stealing Mechanism 🔄
+
+```mermaid
+graph LR
+    subgraph Pool["Echo Scheduler"]
+        HIGH["High-priority queue"]
+        LOW["Low-priority queue"]
+        W1["Worker 1"]
+        W2["Worker 2"]
+        W3["Worker 3"]
+    end
+    SUBMIT["Submit task with Priority"] --> HIGH
+    SUBMIT --> LOW
+    HIGH --> W1
+    LOW --> W2
+    W1 -.->|"steal when idle"| W3
+    W2 -.->|"steal when idle"| W1
+```
+
 
 `Echo` implements a work-stealing scheduler using `crossbeam-deque`'s
 injector/stealer pattern.
@@ -268,7 +286,7 @@ runtime.execute_effect(ActionEffect::ReadFile { path })
 
 ---
 
-## Shim Compatibility
+## Shim Compatibility 🛡️
 
 | 🟠 Low-Level Shim                              | 🔵 Coverage Shim                   |
 | ---------------------------------------------- | ---------------------------------- |

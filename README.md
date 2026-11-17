@@ -33,7 +33,7 @@
 
 ---
 
-# **Echo** 📣
+# **Echo**
 
 A Resilient, High-Performance Task Scheduler for Rust
 
@@ -55,7 +55,7 @@ A Resilient, High-Performance Task Scheduler for Rust
 
 ---
 
-## Overview
+## Overview 📋
 
 **Echo** is a task scheduler for `Rust` that decides which work runs when - and
 on which CPU core. It's the execution engine that
@@ -129,7 +129,7 @@ implementing the `Prioritized` trait, making it reusable across projects.
 
 ---
 
-## System Architecture
+## System Architecture 🏗️
 
 ```mermaid
 graph LR
@@ -187,7 +187,7 @@ graph LR
 
 ---
 
-## Key Components
+## Key Components 🧩
 
 | Component         | Path                                   | Description                                                               |
 | ----------------- | -------------------------------------- | ------------------------------------------------------------------------- |
@@ -229,7 +229,7 @@ Element/Echo/
 
 ---
 
-## In the Land Project
+## In the Land Project 🔌
 
 Echo serves as the core execution engine for `Mountain` ⛰️, the native
 `Rust`/`Tauri` backend of the Land Code Editor. It integrates seamlessly with
@@ -252,12 +252,12 @@ like file indexing and syntax analysis.
 
 ## Getting Started 🚀
 
-### Prerequisites
+### Prerequisites 📦
 
 - **Rust** 1.95.0 or later (edition 2024)
 - A `Tokio` runtime (Echo uses `tokio` internally)
 
-### Installation
+### Installation 📦
 
 Add Echo to your project via the Land workspace:
 
@@ -270,7 +270,7 @@ The crate depends on `tokio`, `crossbeam-deque`, `rand`, `log`, `num_cpus`, and
 `Common` from the Land workspace. All dependencies are resolved through the
 workspace `Cargo.toml` configuration.
 
-### Usage
+### Usage 🚀
 
 First, create and start the scheduler when your application initializes. The
 builder defaults to the number of logical CPU cores, with a minimum of two
@@ -311,7 +311,7 @@ if let Ok(mut Scheduler) = Arc::try_unwrap(Scheduler) {
 }
 ```
 
-### Key Dependencies
+### Key Dependencies 🧩
 
 | Crate              | Purpose                                                                                                                           |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -338,7 +338,7 @@ runtime enforcement:
 
 ---
 
-## Compatibility
+## Compatibility 🔌
 
 Echo is designed to be compatible with:
 
@@ -350,19 +350,21 @@ Echo is designed to be compatible with:
 
 ---
 
-## API Reference
+## API Reference 📖
+
+- [Architecture](https://github.com/CodeEditorLand/Echo/tree/Current/Documentation/GitHub/Architecture.md) - work-stealing mechanism, priority system and configuration
 
 - **[Rust API Documentation](https://rust.documentation.echo.editor.land/)** 📖
 
 ---
 
-## Related Documentation
+## Related Documentation 📖
 
 - [Architecture Overview](https://Editor.Land/Doc/architecture) - Land system
   architecture
 - [Deep Dive](Documentation/GitHub/DeepDive.md) - In-depth technical details of
   the work-stealing algorithm
-- [Land Documentation](../../Documentation/GitHub/README.md) - Complete
+- [Land Documentation](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/README.md) - Complete
   documentation index
 - [`Mountain`](https://github.com/CodeEditorLand/Mountain) ⛰️ - Primary
   consumer of Echo, native `Tauri` desktop shell
