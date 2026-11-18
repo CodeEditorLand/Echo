@@ -178,27 +178,6 @@ impl<TTask:Prioritized<Kind = Priority>> StealingQueue<TTask> {
 }
 
 impl<TTask> Context<TTask> {
-	/// Finds the next available task for the worker to execute.
-	///
-	/// Implements the complete work-finding logic:
-	/// 1. Checks local deques (from high to low priority).
-	/// 2. If local deques are empty, attempts to steal from the system (from
-	///    high to low priority).
-	///
-	/// ## Returns
-	///
-	/// The next available task, or `None` if no work is found anywhere.
-	pub fn Next(&self) -> Option<TTask> {
-		self.Local
-			.0
-			.pop()
-			.or_else(|| self.Local.1.pop())
-			.or_else(|| self.Local.2.pop())
-			.or_else(|| self.Steal(&self.Share.Injector.0, &self.Share.Stealer.0, &self.Local.0))
-			.or_else(|| self.Steal(&self.Share.Injector.1, &self.Share.Stealer.1, &self.Local.1))
-			.or_else(|| self.Steal(&self.Share.Injector.2, &self.Share.Stealer.2, &self.Local.2))
-	}
-
 	/// Attempts to steal a task from a specific priority set.
 	///
 	/// First tries to steal a batch from the global injector queue for that
