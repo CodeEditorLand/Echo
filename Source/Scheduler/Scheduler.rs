@@ -12,14 +12,22 @@ use std::{
 	},
 };
 
-use log::{error, info, warn};
-use tokio::task::JoinHandle;
+use log::{info, warn};
+use tokio::{
+	task::JoinHandle,
+	time::{Duration, timeout},
+};
 
 use super::{SchedulerBuilder::Concurrency, Worker::Worker};
 use crate::{
 	Queue::StealingQueue::StealingQueue,
 	Task::{Priority::Priority, Task::Task},
 };
+
+/// Maximum time `Scheduler::Stop` waits for one worker handle before it warns,
+/// abandons that handle and continues shutting down. A single stuck worker
+/// must not block shutdown indefinitely.
+const STOP_TIMEOUT:Duration = Duration::from_secs(5);
 
 /// Manages a pool of worker threads and a work-stealing queue to execute
 /// tasks efficiently. The primary public-facing struct of the Echo library.
@@ -41,8 +49,8 @@ impl Scheduler {
 	///
 	/// ## Parameters
 	///
-	/// * `WorkerCount` — Number of worker threads to spawn.
-	/// * `_Configuration` — Named-queue concurrency limits (reserved for future
+	/// * `WorkerCount` - Number of worker threads to spawn.
+	/// * `_Configuration` - Named-queue concurrency limits (reserved for future
 	///   use).
 	pub(crate) fn Create(WorkerCount:usize, _Configuration:HashMap<String, Concurrency>) -> Self {
 		info!("[Scheduler] Creating scheduler with {} workers.", WorkerCount);
@@ -77,8 +85,8 @@ impl Scheduler {
 	///
 	/// ## Parameters
 	///
-	/// * `Operation` — The future to execute.
-	/// * `Priority` — The execution priority for this task.
+	/// * `Operation` - The future to execute.
+	/// * `Priority` - The execution priority for this task.
 	pub fn Submit<F>(&self, Operation:F, Priority:Priority)
 	where
 		F: Future<Output = ()> + Send + 'static, {
@@ -90,10 +98,13 @@ impl Scheduler {
 	/// Signals all worker threads to stop their loops and waits for each one to
 	/// complete its current task and exit gracefully.
 	///
-	/// ## Errors
+	/// ## Shutdown Bound
 	///
-	/// Logs an error if a worker handle produces a join error but does not
-	/// propagate the error to the caller.
+	/// Waits at most `STOP_TIMEOUT` for each worker to observe the shutdown
+	/// flag and exit. A worker that does not stop in time is warned about by
+	/// pool index, its handle is abandoned and shutdown continues with the
+	/// remaining workers. Join failures (cancelled or panicked tasks) are
+	/// warned about and never panic or propagate to the caller.
 	pub async fn Stop(&mut self) {
 		if !self.IsRunning.swap(false, Ordering::Relaxed) {
 			info!("[Scheduler] Stop already initiated.");
@@ -103,13 +114,58 @@ impl Scheduler {
 
 		info!("[Scheduler] Stopping worker threads...");
 
-		for Handle in self.WorkerHandles.drain(..) {
-			if let Err(Error) = Handle.await {
-				error!("[Scheduler] Error joining worker handle: {}", Error);
+		let mut Stragglers = 0usize;
+		let mut Abnormal = 0usize;
+
+		for (Index, Handle) in self.WorkerHandles.drain(..).enumerate() {
+			match timeout(STOP_TIMEOUT, Handle).await {
+				// Clean exit, or a handle that had already finished before we
+				// began waiting: the timeout future resolves immediately.
+				Ok(Ok(())) => {},
+
+				// The task was cancelled before it could finish its loop.
+				Ok(Err(Error)) if Error.is_cancelled() => {
+					Abnormal += 1;
+
+					warn!(
+						"[Scheduler] Worker {} was cancelled before it stopped: {}.",
+						Index, Error
+					);
+				},
+
+				// The task panicked; never unwrap or propagate the join error.
+				Ok(Err(Error)) => {
+					Abnormal += 1;
+
+					warn!(
+						"[Scheduler] Worker {} ended abnormally while stopping: {}.",
+						Index, Error
+					);
+				},
+
+				// Still running: warn by pool index, drop the handle so we stop
+				// waiting on it, then continue with the remaining workers.
+				Err(_) => {
+					Stragglers += 1;
+
+					warn!(
+						"[Scheduler] Worker {} did not stop within {:?}; abandoning \
+						 its handle and continuing shutdown.",
+						Index, STOP_TIMEOUT
+					);
+				},
 			}
 		}
 
-		info!("[Scheduler] All workers stopped successfully.");
+		if Stragglers == 0 && Abnormal == 0 {
+			info!("[Scheduler] All workers stopped successfully.");
+		} else {
+			warn!(
+				"[Scheduler] Stop finished with {} worker(s) still running after \
+				 the {:?} wait and {} worker(s) ending abnormally.",
+				Stragglers, STOP_TIMEOUT, Abnormal
+			);
+		}
 	}
 }
 
